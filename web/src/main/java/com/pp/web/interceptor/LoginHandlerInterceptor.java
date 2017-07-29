@@ -5,15 +5,11 @@ import com.pp.basic.service.SystemUserService;
 import com.pp.web.account.Account;
 import com.pp.web.account.AccountContext;
 import com.pp.web.common.SystemCommon;
-import com.pp.web.controller.until.AccountUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -34,14 +30,24 @@ public class LoginHandlerInterceptor implements HandlerInterceptor {
 
 		String userCode = request.getParameter("userCode");
 		String password = request.getParameter("password");
+		if(!StringUtils.isEmpty(userCode)){
+			systemUser.setUserCode(userCode);
+		}else {
+			throw new IllegalAccessException("用户名不能为空");
+		}
+		if(!StringUtils.isEmpty(userCode)){
+			systemUser.setUserPassword(password);
+		}else {
+			throw new IllegalAccessException("密码不能为空");
+		}
 
-		Account account = new Account();
 		systemUser.setUserCode(userCode);
 		systemUser.setUserPassword(password);
 
 		//判断用户是否存在 及权限
 		if(this.systemUserService.exists(systemUser)){
 			systemUser = this.systemUserService.selectOne(systemUser);
+			Account account = new Account();
 			account.setUserCode(systemUser.getUserCode());
 			account.setRole(systemUser.getUserAuthority());
 			account.setUserName(systemUser.getUserName());

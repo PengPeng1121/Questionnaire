@@ -3,10 +3,11 @@
  */
 package com.pp.web.controller.questionnaire;
 
-import com.pp.basic.domain.Questionnaire;
-import com.pp.basic.domain.Student;
+import com.pp.basic.domain.*;
 import com.pp.basic.domain.vo.InitStudent;
 import com.pp.basic.domain.vo.InitStudentFail;
+import com.pp.basic.service.LessonService;
+import com.pp.basic.service.QuestionnaireLessonService;
 import com.pp.basic.service.QuestionnaireService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +28,6 @@ import com.pp.web.controller.until.AccountUtils;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.controller.BaseController;
-import com.pp.basic.domain.QuestionnaireQuestion;
 import com.pp.basic.service.QuestionnaireQuestionService;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -46,11 +46,16 @@ import java.util.*;
 public class QuestionnaireQuestionController extends BaseController {
 
     @Autowired
+    QuestionnaireService questionnaireService;
+
+    @Autowired
     QuestionnaireQuestionService questionnaireQuestionService;
 
     @Autowired
-    QuestionnaireService questionnaireService;
+    QuestionnaireLessonService questionnaireLessonService;
 
+    @Autowired
+    LessonService lessonService;
     /**
      * 显示列表页面
      */
@@ -171,9 +176,41 @@ public class QuestionnaireQuestionController extends BaseController {
 
     @RequestMapping(value = "/importQuestion", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireCode) {
+    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode) {
         Questionnaire questionnaire = new Questionnaire();
-        questionnaire.setQuestionnaireCode(questionnaireCode);
+        Account account = AccountUtils.getCurrentAccount();
+        try {
+            questionnaire.setQuestionnaireName(questionnaireName);
+            questionnaire.setQuestionnaireCode(UUID.randomUUID().toString());
+            questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
+            questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
+            this.questionnaireService.insert(questionnaire, account.getUserCode());
+            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+                throw new RuntimeException("为管理员操作，当前用户没有管理员权限");
+            }
+            questionnaire.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+            if(!this.questionnaireService.exists(questionnaire)){
+                throw new RuntimeException("该问卷编码找不到对应问卷，请确认");
+            }
+            questionnaire= this.questionnaireService.selectOne(questionnaire);
+            Lesson lesson = new Lesson();
+            lesson.setLessonCode(lessonCode);
+            if(!this.lessonService.exists(lesson)){
+                throw new RuntimeException("该课程编码找不到对应课程，请确认");
+            }
+            lesson = this.lessonService.selectOne(lesson);
+            QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
+            questionnaireLesson.setLessonCode(lesson.getLessonCode());
+            questionnaireLesson.setLessonName(lesson.getLessonName());
+            questionnaireLesson.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+            questionnaireLesson.setQuestionnaireName(questionnaire.getQuestionnaireName());
+            this.questionnaireLessonService.insert(questionnaireLesson,account.getUserName());
+            questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_LESSON_CODE);
+            questionnaire.setQuestionnaireName(Questionnaire.ALREADY_WITH_LESSON_NAME);
+            this.questionnaireService.update(questionnaire,account.getUserName());
+        }catch (Exception e){
+            throw new RuntimeException("该课程编码找不到对应课程，请确认");
+        }
         if(!this.questionnaireService.exists(questionnaire)){
             throw new IllegalArgumentException("根据问卷编码没有找到问卷");
         }
@@ -189,7 +226,7 @@ public class QuestionnaireQuestionController extends BaseController {
         int lastIndexOfDot = fileName.lastIndexOf('.');
         int fileNameLength = fileName.length();
         String prefix = fileName.substring(lastIndexOfDot + 1, fileNameLength);
-        Account account = AccountUtils.getCurrentAccount();
+
         try {
             if (prefix.toLowerCase().equals("xlsx") || prefix.toLowerCase().equals("xls")) {
                 InputStream in = multipartFile.getInputStream();
