@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+
+<configuration status="info" name="defaultLogConfig">
+    <properties>
+        <property name="LOG_HOME">/export/Logs/local.pp.com</property>
+        <property name="PATTERN_LAYOUT">%d [%7r] %6p - %30.30c - %m \n</property>
+    </properties>
+
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${PATTERN_LAYOUT}" />
+        </Console>
+
+        <RollingFile name="FILE" fileName="${LOG_HOME}/demo.log" filePattern="${LOG_HOME}/$${date:yyyyMMdd}/local-pp-com-%d{yyyyMMdd}-%i.log.gz">
+            <PatternLayout pattern="${PATTERN_LAYOUT}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="102400KB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <AsyncLogger name="org.springframework.beans" level="info" additivity="false">
+            <AppenderRef ref="CONSOLE" />
+            <AppenderRef ref="FILE" />
+        </AsyncLogger>
+
+        <AsyncLogger name="org.springframework.core" level="info" additivity="false">
+            <AppenderRef ref="CONSOLE" />
+            <AppenderRef ref="FILE" />
+        </AsyncLogger>
+
+        <AsyncLogger name="org.springframework.context" level="info" additivity="false">
+            <AppenderRef ref="CONSOLE" />
+            <AppenderRef ref="FILE" />
+        </AsyncLogger>
+        
+        <AsyncLogger name="org.springframework.web" level="info" additivity="false">
+            <AppenderRef ref="CONSOLE" />
+            <AppenderRef ref="FILE" />
+        </AsyncLogger>
+
+        <Root level="INFO">
+            <AppenderRef ref="CONSOLE" />
+            <AppenderRef ref="FILE" />
+        </Root>
+    </Loggers>
+</configuration>
+

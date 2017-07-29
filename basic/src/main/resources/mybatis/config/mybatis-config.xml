@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <properties>
+        <property name="dialect" value="MYSQL" />	<!-- SQL方言 -->
+    </properties>
+
+    <mappers>
+        <!--<mapper resource="mybatis/mysql/WebUserDao.xml" />	&lt;!&ndaquestionnairedemo  &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/NoticeDao.xml" />	&lt;!&ndash; 公告管理表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/RoleDao.xml" />	&lt;!&ndash; 角色表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/UserDao.xml" />	&lt;!&ndash; 用户表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/UserRoleDao.xml" />	&lt;!&ndash; 用户角色关系表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/AuthorityDao.xml" />	&lt;!&ndash; 权限表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/ResourceDao.xml" />	&lt;!&ndash; 资源表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/RoleAuthorityDao.xml" />	&lt;!&ndash; 角色权限表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/AuthorityDao.xml" />	&lt;!&ndash; 权限表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/AuthorityResourceDao.xml" />	&lt;!&ndash; 权限资源表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/ResourceDao.xml" />	&lt;!&ndash; 资源表 &ndash;&gt;-->
+        <!--<mapper resource="mybatis/mysql/RoleAuthorityDao.xml" />	&lt;!&ndash; 角色权限表 &ndash;&gt;-->
+
+        <mapper resource="mybatis/mysql/LessonDao.xml" />	<!-- 课程信息表 -->
+        <mapper resource="mybatis/mysql/QuestionnaireDao.xml" />	<!-- 文卷调查信息表 -->
+        <mapper resource="mybatis/mysql/QuestionnaireLessonDao.xml" />	<!-- 文卷和课程关系调查信息表 -->
+        <mapper resource="mybatis/mysql/QuestionnaireQuestionDao.xml" />	<!-- 文卷调查问题信息表 -->
+        <mapper resource="mybatis/mysql/QuestionnaireQuestionAnswerDao.xml" />	<!-- 文卷调查问题答案信息表 -->
+        <mapper resource="mybatis/mysql/StudentDao.xml" />	<!-- 学生信息表 -->
+        <mapper resource="mybatis/mysql/StudentLessonDao.xml" />	<!-- 学生选课信息表 -->
+        <mapper resource="mybatis/mysql/SystemUserDao.xml" />	<!-- 学生信息表 -->
+        <mapper resource="mybatis/mysql/TeacherDao.xml" />	<!-- 教师信息表 -->
+        <mapper resource="mybatis/mysql/TeacherLessonDao.xml" />	<!-- 教师授课信息表 -->
+        <mapper resource="mybatis/mysql/QuestionnaireStudentDao.xml" />	<!-- 学生问卷调查关系表 -->
+        <mapper resource="mybatis/mysql/SystemConfigDao.xml" />	<!-- 系统配置 -->
+    </mappers>
+    
+</configuration>

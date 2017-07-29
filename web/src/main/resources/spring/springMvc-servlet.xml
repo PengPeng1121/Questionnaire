@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+        				http://www.springframework.org/schema/beans/spring-beans.xsd
+        				http://www.springframework.org/schema/context
+            			http://www.springframework.org/schema/context/spring-context.xsd
+        				http://www.springframework.org/schema/mvc
+            			http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+	<import resource="classpath*:spring/spring-mysql.xml" />
+	<!-- 自动装配 -->
+	<context:component-scan base-package="com.pp"></context:component-scan>
+
+	<!-- 解析注解 -->
+	<context:annotation-config />
+
+	<mvc:default-servlet-handler />
+	<mvc:annotation-driven conversion-service="conversionService2" >
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="objectMapper">
+					<bean class="com.pp.web.secutiry.SafeHtmlObjectMapper">
+						<property name="dateFormat">
+							<bean class="com.pp.web.secutiry.IgnoreDefaultValueDateFormat">
+								<constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss" />
+							</bean>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+	<bean id="conversionService2" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<property name="registerDefaultFormatters" value="false" />
+		<property name="formatters">
+			<set>
+				<bean class="org.springframework.format.number.NumberFormatAnnotationFormatterFactory" />
+			</set>
+		</property>
+		<property name="formatterRegistrars">
+			<set>
+				<bean class="org.springframework.format.datetime.DateFormatterRegistrar">
+					<property name="formatter">
+						<bean class="org.springframework.format.datetime.DateFormatter">
+							<property name="pattern" value="yyyy-MM-dd HH:mm:ss"/>
+						</bean>
+					</property>
+				</bean>
+			</set>
+		</property>
+	</bean>
+
+
+	<!-- 静态文件使用默认Servlet -->
+	<mvc:default-servlet-handler />
+
+	<!-- 视图配置 -->
+	<bean id="velocityConfig"
+		  class="org.springframework.web.servlet.view.velocity.VelocityConfigurer">
+		<property name="resourceLoaderPath" value="/WEB-INF/views/" />
+		<property name="velocityProperties">
+			<props>
+				<prop key="input.encoding">UTF-8</prop>
+				<prop key="output.encoding">UTF-8</prop>
+				<prop key="contentType">text/html;charset=UTF-8</prop>
+				<prop key="velocimacro.library">macro.vm</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 支持上传文件 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+
+	<!-- 视图解析器 -->
+	<bean id="velocityViewResolver"
+		  class="org.springframework.web.servlet.view.velocity.VelocityLayoutViewResolver">
+		<property name="layoutUrl" value="login.vm" />
+		<property name="cache" value="false" />
+		<property name="suffix" value=".vm" />
+		<property name="exposeSpringMacroHelpers" value="true" />
+		<property name="dateToolAttribute" value="dateTool" />
+		<property name="numberToolAttribute" value="numberTool" />
+		<property name="contentType" value="text/html;charset=UTF-8" />
+	</bean>
+
+
+	<!-- 拦截器 -->
+	<mvc:interceptors>
+		<!-- 登录 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/login/login" />
+			<bean class="com.pp.web.interceptor.LoginHandlerInterceptor"></bean>
+		</mvc:interceptor>
+		<!-- 用户 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/web/**" />
+			<bean class="com.pp.web.interceptor.AccountExposingHandlerInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+</beans>

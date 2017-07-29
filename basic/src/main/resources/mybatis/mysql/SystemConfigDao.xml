@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!-- 系统配置映射文件 system_config -->
+<mapper namespace="com.pp.basic.dao.SystemConfigDao">
+
+    <!-- 映射关系 -->
+    <resultMap id="resultMap" type="com.pp.basic.domain.SystemConfig">
+        <id column="id" property="id" jdbcType="BIGINT" />                                        <!-- 自增主键 -->
+        <result column="questionnaire_code" property="questionnaireCode" jdbcType="VARCHAR" />    <!-- 问卷编号 -->
+        <result column="questionnaire_name" property="questionnaireName" jdbcType="VARCHAR" />    <!-- 问卷名称 -->
+        <result column="remind_time" property="remindTime" jdbcType="TIMESTAMP" />                <!-- 提醒时间 -->
+        <result column="remark" property="remark" jdbcType="VARCHAR" />                           <!-- 备注 -->
+        <result column="version" property="version" jdbcType="VARCHAR" />                         <!-- 数据版本 -->
+        <result column="create_user" property="createUser" jdbcType="VARCHAR" />                  <!-- 创建人 -->
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />                <!-- 创建时间 -->
+        <result column="update_user" property="updateUser" jdbcType="VARCHAR" />                  <!-- 修改人 -->
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />                <!-- 修改时间 -->
+        <result column="is_delete" property="isDelete" jdbcType="TINYINT" />                      <!-- 是否删除（0:否;1:是） -->
+        <result column="ts" property="ts" jdbcType="TIMESTAMP" />                                 <!-- 最后更新时间 -->
+    </resultMap>
+
+    <!-- 查询列 -->
+    <sql id="queryColumns">
+        <![CDATA[
+            id,                     /* 自增主键 */
+            questionnaire_code,     /* 问卷编号 */
+            questionnaire_name,     /* 问卷名称 */
+            remind_time,            /* 提醒时间 */
+            remark,                 /* 备注 */
+            version,                /* 数据版本 */
+            create_user,            /* 创建人 */
+            create_time,            /* 创建时间 */
+            update_user,            /* 修改人 */
+            update_time,            /* 修改时间 */
+            is_delete,              /* 是否删除（0:否;1:是） */
+            ts                      /* 最后更新时间 */
+        ]]>
+    </sql>
+
+    <!-- 查询条件 -->
+    <sql id="queryClause">
+        <where>
+            is_delete = 0    /* 是否删除(1:是;0:否) */
+            <if test="id != null">
+                <![CDATA[ AND id = #{id, jdbcType=BIGINT} ]]>	/* 主键 */
+            </if>
+            <if test="idMin != null">
+                <![CDATA[ AND id > #{idMin, jdbcType=BIGINT} ]]>	/* 主键大于某值*/
+            </if>
+            <if test="idMax != null">
+                <![CDATA[ AND id < #{idMax, jdbcType=BIGINT} ]]>	/* 主键小于某值 */
+            </if>
+            <if test="questionnaireCode != null and questionnaireCode != ''">
+                AND questionnaire_code = #{questionnaireCode, jdbcType=VARCHAR}    /* 问卷编号 */
+            </if>
+            <if test="questionnaireName != null and questionnaireName != ''">
+                AND questionnaire_name = #{questionnaireName, jdbcType=VARCHAR}    /* 问卷名称 */
+            </if>
+            <if test="remindTimeBegin != null">
+                <![CDATA[ AND remind_time >= #{remindTimeBegin, jdbcType=TIMESTAMP} ]]>    /* 提醒时间开始 */
+            </if>
+            <if test="remindTimeEnd != null">
+                <![CDATA[ AND remind_time <= #{remindTimeEnd, jdbcType=TIMESTAMP} ]]>    /* 提醒时间截止 */
+            </if>
+            <if test="remark != null and remark != ''">
+                AND remark = #{remark, jdbcType=VARCHAR}    /* 备注 */
+            </if>
+            <if test="version != null and version != ''">
+                AND version = #{version, jdbcType=VARCHAR}    /* 数据版本 */
+            </if>
+            <if test="createUser != null and createUser != ''">
+                AND create_user = #{createUser, jdbcType=VARCHAR}    /* 创建人 */
+            </if>
+            <if test="createTimeBegin != null">
+                <![CDATA[ AND create_time >= #{createTimeBegin, jdbcType=TIMESTAMP} ]]>    /* 创建时间开始 */
+            </if>
+            <if test="createTimeEnd != null">
+                <![CDATA[ AND create_time <= #{createTimeEnd, jdbcType=TIMESTAMP} ]]>    /* 创建时间截止 */
+            </if>
+            <if test="updateUser != null and updateUser != ''">
+                AND update_user = #{updateUser, jdbcType=VARCHAR}    /* 修改人 */
+            </if>
+            <if test="updateTimeBegin != null">
+                <![CDATA[ AND update_time >= #{updateTimeBegin, jdbcType=TIMESTAMP} ]]>    /* 修改时间开始 */
+            </if>
+            <if test="updateTimeEnd != null">
+                <![CDATA[ AND update_time <= #{updateTimeEnd, jdbcType=TIMESTAMP} ]]>    /* 修改时间截止 */
+            </if>
+            <if test="isDelete != null">
+                AND is_delete = #{isDelete, jdbcType=TINYINT}    /* 是否删除（0:否;1:是） */
+            </if>
+            <if test="tsBegin != null">
+                <![CDATA[ AND ts >= #{tsBegin, jdbcType=TIMESTAMP} ]]>    /* 最后更新时间开始 */
+            </if>
+            <if test="tsEnd != null">
+                <![CDATA[ AND ts <= #{tsEnd, jdbcType=TIMESTAMP} ]]>    /* 最后更新时间截止 */
+            </if>
+            <if test="_clover != null">
+                AND MOD(id, #{_clover.serverCount, jdbcType=INTEGER}) = #{_clover.serverId, jdbcType=INTEGER}    /* Clover分片 */
+            </if>
+        </where>
+    </sql>
+
+    <!-- 排序 -->
+    <sql id="sortClause">
+        <if test="_sort != null">
+            ORDER BY 
+            <foreach collection="_sort" item="item" index="index" separator=",">
+                <choose>
+                    <when test="item.propertyName != null and item.propertyName == 'id'">
+                        id    /* 自增主键 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'questionnaireCode'">
+                        questionnaire_code    /* 问卷编号 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'questionnaireName'">
+                        questionnaire_name    /* 问卷名称 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'remindTime'">
+                        remind_time    /* 提醒时间 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'remark'">
+                        remark    /* 备注 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'version'">
+                        version    /* 数据版本 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'createUser'">
+                        create_user    /* 创建人 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'createTime'">
+                        create_time    /* 创建时间 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'updateUser'">
+                        update_user    /* 修改人 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'updateTime'">
+                        update_time    /* 修改时间 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'isDelete'">
+                        is_delete    /* 是否删除（0:否;1:是） */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'ts'">
+                        ts    /* 最后更新时间 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <otherwise>ts DESC</otherwise>
+                </choose>
+            </foreach>
+        </if>
+    </sql>
+
+    <!-- 分页 -->
+    <sql id="pageClause">
+        <if test="_page != null">
+            limit #{_page.offset, jdbcType=INTEGER}, #{_page.limit, jdbcType=INTEGER}
+        </if>
+    </sql>
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="com.pp.basic.domain.SystemConfig" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO system_config (
+            questionnaire_code,    /* 问卷编号 */
+            questionnaire_name,    /* 问卷名称 */
+            remind_time,           /* 提醒时间 */
+            remark,                /* 备注 */
+            version,               /* 数据版本 */
+            create_user,           /* 创建人 */
+            create_time,           /* 创建时间 */
+            update_user,           /* 修改人 */
+            update_time,           /* 修改时间 */
+            is_delete              /* 是否删除（0:否;1:是） */
+        ) VALUES (
+            #{questionnaireCode, jdbcType=VARCHAR},    /* 问卷编号 */
+            #{questionnaireName, jdbcType=VARCHAR},    /* 问卷名称 */
+            #{remindTime, jdbcType=TIMESTAMP},         /* 提醒时间 */
+            #{remark, jdbcType=VARCHAR},               /* 备注 */
+            #{version, jdbcType=VARCHAR},              /* 数据版本 */
+            #{createUser, jdbcType=VARCHAR},           /* 创建人 */
+            #{createTime, jdbcType=TIMESTAMP},         /* 创建时间 */
+            #{updateUser, jdbcType=VARCHAR},           /* 修改人 */
+            #{updateTime, jdbcType=TIMESTAMP},         /* 修改时间 */
+            #{isDelete, jdbcType=TINYINT}              /* 是否删除（0:否;1:是） */
+        )
+    </insert>
+
+    <!-- 批量插入数据 -->
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO system_config (
+            questionnaire_code,    /* 问卷编号 */
+            questionnaire_name,    /* 问卷名称 */
+            remind_time,           /* 提醒时间 */
+            remark,                /* 备注 */
+            version,               /* 数据版本 */
+            create_user,           /* 创建人 */
+            create_time,           /* 创建时间 */
+            update_user,           /* 修改人 */
+            update_time,           /* 修改时间 */
+            is_delete              /* 是否删除（0:否;1:是） */
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+        (
+            #{item.questionnaireCode, jdbcType=VARCHAR},    /* 问卷编号 */
+            #{item.questionnaireName, jdbcType=VARCHAR},    /* 问卷名称 */
+            #{item.remindTime, jdbcType=TIMESTAMP},         /* 提醒时间 */
+            #{item.remark, jdbcType=VARCHAR},               /* 备注 */
+            #{item.version, jdbcType=VARCHAR},              /* 数据版本 */
+            #{item.createUser, jdbcType=VARCHAR},           /* 创建人 */
+            #{item.createTime, jdbcType=TIMESTAMP},         /* 创建时间 */
+            #{item.updateUser, jdbcType=VARCHAR},           /* 修改人 */
+            #{item.updateTime, jdbcType=TIMESTAMP},         /* 修改时间 */
+            #{item.isDelete, jdbcType=TINYINT}              /* 是否删除（0:否;1:是） */
+        )
+        </foreach>
+    </insert>
+
+    <!-- 按主键更新 -->
+    <update id="updateByPrimaryKey" parameterType="java.util.Map">
+        <if test="_parameter != null">
+            UPDATE system_config
+            <set>
+                <if test="questionnaireCode != null and questionnaireCode != ''">
+                    questionnaire_code = #{questionnaireCode, jdbcType=VARCHAR},    /* 问卷编号 */
+                </if>
+                <if test="questionnaireName != null and questionnaireName != ''">
+                    questionnaire_name = #{questionnaireName, jdbcType=VARCHAR},    /* 问卷名称 */
+                </if>
+                <if test="remindTime != null">
+                    remind_time = #{remindTime, jdbcType=TIMESTAMP},    /* 提醒时间 */
+                </if>
+                <if test="remark != null and remark != ''">
+                    remark = #{remark, jdbcType=VARCHAR},    /* 备注 */
+                </if>
+                <if test="version != null and version != ''">
+                    version = #{version, jdbcType=VARCHAR},    /* 数据版本 */
+                </if>
+                <if test="updateUser != null and updateUser != ''">
+                    update_user = #{updateUser, jdbcType=VARCHAR},    /* 修改人 */
+                </if>
+                <if test="updateTime != null">
+                    update_time = #{updateTime, jdbcType=TIMESTAMP}    /* 修改时间 */
+                </if>
+            </set>
+            <where>
+                id = #{id, jdbcType=BIGINT}	/* 主键 */
+                AND is_delete = 0		/* 是否删除(1:是;0:否) */
+                <if test="_version != null and _version != ''">
+                    AND version = #{_version, jdbcType=VARCHAR}    /* 数据版本 */
+                </if>
+            </where>
+        </if>
+    </update>
+
+    <!-- 按主键删除 -->
+    <update id="deleteByPrimaryKey" parameterType="com.pp.basic.domain.SystemConfig">
+        <if test="_parameter != null">
+            UPDATE system_config
+            <set>
+                is_delete = 1,    /* 是否删除(1:是;0:否) */
+                update_user = #{updateUser, jdbcType=VARCHAR},	/* 修改人 */
+                update_time = #{updateTime, jdbcType=TIMESTAMP}	/* 修改时间 */
+            </set>
+            <where>
+                id = #{id, jdbcType=BIGINT}	/* 主键 */
+                AND is_delete = 0		/* 是否删除(1:是;0:否) */
+            </where>
+        </if>
+    </update>
+
+    <!-- 按主键批量删除 -->
+    <update id="batchDeleteByPrimaryKey" parameterType="java.util.Map">
+        <if test="_parameter != null">
+            UPDATE system_config
+            <set>
+                is_delete = 1,    /* 是否删除(1:是;0:否) */
+                update_user = #{updateUser, jdbcType=VARCHAR},	/* 修改人 */
+                update_time = #{updateTime, jdbcType=TIMESTAMP}	/* 修改时间 */
+            </set>
+            <where>
+                id in    /* 主键集合 */
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id, jdbcType=BIGINT}
+                </foreach>
+                AND is_delete = 0    /* 是否删除(1:是;0:否) */
+            </where>
+        </if>
+    </update>
+
+    <!-- 按主键批量物理删除，慎用 -->
+    <delete id="batchDeleteByPrimaryKeyPhysically" parameterType="java.util.List">
+        <if test="_parameter != null">
+            DELETE FROM system_config
+            <where>
+                id in	/* 主键集合 */
+                <foreach collection="list" item="id" open="(" separator="," close=")">
+                    #{id, jdbcType=BIGINT}
+                </foreach>
+            </where>
+        </if>
+    </delete>
+
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultMap="resultMap">
+        SELECT
+            <include refid="queryColumns"/>
+        FROM
+            system_config
+        <where>
+            is_delete = 0    /* 是否删除(1:是;0:否) */
+        </where>
+    </select>
+
+    <!-- 按主键查询 -->
+    <select id="selectByPrimaryKey" resultMap="resultMap" parameterType="java.lang.Long">
+        SELECT
+            <include refid="queryColumns"/>
+        FROM
+            system_config
+        <where>
+            id = #{id, jdbcType=BIGINT}	/* 主键 */
+            AND is_delete = 0			/* 是否删除(1:是;0:否) */
+        </where>
+    </select>
+
+    <!-- 按主键集合查询 -->
+    <select id="selectByPrimaryKeys" resultMap="resultMap" parameterType="java.util.List">
+        SELECT
+            <include refid="queryColumns"/>
+        FROM
+            system_config
+        <where>
+            id in	/* 主键集合 */
+            <foreach collection="list" item="id" open="(" separator="," close=")">
+                #{id, jdbcType=BIGINT}
+            </foreach>
+            AND is_delete = 0	/* 是否删除(1:是;0:否) */
+        </where>
+    </select>
+
+    <!-- 按条件查询 -->
+    <select id="selectByCondition" resultMap="resultMap" parameterType="java.util.Map">
+        SELECT
+            <include refid="queryColumns"/>
+        FROM
+            system_config
+        <include refid="queryClause"/>
+        <include refid="sortClause"/>
+        <include refid="pageClause"/>
+    </select>
+
+    <!-- 按条件统计记录数 -->
+    <select id="countByCondition" resultType="java.lang.Long" parameterType="java.util.Map">
+        SELECT
+            COUNT(1)
+        FROM
+            system_config
+        <include refid="queryClause"/>
+    </select>
+
+</mapper>

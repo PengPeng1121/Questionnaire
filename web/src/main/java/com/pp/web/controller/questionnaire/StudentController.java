@@ -1,0 +1,402 @@
+/**
+ * Copyright (c) 2016, 2017, JD and/or its affiliates. All rights reserved.
+ */
+package com.pp.web.controller.questionnaire;
+
+import com.pp.basic.domain.vo.InitStudent;
+import com.pp.basic.domain.vo.InitStudentFail;
+import com.pp.basic.service.SystemUserService;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.pp.web.account.Account;
+import com.pp.web.controller.until.AccountUtils;
+import com.pp.common.core.Page;
+import com.pp.common.core.Sort;
+import com.pp.web.controller.BaseController;
+import com.pp.basic.domain.Student;
+import com.pp.basic.service.StudentService;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
+import java.util.*;
+
+/**
+ * 学生信息表Controller
+ *
+ * @author
+ */
+@Controller
+@RequestMapping("/web/student")
+public class StudentController extends BaseController {
+
+    @Autowired
+    StudentService studentService;
+
+    @Autowired
+    SystemUserService systemUserService;
+
+    /**
+     * 显示列表页面
+     */
+    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
+    public String listPage() {
+        return "common/core/Student/student_list";
+    }
+
+    /**
+     * 显示新增页面
+     */
+    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
+    public String addPage() {
+        return "common/core/Student/student_add";
+    }
+
+    /**
+     * 显示修改页面
+     */
+    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
+    public String editPage(Long id, Model model) {
+        //TODO 数据验证
+        return "common/core/Student/student_edit";
+    }
+
+    /**
+     * 保存数据
+     */
+    @RequestMapping(value = "/insert", method = RequestMethod.POST)
+    @ResponseBody
+    public boolean insert(Student student) {
+        //TODO 数据验证
+        Account account = AccountUtils.getCurrentAccount();
+        this.studentService.insert(student, account.getUserCode());
+        return true;
+    }
+
+    /**
+     * 修改数据
+     */
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    @ResponseBody
+    public boolean update(Student studentUpdate) {
+        //TODO 数据验证
+        Account account = AccountUtils.getCurrentAccount();
+        int rows = this.studentService.update(studentUpdate, account.getUserCode());
+        if (rows == 1) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 逻辑删除数据
+     */
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public boolean delete(Long id) {
+        //TODO 数据验证
+        Account account = AccountUtils.getCurrentAccount();
+        int rows = this.studentService.delete(id, account.getUserCode());
+        if (rows == 1) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 分页查询
+     */
+    @RequestMapping(value = "/pageQuery", method ={RequestMethod.POST,RequestMethod.GET})
+    @ResponseBody
+    public HashMap<String,Object> pageQuery(Student studentQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
+        //TODO 数据验证
+
+        // 设置合理的参数
+        if (pageNum < 1) {
+            pageNum = 1;
+        }
+        if (pageSize < 1) {
+            pageSize = 20;
+        } else if (pageSize > 100) {
+            pageSize = 100;
+        }
+        // 开始页码
+        int pageIndex = pageNum - 1;
+        // 排序
+        Sort sort = null;
+        if ("desc".equalsIgnoreCase(sortOrder)) {
+            sort = Sort.desc(sortName);
+        } else {
+            sort = Sort.asc(sortName);
+        }
+        // 创建分页对象
+        Page<Student> page = new Page<Student>(pageIndex, pageSize, sort);
+        // 执行查询
+        page = this.studentService.selectPage(studentQuery, page);
+        // 返回查询结果
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        HashMap<String,Object> returnMap = new HashMap<String,Object>();
+        map.put("data",page.getContent());
+        map.put("count",page.getTotalElements());
+        map.put("limit",page.getPageSize());
+        map.put("page",page.getPageIndex());
+        returnMap.put("data",map);
+        returnMap.put("status",200);
+        return returnMap;
+    }
+
+    @RequestMapping(value = "/InitStudentData", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String,Object> InitStudentData(Model model, @RequestParam("fileUpload") MultipartFile file) {
+        HashMap<String,Object> map = new HashMap<>();
+        int rows = 0;// 实际导入行数
+        // 最大导入条数
+        Integer importNum = 5000;
+        String fileName = file.getOriginalFilename();
+        int lastIndexOfDot = fileName.lastIndexOf('.');
+        int fileNameLength = fileName.length();
+        String prefix = fileName.substring(lastIndexOfDot + 1, fileNameLength);
+        Account account = AccountUtils.getCurrentAccount();
+        try {
+            if (prefix.toLowerCase().equals("xlsx") || prefix.toLowerCase().equals("xls")) {
+                InputStream in = file.getInputStream();
+                HSSFWorkbook wb = new HSSFWorkbook(in);
+                List<InitStudentFail> resultList = new ArrayList<InitStudentFail>();
+                // 读取工作表的数据第一个单元格
+                HSSFSheet sheet = wb.getSheetAt(0);
+                rows = sheet.getLastRowNum(); // 获得行数
+                map.put("rows", rows);
+                if (rows > importNum) {
+                    map.put("msg", "一次性最多导入" + importNum + "条！！");
+                    return map;
+                }
+                List<InitStudent> InitStudentList = new ArrayList<>();
+                for (int i = 1; i <= rows; i++) {
+                    InitStudentFail failData = new InitStudentFail();
+                    HSSFRow row = sheet.getRow(i);
+                    if (row != null) {
+                        InitStudent initStudent = checkIsEmpty(failData,row,i);
+                        if (failData.getFailReason() == null) {
+                            InitStudentList.add(initStudent);
+                        } else {
+                            resultList.add(failData);
+                        }
+                    }
+                }
+                if (CollectionUtils.isEmpty(InitStudentList)) {
+                    map.put("list", resultList);
+                    map.put("size", resultList.size());
+                    map.put("msg", "本次导入不存在有效数据！");
+                    return map;
+                }
+                //批量写入
+                List<InitStudentFail> importFailedList = new ArrayList<>();
+                List<InitStudent> dealList = this.handleRepeatData(InitStudentList, resultList);
+                if (CollectionUtils.isEmpty(dealList)) {
+                    map.put("list", resultList);
+                    map.put("size", resultList.size());
+                    map.put("msg", "本次导入不存在有效数据！！");
+                    return map;
+                }
+                List<InitStudent> tempDealList = new ArrayList<InitStudent>();
+                List<InitStudent> tempResultDealList = new ArrayList<InitStudent>();
+                List<InitStudent> retDealList = new ArrayList<InitStudent>();
+                for (InitStudent InitStudent : dealList) {
+                    tempDealList.add(InitStudent);
+                    if (tempDealList.size() == 1000) {
+                        retDealList = filterInvalidData(tempDealList, resultList);
+                        tempResultDealList.addAll(retDealList);
+                        tempDealList.clear();
+                    }
+                }
+                if (!tempDealList.isEmpty()) {
+                    retDealList = filterInvalidData(tempDealList, resultList);
+                    tempResultDealList.addAll(retDealList);
+                    tempDealList.clear();
+                }
+                //一次100条
+                List<InitStudent> subList = new ArrayList<>();
+                for (InitStudent initStudent : tempResultDealList) {
+                    subList.add(initStudent);
+                    if (subList.size() == 100) {
+                        try {
+                            importFailedList = this.studentService.importStudent(subList,account.getUserCode());
+                            this.systemUserService.importSystemUser(subList,account.getUserCode());
+                        } catch (Exception r) {
+                            map.put("msg","写入失败：" + r.getMessage());
+                        }
+                        subList = new ArrayList<>();
+                        //将几次结果都写入
+                        resultList.addAll(importFailedList);
+                    }
+                }
+                //处理结余的
+                if (subList.size() > 0) {
+                    try {
+                        importFailedList = this.studentService.importStudent(subList, account.getUserCode());
+                        this.systemUserService.importSystemUser(subList,account.getUserCode());
+                    } catch (Exception r) {
+                        map.put("msg","写入失败：" + r.getMessage());
+                    }
+                }
+                //将几次结果都写入
+                resultList.addAll(importFailedList);
+                if (CollectionUtils.isNotEmpty(resultList)) {
+                    map.put("list", resultList);
+                    map.put("size", resultList.size());
+                } else {
+                    map.put("msg", "数据导入全部成功！");
+                }
+            } else {
+                map.put("msg", "导入失败说明：文件格式不正确，仅支持xlsx和xls文件！");
+            }
+        } catch (Exception e) {
+            map.put("msg", "导入失败说明：数据导入异常！");
+        }
+        return map;
+    }
+
+    //根据规则 过滤一行中必须填的内容 是否为空
+    private InitStudent checkIsEmpty(InitStudentFail data,HSSFRow row,int i) {
+        InitStudent initStudent = new InitStudent();
+        StringBuilder reason = new StringBuilder("");
+        reason.append("第").append(i + 1).append("行的");
+        Boolean flag = true;
+        try {
+            if (row.getCell(0) == null || row.getCell(0).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("学号为空;");
+                flag = false;
+            }
+            if (row.getCell(1) == null || row.getCell(1).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("姓名有误;");
+                flag = false;
+            }
+            if (row.getCell(2) == null || row.getCell(2).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("年级为空;");
+                flag = false;
+            }
+            if (row.getCell(3) == null || row.getCell(3).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("班级为空;");
+                flag = false;
+            }
+            if (row.getCell(4) == null || row.getCell(4).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("是否毕业为空;");
+                flag = false;
+            }
+        } catch (Exception e) {
+            flag = false;
+        }
+        if (!flag) {
+            data.setStudentCode(row.getCell(0).toString());
+            data.setFailReason(reason.toString());
+            return new InitStudent();
+        }
+        initStudent.setIsStudentGraduate(Integer.parseInt(row.getCell(4).toString()));
+        initStudent.setStudentClass(row.getCell(3).toString());
+        initStudent.setStudentGrade(row.getCell(2).toString());
+        initStudent.setStudentName(row.getCell(1).toString());
+        initStudent.setStudentCode(row.getCell(0).toString());
+        return initStudent;
+    }
+
+    /**
+     * 过滤重复的学号，返回过滤之后的
+     *
+     * @param InitStudentList 待处理的数据
+     * @param retFailDataList    校验失败的数据
+     * @return 过滤之后的列表
+     */
+    private List<InitStudent> handleRepeatData(List<InitStudent> InitStudentList, List<InitStudentFail> retFailDataList) {
+        List<String> repeatSpareCodeList = new ArrayList<String>();
+        Map<String, InitStudent> InitStudentMap = new HashMap<String, InitStudent>();
+        for (InitStudent InitStudent : InitStudentList) {
+            if (InitStudentMap.containsKey(InitStudent.getStudentCode())) {
+                addFailData(retFailDataList, InitStudent, "重复的学号");
+                repeatSpareCodeList.add(InitStudent.getStudentCode());
+                continue;
+            }
+            InitStudentMap.put(InitStudent.getStudentCode(), InitStudent);
+        }
+        // 如果没有重复的，说明原来的就可以做下一步操作
+        if (CollectionUtils.isEmpty(repeatSpareCodeList)) {
+            return InitStudentList;
+        }
+        // 如果有重复的，把原来的要删掉，同时更新提示信息
+        List<InitStudent> newList = new ArrayList<>();
+        for (String str : repeatSpareCodeList) {
+            InitStudent initData = InitStudentMap.get(str);
+            if (null != initData) {
+                addFailData(retFailDataList, initData, "重复的学号");
+                InitStudentMap.remove(str);
+            }
+        }
+        Iterator<String> iterator = InitStudentMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String spareCode = iterator.next();
+            InitStudent initData = InitStudentMap.get(spareCode);
+            if (null != initData) {
+                newList.add(initData);
+            }
+        }
+        // 数据清一下
+        InitStudentMap.clear();
+        InitStudentMap.clear();
+        return newList;
+    }
+
+    /**
+     * 将错误结果添加到返回结果中
+     *
+     * @param retFailDataList 返回结果
+     * @param InitStudent  待导入数据
+     * @param failReason      失败原因
+     */
+    private void addFailData(List<InitStudentFail> retFailDataList, InitStudent InitStudent, String failReason) {
+        InitStudentFail InitStudentFail = new InitStudentFail();
+        InitStudentFail.setFailReason(failReason);
+        retFailDataList.add(InitStudentFail);
+    }
+
+    /**
+     * 过滤掉无效的数据，如下情况会被过滤掉，添加到提示列表中：
+     * 1、学号在库存中已存在的；
+     *
+     * @param dealList        待处理列表
+     * @param retFailDataList 校验失败列表
+     * @return 校验通过列表
+     */
+    private List<InitStudent> filterInvalidData(List<InitStudent> dealList, List<InitStudentFail> retFailDataList) {
+        List<String> studentCodeList = new ArrayList<String>();
+        for (InitStudent InitStudent : dealList) {
+            studentCodeList.add(InitStudent.getStudentCode());
+        }
+        List<Student> students = this.studentService.selectAll();
+        List<String> existStudentCodeList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(students)) {
+            for (Student student : students) {
+                existStudentCodeList.add(student.getStudentCode());
+            }
+            students.clear();
+        }
+        // 剩下的有效的数据
+        List<InitStudent> newList = new ArrayList<InitStudent>();
+        for (InitStudent InitStudent : dealList) {
+            if (existStudentCodeList.contains(InitStudent.getStudentCode())) {
+                this.addFailData(retFailDataList, InitStudent, "该学号在库存中已存在");
+                continue;
+            }
+            newList.add(InitStudent);
+        }
+        return newList;
+    }
+}
