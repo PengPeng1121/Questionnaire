@@ -139,7 +139,7 @@ public class QuestionnaireStudentController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
-    public Page<QuestionnaireStudent> pageQuery(QuestionnaireStudent questionnaireStudentQuery,
+    public HashMap<String,Object> pageQuery(QuestionnaireStudent questionnaireStudentQuery,
                                                 @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum,
                                                 @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize,
                                                 @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName,
@@ -153,7 +153,16 @@ public class QuestionnaireStudentController extends BaseController {
         // 执行查询
         page = this.questionnaireStudentService.selectPage(questionnaireStudentQuery, page);
         // 返回查询结果
-        return page;
+        // 返回查询结果
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        HashMap<String,Object> returnMap = new HashMap<String,Object>();
+        map.put("data",page.getContent());
+        map.put("count",page.getTotalElements());
+        map.put("limit",page.getPageSize());
+        map.put("page",page.getPageIndex());
+        returnMap.put("data",map);
+        returnMap.put("status",200);
+        return returnMap;
     }
 
     /**

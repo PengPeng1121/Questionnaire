@@ -1,11 +1,10 @@
 package com.pp.web.dictionary;
 
-import com.pp.basic.domain.*;
-import com.pp.basic.service.*;
-import com.pp.web.account.Account;
-import com.pp.web.account.AccountContext;
+import com.pp.basic.domain.Lesson;
+import com.pp.basic.domain.Teacher;
+import com.pp.basic.service.LessonService;
+import com.pp.basic.service.TeacherService;
 import com.pp.web.common.ChoiceQuestionEnum;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +52,18 @@ public class DictionaryController {
         answerMap.put("D",ChoiceQuestionEnum.CHOICE_D.getName());
         answerMap.put("E",ChoiceQuestionEnum.CHOICE_E.getName());
         map.put("answer",answerMap);
+
+        Map<String,Object> questionnaireStatusMap = new HashMap<>();
+        questionnaireStatusMap.put("0","初始");
+        questionnaireStatusMap.put("1","已关联课程");
+        questionnaireStatusMap.put("2","已推送学生");
+        map.put("questionnaireStatusMap",questionnaireStatusMap);
+
+        Map<String,Object> processStatusMap= new HashMap<>();
+        processStatusMap.put("0","未答");
+        processStatusMap.put("1","进行中");
+        processStatusMap.put("2","答完");
+        map.put("processStatusMap",processStatusMap);
         return map;
     }
 

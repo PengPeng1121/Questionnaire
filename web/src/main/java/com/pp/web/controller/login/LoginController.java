@@ -129,6 +129,11 @@ public class LoginController {
         if(account == null && session == null){
             map.put("status",302);
         }else if(account!=null){
+            if(account.getRole().equals("1")){
+                map.put("admin",true);
+            }else {
+                map.put("admin",false);
+            }
             map.put("status",200);
             map.put("userName",account.getUserName());
             map.put("userCode",account.getUserCode());
@@ -136,14 +141,18 @@ public class LoginController {
         } else if(session!=null){
             SystemUser systemUser = (SystemUser)session.getAttribute(SystemCommon.COOKIE_NAME);
             if(systemUser!=null){
+                if(systemUser.getUserAuthority().equals("1")){
+                    map.put("admin",true);
+                }else {
+                    map.put("admin",false);
+                }
                 map.put("status",200);
                 map.put("userName",systemUser.getUserName());
                 map.put("userCode",systemUser.getUserCode());
             }else {
                 map.put("status",302);
             }
-            return map;
         }
-        throw new IllegalArgumentException("没人登录");
+        return map;
     }
 }

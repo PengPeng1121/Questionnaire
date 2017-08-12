@@ -6,8 +6,15 @@ package com.pp.web.controller.questionnaire;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pp.basic.domain.Questionnaire;
+import com.pp.basic.domain.QuestionnaireQuestionAnswer;
 import com.pp.basic.domain.vo.Answer;
+import com.pp.basic.service.QuestionnaireQuestionAnswerService;
 import com.pp.basic.service.QuestionnaireService;
+import com.pp.common.core.Page;
+import com.pp.common.core.Sort;
+import com.pp.web.account.Account;
+import com.pp.web.controller.BaseController;
+import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,18 +25,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.pp.web.account.Account;
-import com.pp.web.controller.until.AccountUtils;
-import com.pp.common.core.Page;
-import com.pp.common.core.Sort;
-import com.pp.web.controller.BaseController;
-import com.pp.basic.domain.QuestionnaireQuestionAnswer;
-import com.pp.basic.service.QuestionnaireQuestionAnswerService;
-
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文卷调查问题答案信息表Controller
@@ -161,23 +163,43 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
      */
     @RequestMapping(value = "/saveAnswer", method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public boolean saveAnswer(String optionsJson) {
+    public boolean saveAnswer(HttpServletRequest request, String answer) {
         Account account = AccountUtils.getCurrentAccount();
-        ObjectMapper mapper = new ObjectMapper();
-        List<Answer> answerList;
-        if(StringUtils.isBlank(optionsJson)){
-            throw new IllegalArgumentException("至少包含一条数据！");
-        }
+        Map<String,Object> map = request.getParameterMap();
         try {
-            answerList = mapper.readValue(optionsJson, new TypeReference<List<Answer>>() {});
-        } catch (IOException e) {
-            throw new IllegalArgumentException("输入数量必须是正整数");
+            BufferedReader reader = request.getReader();
+
+            String input = "";
+
+            StringBuffer requestBody = new StringBuffer();
+
+            while ((input = reader.readLine())!=null){
+                requestBody.append(input);
+            }
+
+            if(StringUtils.isEmpty(requestBody.toString())){
+                throw new IllegalArgumentException("至少包含一条数据！");
+            }
+            String question = requestBody.toString();
+
+            ObjectMapper mapper = new ObjectMapper();
+            List<Answer> answerList;
+            if(StringUtils.isBlank(question)){
+                throw new IllegalArgumentException("至少包含一条数据！");
+            }
+            try {
+                answerList = mapper.readValue(question, new TypeReference<List<Answer>>() {});
+            } catch (IOException e) {
+                throw new IllegalArgumentException("输入数量必须是正整数");
+            }
+            List<QuestionnaireQuestionAnswer> questionAnswers = new ArrayList<>();
+            //准备数据
+            this.prepareDocData(answerList,account,questionAnswers);
+            //写入数据
+            this.questionnaireQuestionAnswerService.insert(questionAnswers, account.getUserCode());
+        } catch (Exception e) {
+            return false;
         }
-        List<QuestionnaireQuestionAnswer> questionAnswers = new ArrayList<>();
-        //准备数据
-        this.prepareDocData(answerList,account,questionAnswers);
-        //写入数据
-        this.questionnaireQuestionAnswerService.insert(questionAnswers, account.getUserCode());
         return true;
     }
 
