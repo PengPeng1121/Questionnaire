@@ -7,15 +7,21 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pp.basic.domain.Questionnaire;
 import com.pp.basic.domain.QuestionnaireQuestionAnswer;
+import com.pp.basic.domain.QuestionnaireStudent;
 import com.pp.basic.domain.vo.Answer;
 import com.pp.basic.service.QuestionnaireQuestionAnswerService;
 import com.pp.basic.service.QuestionnaireService;
+import com.pp.basic.service.QuestionnaireStudentService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,11 +48,17 @@ import java.util.Map;
 @RequestMapping("/web/questionnairequestionanswer")
 public class QuestionnaireQuestionAnswerController extends BaseController {
 
+
+    Logger log = LoggerFactory.getLogger(QuestionnaireQuestionAnswerController.class.getName());
+
     @Autowired
     QuestionnaireQuestionAnswerService questionnaireQuestionAnswerService;
 
     @Autowired
     QuestionnaireService questionnaireService;
+
+    @Autowired
+    QuestionnaireStudentService questionnaireStudentService;
 
     /**
      * 显示列表页面
@@ -163,53 +175,66 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
      */
     @RequestMapping(value = "/saveAnswer", method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public boolean saveAnswer(HttpServletRequest request, String answer) {
+    public Map<String,Object> saveAnswer(HttpServletRequest request) {
         Account account = AccountUtils.getCurrentAccount();
         Map<String,Object> map = request.getParameterMap();
         try {
             BufferedReader reader = request.getReader();
-
             String input = "";
-
             StringBuffer requestBody = new StringBuffer();
-
             while ((input = reader.readLine())!=null){
                 requestBody.append(input);
             }
-
+            JSONArray answerArray = null;
+            String questionnaireCode ="";
             if(StringUtils.isEmpty(requestBody.toString())){
                 throw new IllegalArgumentException("至少包含一条数据！");
+            }else{
+                JSONObject jsonObject = new  org.json.JSONObject(requestBody.toString());
+                answerArray = (JSONArray) jsonObject.get("question");
+                questionnaireCode = (String) jsonObject.get("questionnaireCode");
             }
-            String question = requestBody.toString();
 
             ObjectMapper mapper = new ObjectMapper();
             List<Answer> answerList;
-            if(StringUtils.isBlank(question)){
+            if(StringUtils.isBlank(answerArray.toString())){
                 throw new IllegalArgumentException("至少包含一条数据！");
             }
             try {
-                answerList = mapper.readValue(question, new TypeReference<List<Answer>>() {});
+                answerList = mapper.readValue(answerArray.toString(), new TypeReference<List<Answer>>() {});
             } catch (IOException e) {
                 throw new IllegalArgumentException("输入数量必须是正整数");
             }
             List<QuestionnaireQuestionAnswer> questionAnswers = new ArrayList<>();
             //准备数据
-            this.prepareDocData(answerList,account,questionAnswers);
+            this.prepareDocData(answerList,account,questionAnswers,questionnaireCode);
             //写入数据
             this.questionnaireQuestionAnswerService.insert(questionAnswers, account.getUserCode());
+
+            //更改状态
+            QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
+            questionnaireStudent.setStudentCode(account.getUserCode());
+            questionnaireStudent.setQuestionnaireCode(questionnaireCode);
+            if(this.questionnaireStudentService.exists(questionnaireStudent)){
+                questionnaireStudent = this.questionnaireStudentService.selectOne(questionnaireStudent);
+                questionnaireStudent.setQuestionnaireProcessStatusCode("2");
+                questionnaireStudent.setQuestionnaireProcessStatusName("答完");
+                this.questionnaireStudentService.update(questionnaireStudent, account.getUserCode());
+            }
+            map.put("status",200);
         } catch (Exception e) {
-            return false;
+            map.put("msg",e.getMessage());
+            log.error(e.getMessage(),e);
         }
-        return true;
+        return map;
     }
 
-    private void prepareDocData(List<Answer> answerList, Account account, List<QuestionnaireQuestionAnswer> questionAnswers){
+    private void prepareDocData(List<Answer> answerList, Account account, List<QuestionnaireQuestionAnswer> questionAnswers,String questionnaireCode){
         if(CollectionUtils.isEmpty(answerList)){
             throw new IllegalArgumentException("至少包含一条数据!");
         }
-        Answer answerTemp = answerList.get(0);
         Questionnaire questionnaire =new Questionnaire();
-        questionnaire.setQuestionnaireCode(answerTemp.getQuestionnaireCode());
+        questionnaire.setQuestionnaireCode(questionnaireCode);
         if (this.questionnaireService.exists(questionnaire)){
             questionnaire = this.questionnaireService.selectOne(questionnaire);
             for (Answer answer:answerList) {
@@ -222,11 +247,10 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
                 questionAnswer.setQuestionnaireName(questionnaire.getQuestionnaireName());
                 questionAnswer.setStudentCode(account.getUserCode());
                 questionAnswer.setStudentName(account.getUserName());
-
                 questionAnswers.add(questionAnswer);
             }
         }else {
-            throw new IllegalArgumentException("根据该问卷编码没有找到问卷，编码："+ answerTemp.getQuestionnaireCode());
+            throw new IllegalArgumentException("根据该问卷编码没有找到问卷，编码："+ questionnaireCode);
         }
     }
 }

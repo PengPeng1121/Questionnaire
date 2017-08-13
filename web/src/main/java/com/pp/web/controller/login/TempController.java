@@ -12,50 +12,20 @@ import java.util.Map;
  * Created by zhaopeng on 2017/3/14.
  */
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/web")
 public class TempController {
 
     /**
-     * 登录
+     * 获取系统时间
      *
      * @return
      */
-    @RequestMapping(value = "/get/user/privilege", method ={RequestMethod.POST,RequestMethod.GET} )
+    @RequestMapping(value = "/getTime", method ={RequestMethod.POST,RequestMethod.GET} )
     @ResponseBody
     public Map<String,Object> getUserPrivilege(){
         Map<String,Object> map = new HashMap<>();
-        map.put("admin",true);
-        map.put("apps",null);
-        map.put("company",null);
-        map.put("uid",1);
-        map.put("username","admin");
-        Map<String,Object> returnMap = new HashMap<>();
-        returnMap.put("data",map);
-        returnMap.put("status",200);
-        returnMap.put("message","ok");
-        return returnMap;
-    }
-
-    /**
-     * 登录
-     *
-     * @return
-     */
-    @RequestMapping(value = "/login", method ={RequestMethod.POST,RequestMethod.GET} )
-    @ResponseBody
-    public Map<String,Object> login(){
-        Map<String,Object> map = new HashMap<>();
-        map.put("admin",true);
-        map.put("apps",null);
-        map.put("first_login",false);
-        map.put("uid",1);
-        map.put("pwdwarn","");
-        map.put("username","admin");
-
-        Map<String,Object> returnMap = new HashMap<>();
-        returnMap.put("data",map);
-        returnMap.put("status",200);
-        returnMap.put("message","ok");
-        return returnMap;
+        Long timeStamp = System.currentTimeMillis();;
+        map.put("timeStamp",timeStamp);
+        return map;
     }
 }

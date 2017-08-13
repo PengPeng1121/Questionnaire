@@ -1,44 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
-<!-- 文卷调查信息表映射文件 questionnaire -->
-<mapper namespace="com.pp.basic.dao.QuestionnaireDao">
+<!-- 系统常量映射文件 system_constant -->
+<mapper namespace="com.pp.basic.dao.SystemConstantDao">
 
     <!-- 映射关系 -->
-    <resultMap id="resultMap" type="com.pp.basic.domain.Questionnaire">
-        <id column="id" property="id" jdbcType="BIGINT" />                                                     <!-- 自增主键 -->
-        <result column="questionnaire_code" property="questionnaireCode" jdbcType="VARCHAR" />                 <!-- 问卷编号 -->
-        <result column="questionnaire_name" property="questionnaireName" jdbcType="VARCHAR" />                 <!-- 问卷名称 -->
-        <result column="questionnaire_status_code" property="questionnaireStatusCode" jdbcType="VARCHAR" />    <!-- 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） -->
-        <result column="questionnaire_status_name" property="questionnaireStatusName" jdbcType="VARCHAR" />    <!-- 问卷状态名称（初始;已关联课程；已推送学生） -->
-        <result column="questionnaire_end_time" property="questionnaireEndTime" jdbcType="TIMESTAMP" />                             <!-- 问卷截止时间 -->
-        <result column="remark" property="remark" jdbcType="VARCHAR" />                                        <!-- 备注 -->
-        <result column="version" property="version" jdbcType="VARCHAR" />                                      <!-- 数据版本 -->
-        <result column="create_user" property="createUser" jdbcType="VARCHAR" />                               <!-- 创建人 -->
-        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />                             <!-- 创建时间 -->
-        <result column="update_user" property="updateUser" jdbcType="VARCHAR" />                               <!-- 修改人 -->
-        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />                             <!-- 修改时间 -->
-        <result column="is_delete" property="isDelete" jdbcType="TINYINT" />                                   <!-- 是否删除（0:否;1:是） -->
-        <result column="ts" property="ts" jdbcType="TIMESTAMP" />                                              <!-- 最后更新时间 -->
+    <resultMap id="resultMap" type="com.pp.basic.domain.SystemConstant">
+        <id column="id" property="id" jdbcType="BIGINT" />                              <!-- 自增主键 -->
+        <result column="constant" property="constant" jdbcType="VARCHAR" />             <!-- 系统常量 -->
+        <result column="constant_type" property="constantType" jdbcType="VARCHAR" />    <!-- 系统常量类型 -->
+        <result column="remark" property="remark" jdbcType="VARCHAR" />                 <!-- 备注 -->
+        <result column="version" property="version" jdbcType="VARCHAR" />               <!-- 数据版本 -->
+        <result column="create_user" property="createUser" jdbcType="VARCHAR" />        <!-- 创建人 -->
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />      <!-- 创建时间 -->
+        <result column="update_user" property="updateUser" jdbcType="VARCHAR" />        <!-- 修改人 -->
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />      <!-- 修改时间 -->
+        <result column="is_delete" property="isDelete" jdbcType="TINYINT" />            <!-- 是否删除（0:否;1:是） -->
+        <result column="ts" property="ts" jdbcType="TIMESTAMP" />                       <!-- 最后更新时间 -->
     </resultMap>
 
     <!-- 查询列 -->
     <sql id="queryColumns">
         <![CDATA[
-            id,                            /* 自增主键 */
-            questionnaire_code,            /* 问卷编号 */
-            questionnaire_name,            /* 问卷名称 */
-            questionnaire_status_code,     /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            questionnaire_status_name,     /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            questionnaire_end_time,
-            remark,                        /* 备注 */
-            version,                       /* 数据版本 */
-            create_user,                   /* 创建人 */
-            create_time,                   /* 创建时间 */
-            update_user,                   /* 修改人 */
-            update_time,                   /* 修改时间 */
-            is_delete,                     /* 是否删除（0:否;1:是） */
-            ts                             /* 最后更新时间 */
+            id,                /* 自增主键 */
+            constant,          /* 系统常量 */
+            constant_type,     /* 系统常量类型 */
+            remark,            /* 备注 */
+            version,           /* 数据版本 */
+            create_user,       /* 创建人 */
+            create_time,       /* 创建时间 */
+            update_user,       /* 修改人 */
+            update_time,       /* 修改时间 */
+            is_delete,         /* 是否删除（0:否;1:是） */
+            ts                 /* 最后更新时间 */
         ]]>
     </sql>
 
@@ -55,23 +49,11 @@
             <if test="idMax != null">
                 <![CDATA[ AND id < #{idMax, jdbcType=BIGINT} ]]>	/* 主键小于某值 */
             </if>
-            <if test="questionnaireCode != null and questionnaireCode != ''">
-                AND questionnaire_code = #{questionnaireCode, jdbcType=VARCHAR}    /* 问卷编号 */
+            <if test="constant != null and constant != ''">
+                AND constant = #{constant, jdbcType=VARCHAR}    /* 系统常量 */
             </if>
-            <if test="questionnaireName != null and questionnaireName != ''">
-                AND questionnaire_name = #{questionnaireName, jdbcType=VARCHAR}    /* 问卷名称 */
-            </if>
-            <if test="questionnaireStatusCode != null and questionnaireStatusCode != ''">
-                AND questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR}    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            </if>
-            <if test="questionnaireStatusName != null and questionnaireStatusName != ''">
-                AND questionnaire_status_name = #{questionnaireStatusName, jdbcType=VARCHAR}    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            </if>
-            <if test="questionnaireEndTimeBegin != null">
-                <![CDATA[ AND questionnaire_end_time >= #{questionnaireEndTimeBegin, jdbcType=TIMESTAMP} ]]>    /* 创建时间开始 */
-            </if>
-            <if test="questionnaireEndTimeEnd != null">
-                <![CDATA[ AND questionnaire_end_time <= #{questionnaireEndTimeEnd, jdbcType=TIMESTAMP} ]]>    /* 创建时间截止 */
+            <if test="constantType != null and constantType != ''">
+                AND constant_type = #{constantType, jdbcType=VARCHAR}    /* 系统常量类型 */
             </if>
             <if test="remark != null and remark != ''">
                 AND remark = #{remark, jdbcType=VARCHAR}    /* 备注 */
@@ -125,29 +107,15 @@
                             <otherwise>DESC</otherwise>
                         </choose>
                     </when>
-                    <when test="item.propertyName != null and item.propertyName == 'questionnaireCode'">
-                        questionnaire_code    /* 问卷编号 */
+                    <when test="item.propertyName != null and item.propertyName == 'constant'">
+                        constant    /* 系统常量 */
                         <choose>
                             <when test="item.ascending">ASC</when>
                             <otherwise>DESC</otherwise>
                         </choose>
                     </when>
-                    <when test="item.propertyName != null and item.propertyName == 'questionnaireName'">
-                        questionnaire_name    /* 问卷名称 */
-                        <choose>
-                            <when test="item.ascending">ASC</when>
-                            <otherwise>DESC</otherwise>
-                        </choose>
-                    </when>
-                    <when test="item.propertyName != null and item.propertyName == 'questionnaireStatusCode'">
-                        questionnaire_status_code    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-                        <choose>
-                            <when test="item.ascending">ASC</when>
-                            <otherwise>DESC</otherwise>
-                        </choose>
-                    </when>
-                    <when test="item.propertyName != null and item.propertyName == 'questionnaireStatusName'">
-                        questionnaire_status_name    /* 问卷状态名称（初始;已关联课程；已推送学生） */
+                    <when test="item.propertyName != null and item.propertyName == 'constantType'">
+                        constant_type    /* 系统常量类型 */
                         <choose>
                             <when test="item.ascending">ASC</when>
                             <otherwise>DESC</otherwise>
@@ -223,66 +191,54 @@
     </sql>
 
     <!-- 插入数据 -->
-    <insert id="insert" parameterType="com.pp.basic.domain.Questionnaire" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO questionnaire (
-            questionnaire_code,           /* 问卷编号 */
-            questionnaire_name,           /* 问卷名称 */
-            questionnaire_status_code,    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            questionnaire_status_name,    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            questionnaire_end_time,
-            remark,                       /* 备注 */
-            version,                      /* 数据版本 */
-            create_user,                  /* 创建人 */
-            create_time,                  /* 创建时间 */
-            update_user,                  /* 修改人 */
-            update_time,                  /* 修改时间 */
-            is_delete                     /* 是否删除（0:否;1:是） */
+    <insert id="insert" parameterType="com.pp.basic.domain.SystemConstant" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO system_constant (
+            constant,         /* 系统常量 */
+            constant_type,    /* 系统常量类型 */
+            remark,           /* 备注 */
+            version,          /* 数据版本 */
+            create_user,      /* 创建人 */
+            create_time,      /* 创建时间 */
+            update_user,      /* 修改人 */
+            update_time,      /* 修改时间 */
+            is_delete         /* 是否删除（0:否;1:是） */
         ) VALUES (
-            #{questionnaireCode, jdbcType=VARCHAR},          /* 问卷编号 */
-            #{questionnaireName, jdbcType=VARCHAR},          /* 问卷名称 */
-            #{questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            #{questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            #{questionnaireEndTime, jdbcType=TIMESTAMP},
-            #{remark, jdbcType=VARCHAR},                     /* 备注 */
-            #{version, jdbcType=VARCHAR},                    /* 数据版本 */
-            #{createUser, jdbcType=VARCHAR},                 /* 创建人 */
-            #{createTime, jdbcType=TIMESTAMP},               /* 创建时间 */
-            #{updateUser, jdbcType=VARCHAR},                 /* 修改人 */
-            #{updateTime, jdbcType=TIMESTAMP},               /* 修改时间 */
-            #{isDelete, jdbcType=TINYINT}                    /* 是否删除（0:否;1:是） */
+            #{constant, jdbcType=VARCHAR},        /* 系统常量 */
+            #{constantType, jdbcType=VARCHAR},    /* 系统常量类型 */
+            #{remark, jdbcType=VARCHAR},          /* 备注 */
+            #{version, jdbcType=VARCHAR},         /* 数据版本 */
+            #{createUser, jdbcType=VARCHAR},      /* 创建人 */
+            #{createTime, jdbcType=TIMESTAMP},    /* 创建时间 */
+            #{updateUser, jdbcType=VARCHAR},      /* 修改人 */
+            #{updateTime, jdbcType=TIMESTAMP},    /* 修改时间 */
+            #{isDelete, jdbcType=TINYINT}         /* 是否删除（0:否;1:是） */
         )
     </insert>
 
     <!-- 批量插入数据 -->
     <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO questionnaire (
-            questionnaire_code,           /* 问卷编号 */
-            questionnaire_name,           /* 问卷名称 */
-            questionnaire_status_code,    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            questionnaire_status_name,    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            questionnaire_end_time,
-            remark,                       /* 备注 */
-            version,                      /* 数据版本 */
-            create_user,                  /* 创建人 */
-            create_time,                  /* 创建时间 */
-            update_user,                  /* 修改人 */
-            update_time,                  /* 修改时间 */
-            is_delete                     /* 是否删除（0:否;1:是） */
+        INSERT INTO system_constant (
+            constant,         /* 系统常量 */
+            constant_type,    /* 系统常量类型 */
+            remark,           /* 备注 */
+            version,          /* 数据版本 */
+            create_user,      /* 创建人 */
+            create_time,      /* 创建时间 */
+            update_user,      /* 修改人 */
+            update_time,      /* 修改时间 */
+            is_delete         /* 是否删除（0:否;1:是） */
         ) VALUES
         <foreach collection="list" item="item" index="index" separator=",">
         (
-            #{item.questionnaireCode, jdbcType=VARCHAR},          /* 问卷编号 */
-            #{item.questionnaireName, jdbcType=VARCHAR},          /* 问卷名称 */
-            #{item.questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            #{item.questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            #{questionnaireEndTime, jdbcType=TIMESTAMP},
-            #{item.remark, jdbcType=VARCHAR},                     /* 备注 */
-            #{item.version, jdbcType=VARCHAR},                    /* 数据版本 */
-            #{item.createUser, jdbcType=VARCHAR},                 /* 创建人 */
-            #{item.createTime, jdbcType=TIMESTAMP},               /* 创建时间 */
-            #{item.updateUser, jdbcType=VARCHAR},                 /* 修改人 */
-            #{item.updateTime, jdbcType=TIMESTAMP},               /* 修改时间 */
-            #{item.isDelete, jdbcType=TINYINT}                    /* 是否删除（0:否;1:是） */
+            #{item.constant, jdbcType=VARCHAR},        /* 系统常量 */
+            #{item.constantType, jdbcType=VARCHAR},    /* 系统常量类型 */
+            #{item.remark, jdbcType=VARCHAR},          /* 备注 */
+            #{item.version, jdbcType=VARCHAR},         /* 数据版本 */
+            #{item.createUser, jdbcType=VARCHAR},      /* 创建人 */
+            #{item.createTime, jdbcType=TIMESTAMP},    /* 创建时间 */
+            #{item.updateUser, jdbcType=VARCHAR},      /* 修改人 */
+            #{item.updateTime, jdbcType=TIMESTAMP},    /* 修改时间 */
+            #{item.isDelete, jdbcType=TINYINT}         /* 是否删除（0:否;1:是） */
         )
         </foreach>
     </insert>
@@ -290,22 +246,13 @@
     <!-- 按主键更新 -->
     <update id="updateByPrimaryKey" parameterType="java.util.Map">
         <if test="_parameter != null">
-            UPDATE questionnaire
+            UPDATE system_constant
             <set>
-                <if test="questionnaireCode != null and questionnaireCode != ''">
-                    questionnaire_code = #{questionnaireCode, jdbcType=VARCHAR},    /* 问卷编号 */
+                <if test="constant != null and constant != ''">
+                    constant = #{constant, jdbcType=VARCHAR},    /* 系统常量 */
                 </if>
-                <if test="questionnaireName != null and questionnaireName != ''">
-                    questionnaire_name = #{questionnaireName, jdbcType=VARCHAR},    /* 问卷名称 */
-                </if>
-                <if test="questionnaireStatusCode != null and questionnaireStatusCode != ''">
-                    questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-                </if>
-                <if test="questionnaireStatusName != null and questionnaireStatusName != ''">
-                    questionnaire_status_name = #{questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-                </if>
-                <if test="questionnaireEndTime != null">
-                    questionnaire_end_time = #{questionnaireEndTime, jdbcType=TIMESTAMP},    /* 修改时间 */
+                <if test="constantType != null and constantType != ''">
+                    constant_type = #{constantType, jdbcType=VARCHAR},    /* 系统常量类型 */
                 </if>
                 <if test="remark != null and remark != ''">
                     remark = #{remark, jdbcType=VARCHAR},    /* 备注 */
@@ -331,9 +278,9 @@
     </update>
 
     <!-- 按主键删除 -->
-    <update id="deleteByPrimaryKey" parameterType="com.pp.basic.domain.Questionnaire">
+    <update id="deleteByPrimaryKey" parameterType="com.pp.basic.domain.SystemConstant">
         <if test="_parameter != null">
-            UPDATE questionnaire
+            UPDATE system_constant
             <set>
                 is_delete = 1,    /* 是否删除(1:是;0:否) */
                 update_user = #{updateUser, jdbcType=VARCHAR},	/* 修改人 */
@@ -349,7 +296,7 @@
     <!-- 按主键批量删除 -->
     <update id="batchDeleteByPrimaryKey" parameterType="java.util.Map">
         <if test="_parameter != null">
-            UPDATE questionnaire
+            UPDATE system_constant
             <set>
                 is_delete = 1,    /* 是否删除(1:是;0:否) */
                 update_user = #{updateUser, jdbcType=VARCHAR},	/* 修改人 */
@@ -368,7 +315,7 @@
     <!-- 按主键批量物理删除，慎用 -->
     <delete id="batchDeleteByPrimaryKeyPhysically" parameterType="java.util.List">
         <if test="_parameter != null">
-            DELETE FROM questionnaire
+            DELETE FROM system_constant
             <where>
                 id in	/* 主键集合 */
                 <foreach collection="list" item="id" open="(" separator="," close=")">
@@ -383,7 +330,7 @@
         SELECT
             <include refid="queryColumns"/>
         FROM
-            questionnaire
+            system_constant
         <where>
             is_delete = 0    /* 是否删除(1:是;0:否) */
         </where>
@@ -394,7 +341,7 @@
         SELECT
             <include refid="queryColumns"/>
         FROM
-            questionnaire
+            system_constant
         <where>
             id = #{id, jdbcType=BIGINT}	/* 主键 */
             AND is_delete = 0			/* 是否删除(1:是;0:否) */
@@ -406,7 +353,7 @@
         SELECT
             <include refid="queryColumns"/>
         FROM
-            questionnaire
+            system_constant
         <where>
             id in	/* 主键集合 */
             <foreach collection="list" item="id" open="(" separator="," close=")">
@@ -421,7 +368,7 @@
         SELECT
             <include refid="queryColumns"/>
         FROM
-            questionnaire
+            system_constant
         <include refid="queryClause"/>
         <include refid="sortClause"/>
         <include refid="pageClause"/>
@@ -432,7 +379,7 @@
         SELECT
             COUNT(1)
         FROM
-            questionnaire
+            system_constant
         <include refid="queryClause"/>
     </select>
 

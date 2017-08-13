@@ -3,8 +3,10 @@
  */
 package com.pp.web.controller.questionnaire;
 
+import com.pp.basic.domain.Questionnaire;
 import com.pp.basic.domain.QuestionnaireStudent;
 import com.pp.basic.domain.SystemConfig;
+import com.pp.basic.service.QuestionnaireService;
 import com.pp.basic.service.QuestionnaireStudentService;
 import com.pp.basic.service.SystemConfigService;
 import com.pp.common.core.Page;
@@ -29,7 +31,7 @@ import java.util.List;
  * @author
  */
 @Controller
-@RequestMapping("/web/systemconfig")
+@RequestMapping("/web")
 public class SystemConfigController extends BaseController {
 
     @Autowired
@@ -37,6 +39,9 @@ public class SystemConfigController extends BaseController {
 
     @Autowired
     QuestionnaireStudentService questionnaireStudentService;
+
+    @Autowired
+    QuestionnaireService questionnaireService;
 
     /**
      * 显示列表页面
@@ -161,4 +166,5 @@ public class SystemConfigController extends BaseController {
         returnMap.put("status",200);
         return returnMap;
     }
+
 }

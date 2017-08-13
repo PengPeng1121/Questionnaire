@@ -6,9 +6,8 @@ package com.pp.web.controller.questionnaire;
 import com.pp.basic.domain.*;
 import com.pp.basic.domain.vo.InitStudent;
 import com.pp.basic.domain.vo.InitStudentFail;
-import com.pp.basic.service.LessonService;
-import com.pp.basic.service.QuestionnaireLessonService;
-import com.pp.basic.service.QuestionnaireService;
+import com.pp.basic.service.*;
+import com.pp.web.controller.until.DateUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -28,7 +27,6 @@ import com.pp.web.controller.until.AccountUtils;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.controller.BaseController;
-import com.pp.basic.service.QuestionnaireQuestionService;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -55,7 +53,13 @@ public class QuestionnaireQuestionController extends BaseController {
     QuestionnaireLessonService questionnaireLessonService;
 
     @Autowired
+    QuestionnaireStudentService questionnaireStudentService;
+
+    @Autowired
     LessonService lessonService;
+
+    @Autowired
+    StudentLessonService studentLessonService;
     /**
      * 显示列表页面
      */
@@ -131,8 +135,17 @@ public class QuestionnaireQuestionController extends BaseController {
         questionnaire.setQuestionnaireCode(questionnaireCode);
         // 执行查询
         questionnaire = this.questionnaireService.selectOne(questionnaire);
+
+
+        QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
+        questionnaireStudent.setQuestionnaireCode(questionnaireCode);
+        Long allStudent = this.questionnaireStudentService.count(questionnaireStudent);
+        questionnaireStudent.setQuestionnaireProcessStatusCode("2");
+        Long doneStudent = this.questionnaireStudentService.count(questionnaireStudent);
         // 返回查询结果
         map.put("questionnaire",questionnaire);
+        map.put("allStudent",allStudent);
+        map.put("doneStudent",doneStudent);
         if(questionnaire!=null){
             QuestionnaireQuestion questionnaireQuestion = new QuestionnaireQuestion();
             questionnaireQuestion.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
@@ -176,27 +189,39 @@ public class QuestionnaireQuestionController extends BaseController {
 
     @RequestMapping(value = "/importQuestion", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode) {
+    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String endTime) {
+        HashMap<String,Object> map = new HashMap<>();
+        map.put("status",300);
         Questionnaire questionnaire = new Questionnaire();
         Account account = AccountUtils.getCurrentAccount();
+        String questionnaireCode = UUID.randomUUID().toString()+"_"+questionnaireName;
+        if(StringUtils.isEmpty(endTime)){
+            map.put("msg","截止时间不能为空");
+            return map;
+        }else {
+            questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
+        }
         try {
             questionnaire.setQuestionnaireName(questionnaireName);
-            questionnaire.setQuestionnaireCode(UUID.randomUUID().toString());
+            questionnaire.setQuestionnaireCode(questionnaireCode);
             questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
             questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
             this.questionnaireService.insert(questionnaire, account.getUserCode());
             if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
-                throw new RuntimeException("为管理员操作，当前用户没有管理员权限");
+                map.put("msg","为管理员操作，当前用户没有管理员权限");
+                return map;
             }
             questionnaire.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
             if(!this.questionnaireService.exists(questionnaire)){
-                throw new RuntimeException("该问卷编码找不到对应问卷，请确认");
+                map.put("msg","该问卷编码找不到对应问卷，请确认");
+                return map;
             }
             questionnaire= this.questionnaireService.selectOne(questionnaire);
             Lesson lesson = new Lesson();
             lesson.setLessonCode(lessonCode);
             if(!this.lessonService.exists(lesson)){
-                throw new RuntimeException("该课程编码找不到对应课程，请确认");
+                map.put("msg","该课程编码找不到对应课程，请确认");
+                return map;
             }
             lesson = this.lessonService.selectOne(lesson);
             QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
@@ -206,19 +231,21 @@ public class QuestionnaireQuestionController extends BaseController {
             questionnaireLesson.setQuestionnaireName(questionnaire.getQuestionnaireName());
             this.questionnaireLessonService.insert(questionnaireLesson,account.getUserName());
             questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_LESSON_CODE);
-            questionnaire.setQuestionnaireName(Questionnaire.ALREADY_WITH_LESSON_NAME);
+            questionnaire.setQuestionnaireStatusName(Questionnaire.ALREADY_WITH_LESSON_NAME);
             this.questionnaireService.update(questionnaire,account.getUserName());
         }catch (Exception e){
-            throw new RuntimeException("该课程编码找不到对应课程，请确认");
+            map.put("msg","请求出错："+e.getMessage());
+            return map;
         }
         if(!this.questionnaireService.exists(questionnaire)){
-            throw new IllegalArgumentException("根据问卷编码没有找到问卷");
+            map.put("msg","根据问卷编码没有找到问卷");
+            return map;
+
         }
         // 保存附件
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         MultipartFile multipartFile = multipartRequest.getFile("questionFile");
         questionnaire = this.questionnaireService.selectOne(questionnaire);
-        HashMap<String,Object> map = new HashMap<>();
         int rows = 0;// 实际导入行数
         // 最大导入条数
         Integer importNum = 50;
@@ -259,21 +286,30 @@ public class QuestionnaireQuestionController extends BaseController {
                     } catch (Exception r) {
                         map.put("msg","写入失败：" + r.getMessage());
                     }
+                    //关联学生
+                    StudentLesson studentLesson = new StudentLesson();
+                    studentLesson.setLessonCode(lessonCode);
+                    List<StudentLesson> studentLessonList = new ArrayList<>();
+                    if(this.studentLessonService.exists(studentLesson)){
+                        studentLessonList =  this.studentLessonService.selectList(studentLesson);
+                    }
+                    relateStudent(studentLessonList,questionnaire,account.getUserCode());
                 }
-            if (CollectionUtils.isNotEmpty(resultList)) {
-                map.put("list", resultList);
-                map.put("size", resultList.size());
+                if (CollectionUtils.isNotEmpty(resultList)) {
+                    map.put("list", resultList);
+                    map.put("size", resultList.size());
+                } else {
+                    map.put("status",200);
+                    map.put("msg", "问题导入全部成功！");
+                }
             } else {
-                map.put("msg", "问题导入全部成功！");
+                map.put("msg", "导入失败说明：文件格式不正确，仅支持xlsx和xls文件！");
             }
-        } else {
-            map.put("msg", "导入失败说明：文件格式不正确，仅支持xlsx和xls文件！");
+        } catch (Exception e) {
+            map.put("msg", "导入失败说明：数据导入异常！"+e.getMessage());
         }
-    } catch (Exception e) {
-        map.put("msg", "导入失败说明：数据导入异常！");
-    }
         return map;
-}
+    }
 
     //根据规则 过滤一行中必须填的内容 是否为空
     private String checkIsEmpty(HSSFRow row,int i) {
@@ -333,4 +369,27 @@ public class QuestionnaireQuestionController extends BaseController {
         }
     }
 
+    //问卷关联学生
+    private void relateStudent(List<StudentLesson> studentLessonList,Questionnaire questionnaire,String user){
+        List<QuestionnaireStudent> questionnaireStudentList = new ArrayList<>();
+
+        for (StudentLesson studentLesson:studentLessonList) {
+            QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
+            questionnaireStudent.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_UNDO);
+            questionnaireStudent.setQuestionnaireProcessStatusName(QuestionnaireStudent.PROCESS_NAME_UNDO);
+            questionnaireStudent.setStudentCode(studentLesson.getStudentCode());
+            questionnaireStudent.setStudentName(studentLesson.getStudentName());
+            questionnaireStudent.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+            questionnaireStudent.setQuestionnaireName(questionnaire.getQuestionnaireName());
+            questionnaireStudentList.add(questionnaireStudent);
+        }
+        if(CollectionUtils.isNotEmpty(questionnaireStudentList)){
+            this.questionnaireStudentService.insert(questionnaireStudentList,user);
+        }else {
+            throw new IllegalArgumentException("没有学生选择该们课程");
+        }
+        questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_STUDENT_CODE);
+        questionnaire.setQuestionnaireStatusName(Questionnaire.ALREADY_WITH_STUDENT_NAME);
+        this.questionnaireService.update(questionnaire,user);
+    }
 }

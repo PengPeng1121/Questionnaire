@@ -57,6 +57,7 @@ public class DictionaryController {
         questionnaireStatusMap.put("0","初始");
         questionnaireStatusMap.put("1","已关联课程");
         questionnaireStatusMap.put("2","已推送学生");
+        questionnaireStatusMap.put("3","学生已回答");
         map.put("questionnaireStatusMap",questionnaireStatusMap);
 
         Map<String,Object> processStatusMap= new HashMap<>();

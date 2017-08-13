@@ -3,7 +3,10 @@
  */
 package com.pp.basic.domain;
 
+import com.pp.common.annotation.Transient;
 import com.pp.common.core.AbstractEntity;
+
+import java.util.Date;
 
 /**
  * 文卷调查信息表数据实体
@@ -39,6 +42,16 @@ public final class Questionnaire extends AbstractEntity {
     // 问卷状态名称（初始;已关联课程；已推送学生）
     private String questionnaireStatusName;
 
+    //问卷截止时间
+    private Date questionnaireEndTime;
+
+    // 问卷截止时间/起(虚拟字段：用于时间段查询)
+    @Transient
+    private Date questionnaireEndTimeBegin;
+
+    // 问卷截止时间/止(虚拟字段：用于时间段查询)
+    @Transient
+    private Date questionnaireEndTimeEnd;
     /**
      * 设置问卷编号
      * 
@@ -103,4 +116,27 @@ public final class Questionnaire extends AbstractEntity {
         return this.questionnaireStatusName;
     }
 
+    public Date getQuestionnaireEndTime() {
+        return questionnaireEndTime;
+    }
+
+    public void setQuestionnaireEndTime(Date questionnaireEndTime) {
+        this.questionnaireEndTime = questionnaireEndTime;
+    }
+
+    public Date getQuestionnaireEndTimeBegin() {
+        return questionnaireEndTimeBegin;
+    }
+
+    public void setQuestionnaireEndTimeBegin(Date questionnaireEndTimeBegin) {
+        this.questionnaireEndTimeBegin = questionnaireEndTimeBegin;
+    }
+
+    public Date getQuestionnaireEndTimeEnd() {
+        return questionnaireEndTimeEnd;
+    }
+
+    public void setQuestionnaireEndTimeEnd(Date questionnaireEndTimeEnd) {
+        this.questionnaireEndTimeEnd = questionnaireEndTimeEnd;
+    }
 }
