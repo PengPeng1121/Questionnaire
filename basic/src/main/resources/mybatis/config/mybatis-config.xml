@@ -7,19 +7,6 @@
     </properties>
 
     <mappers>
-        <!--<mapper resource="mybatis/mysql/WebUserDao.xml" />	&lt;!&ndaquestionnairedemo  &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/NoticeDao.xml" />	&lt;!&ndash; 公告管理表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/RoleDao.xml" />	&lt;!&ndash; 角色表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/UserDao.xml" />	&lt;!&ndash; 用户表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/UserRoleDao.xml" />	&lt;!&ndash; 用户角色关系表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/AuthorityDao.xml" />	&lt;!&ndash; 权限表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/ResourceDao.xml" />	&lt;!&ndash; 资源表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/RoleAuthorityDao.xml" />	&lt;!&ndash; 角色权限表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/AuthorityDao.xml" />	&lt;!&ndash; 权限表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/AuthorityResourceDao.xml" />	&lt;!&ndash; 权限资源表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/ResourceDao.xml" />	&lt;!&ndash; 资源表 &ndash;&gt;-->
-        <!--<mapper resource="mybatis/mysql/RoleAuthorityDao.xml" />	&lt;!&ndash; 角色权限表 &ndash;&gt;-->
-
         <mapper resource="mybatis/mysql/LessonDao.xml" />	<!-- 课程信息表 -->
         <mapper resource="mybatis/mysql/QuestionnaireDao.xml" />	<!-- 文卷调查信息表 -->
         <mapper resource="mybatis/mysql/QuestionnaireLessonDao.xml" />	<!-- 文卷和课程关系调查信息表 -->

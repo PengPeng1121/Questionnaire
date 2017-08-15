@@ -3,10 +3,8 @@
  */
 package com.pp.web.controller.questionnaire;
 
-import com.pp.basic.domain.Questionnaire;
 import com.pp.basic.domain.QuestionnaireStudent;
 import com.pp.basic.domain.SystemConfig;
-import com.pp.basic.service.QuestionnaireService;
 import com.pp.basic.service.QuestionnaireStudentService;
 import com.pp.basic.service.SystemConfigService;
 import com.pp.common.core.Page;
@@ -15,13 +13,13 @@ import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,7 +29,7 @@ import java.util.List;
  * @author
  */
 @Controller
-@RequestMapping("/web")
+@RequestMapping("/web/systemconfig")
 public class SystemConfigController extends BaseController {
 
     @Autowired
@@ -39,34 +37,6 @@ public class SystemConfigController extends BaseController {
 
     @Autowired
     QuestionnaireStudentService questionnaireStudentService;
-
-    @Autowired
-    QuestionnaireService questionnaireService;
-
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "SystemConfig/system_config_list";
-    }
-
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "SystemConfig/system_config_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "SystemConfig/system_config_edit";
-    }
 
     /**
      * 保存数据
@@ -128,40 +98,41 @@ public class SystemConfigController extends BaseController {
     /**
      * 查询提醒问卷
      */
-    @RequestMapping(value = "/findRemindQuestionnaire", method ={RequestMethod.POST,RequestMethod.GET})
+    @RequestMapping(value = "/findRemindQuestionnaire", method ={RequestMethod.POST})
     @ResponseBody
     public HashMap<String,Object> findRemindQuestionnaire() {
-        //TODO 数据验证
-
-        // 设置合理的参数
-        int pageNum = 1;
-        int pageSize = 20;
-        // 排序--默认
-        String sortName="ts";
-        String sortOrder = "desc";
-        // 创建分页对象
-        Page<QuestionnaireStudent> page = this.buildPage(pageNum, pageSize, sortName, sortOrder);
+        //查询未做的问卷个数
         Account account = AccountUtils.getCurrentAccount();
         QuestionnaireStudent questionnaireStudentQuery = new QuestionnaireStudent();
         questionnaireStudentQuery.setStudentCode(account.getUserCode());
         questionnaireStudentQuery.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_UNDO);
-        List<QuestionnaireStudent> list =this.questionnaireStudentService.selectList(questionnaireStudentQuery);
-        //声明
+        List<QuestionnaireStudent> list = this.questionnaireStudentService.selectList(questionnaireStudentQuery);
+        //构建 查询问卷条件
         List<SystemConfig> configQuestionnaires = new ArrayList<>();
         if(list!=null&&list.size()>0){
             for (QuestionnaireStudent student:list) {
                 SystemConfig configQuestionnaire = new SystemConfig();
                 configQuestionnaire.setQuestionnaireCode(student.getQuestionnaireCode());
+                //与当前时间对比
+                configQuestionnaire.setRemindTimeEnd(new Date());
                 configQuestionnaires.add(configQuestionnaire);
+            }
+        }
+        //根据条件查询，结果为当前时间的提醒问卷
+        List<SystemConfig> remindList = new ArrayList<>();
+        if(configQuestionnaires!=null&&configQuestionnaires.size()>0){
+            for (SystemConfig systemConfig:configQuestionnaires) {
+                SystemConfig remindConfig  = this.systemConfigService.selectOne(systemConfig);
+                if (remindConfig!=null){
+                    remindList.add(remindConfig);
+                }
             }
         }
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        map.put("data",page.getContent());
-        map.put("count",page.getTotalElements());
-        map.put("limit",page.getPageSize());
-        map.put("page",page.getPageIndex());
+        map.put("data",remindList);
+        map.put("count",remindList.size());
         returnMap.put("data",map);
         returnMap.put("status",200);
         return returnMap;

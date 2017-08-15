@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -59,31 +58,6 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
     @Autowired
     QuestionnaireStudentService questionnaireStudentService;
-
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "common/core/QuestionnaireQuestionAnswer/questionnaire_question_answer_list";
-    }
-
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "common/core/QuestionnaireQuestionAnswer/questionnaire_question_answer_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "common/core/QuestionnaireQuestionAnswer/questionnaire_question_answer_edit";
-    }
 
     /**
      * 保存数据
@@ -160,12 +134,18 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        map.put("data",page.getContent());
-        map.put("count",page.getTotalElements());
-        map.put("limit",page.getPageSize());
-        map.put("page",page.getPageIndex());
-        returnMap.put("data",map);
-        returnMap.put("status",200);
+        if (page!=null){
+            map.put("data",page.getContent());
+            map.put("count",page.getTotalElements());
+            map.put("limit",page.getPageSize());
+            map.put("page",page.getPageIndex());
+            returnMap.put("data",map);
+            returnMap.put("status",200);
+        }else {
+            returnMap.put("data",map);
+            returnMap.put("msg","没有查询到数据");
+            returnMap.put("status",300);
+        }
         return returnMap;
     }
 
@@ -217,8 +197,8 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             questionnaireStudent.setQuestionnaireCode(questionnaireCode);
             if(this.questionnaireStudentService.exists(questionnaireStudent)){
                 questionnaireStudent = this.questionnaireStudentService.selectOne(questionnaireStudent);
-                questionnaireStudent.setQuestionnaireProcessStatusCode("2");
-                questionnaireStudent.setQuestionnaireProcessStatusName("答完");
+                questionnaireStudent.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_DONE);
+                questionnaireStudent.setQuestionnaireProcessStatusName(QuestionnaireStudent.PROCESS_NAME_DONE);
                 this.questionnaireStudentService.update(questionnaireStudent, account.getUserCode());
             }
             map.put("status",200);

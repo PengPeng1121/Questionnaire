@@ -23,7 +23,6 @@ import java.util.Map;
 @Controller
 @RequestMapping("/dictionary")
 public class DictionaryController {
-    Logger log = LoggerFactory.getLogger(DictionaryController.class.getName());
 
     @Autowired
     LessonService lessonService;

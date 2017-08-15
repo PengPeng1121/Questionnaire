@@ -24,7 +24,7 @@ public class AccountExposingHandlerInterceptor implements HandlerInterceptor {
 		SystemUser systemUser = (SystemUser)session.getAttribute(SystemCommon.COOKIE_NAME);
 		//利用session 判断登录
 		if (account== null && systemUser == null) {
-			throw new IllegalArgumentException("AccountExposingHandlerInterceptor登陆");
+			throw new IllegalArgumentException("没有登陆");
 		}else if(account== null && systemUser!=null){
 			Account accountNew = new Account();
 			//根据systemUser赋值

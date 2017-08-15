@@ -9,7 +9,6 @@ import com.pp.basic.domain.Teacher;
 import com.pp.basic.domain.TeacherLesson;
 import com.pp.basic.domain.vo.InitLessonFail;
 import com.pp.basic.service.LessonService;
-import com.pp.basic.service.StudentLessonService;
 import com.pp.basic.service.TeacherLessonService;
 import com.pp.basic.service.TeacherService;
 import com.pp.common.core.Page;
@@ -51,33 +50,6 @@ public class LessonController extends BaseController {
 
     @Autowired
     TeacherService teacherService;
-
-    @Autowired
-    StudentLessonService studentLessonService;
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "common/core/Lesson/lesson_list";
-    }
-
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "Lesson/lesson_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "Lesson/lesson_edit";
-    }
 
     /**
      * 保存数据
@@ -154,12 +126,18 @@ public class LessonController extends BaseController {
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        map.put("data",page.getContent());
-        map.put("count",page.getTotalElements());
-        map.put("limit",page.getPageSize());
-        map.put("page",page.getPageIndex());
-        returnMap.put("data",map);
-        returnMap.put("status",200);
+        if (page!=null){
+            map.put("data",page.getContent());
+            map.put("count",page.getTotalElements());
+            map.put("limit",page.getPageSize());
+            map.put("page",page.getPageIndex());
+            returnMap.put("data",map);
+            returnMap.put("status",200);
+        }else {
+            returnMap.put("data",map);
+            returnMap.put("msg","没有查询到数据");
+            returnMap.put("status",300);
+        }
         return returnMap;
     }
 

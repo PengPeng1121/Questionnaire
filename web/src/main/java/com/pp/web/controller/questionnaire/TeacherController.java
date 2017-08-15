@@ -3,21 +3,19 @@
  */
 package com.pp.web.controller.questionnaire;
 
+import com.pp.basic.domain.Teacher;
+import com.pp.basic.service.TeacherService;
+import com.pp.common.core.Page;
+import com.pp.common.core.Sort;
+import com.pp.web.account.Account;
+import com.pp.web.controller.BaseController;
+import com.pp.web.controller.until.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.pp.web.account.Account;
-import com.pp.web.controller.until.AccountUtils;
-import com.pp.common.core.Page;
-import com.pp.common.core.Sort;
-import com.pp.web.controller.BaseController;
-import com.pp.basic.domain.Teacher;
-import com.pp.basic.service.TeacherService;
 
 /**
  * 教师信息表Controller
@@ -30,32 +28,6 @@ public class TeacherController extends BaseController {
 
     @Autowired
     TeacherService teacherService;
-
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "common/core/Teacher/teacher_list";
-    }
-
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "common/core/Teacher/teacher_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "common/core/Teacher/teacher_edit";
-    }
-
     /**
      * 保存数据
      */

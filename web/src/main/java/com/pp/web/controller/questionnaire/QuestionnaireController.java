@@ -3,9 +3,8 @@
  */
 package com.pp.web.controller.questionnaire;
 
-import com.pp.basic.domain.*;
-import com.pp.basic.service.LessonService;
-import com.pp.basic.service.QuestionnaireLessonService;
+import com.pp.basic.domain.Questionnaire;
+import com.pp.basic.domain.QuestionnaireQuestion;
 import com.pp.basic.service.QuestionnaireQuestionService;
 import com.pp.basic.service.QuestionnaireService;
 import com.pp.common.core.Page;
@@ -15,7 +14,6 @@ import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +21,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * 文卷调查信息表Controller
@@ -40,80 +37,49 @@ public class QuestionnaireController extends BaseController {
     @Autowired
     QuestionnaireQuestionService questionnaireQuestionService;
 
-    @Autowired
-    QuestionnaireLessonService questionnaireLessonService;
-
-    @Autowired
-    LessonService lessonService;
-
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "Questionnaire/questionnaire_list";
-    }
-
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "Questionnaire/questionnaire_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "Questionnaire/questionnaire_edit";
-    }
-
-    /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(String questionnaireName,String lessonCode){
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        Questionnaire questionnaire = new Questionnaire();
-        try {
-            questionnaire.setQuestionnaireName(questionnaireName);
-            questionnaire.setQuestionnaireCode(UUID.randomUUID().toString());
-            questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
-            questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
-            this.questionnaireService.insert(questionnaire, account.getUserCode());
-            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
-                throw new RuntimeException("为管理员操作，当前用户没有管理员权限");
-            }
-            questionnaire.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
-            if(!this.questionnaireService.exists(questionnaire)){
-                throw new RuntimeException("该问卷编码找不到对应问卷，请确认");
-            }
-            questionnaire= this.questionnaireService.selectOne(questionnaire);
-            Lesson lesson = new Lesson();
-            lesson.setLessonCode(lessonCode);
-            if(!this.lessonService.exists(lesson)){
-                throw new RuntimeException("该课程编码找不到对应课程，请确认");
-            }
-            lesson = this.lessonService.selectOne(lesson);
-            QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
-            questionnaireLesson.setLessonCode(lesson.getLessonCode());
-            questionnaireLesson.setLessonName(lesson.getLessonName());
-            questionnaireLesson.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
-            questionnaireLesson.setQuestionnaireName(questionnaire.getQuestionnaireName());
-            this.questionnaireLessonService.insert(questionnaireLesson,account.getUserName());
-            questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_LESSON_CODE);
-            questionnaire.setQuestionnaireName(Questionnaire.ALREADY_WITH_LESSON_NAME);
-            this.questionnaireService.update(questionnaire,account.getUserName());
-        }catch (Exception e){
-            return false;
-        }
-        return true;
-    }
+//    /**
+//     * 保存数据
+//     */
+//    @RequestMapping(value = "/insert", method = RequestMethod.POST)
+//    @ResponseBody
+//    public boolean insert(String questionnaireName,String lessonCode){
+//        //TODO 数据验证
+//        Account account = AccountUtils.getCurrentAccount();
+//        Questionnaire questionnaire = new Questionnaire();
+//        try {
+//            questionnaire.setQuestionnaireName(questionnaireName);
+//            questionnaire.setQuestionnaireCode(UUID.randomUUID().toString());
+//            questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
+//            questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
+//            this.questionnaireService.insert(questionnaire, account.getUserCode());
+//            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+//                throw new RuntimeException("为管理员操作，当前用户没有管理员权限");
+//            }
+//            questionnaire.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+//            if(!this.questionnaireService.exists(questionnaire)){
+//                throw new RuntimeException("该问卷编码找不到对应问卷，请确认");
+//            }
+//            questionnaire= this.questionnaireService.selectOne(questionnaire);
+//            Lesson lesson = new Lesson();
+//            lesson.setLessonCode(lessonCode);
+//            if(!this.lessonService.exists(lesson)){
+//                throw new RuntimeException("该课程编码找不到对应课程，请确认");
+//            }
+//            lesson = this.lessonService.selectOne(lesson);
+//            QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
+//            questionnaireLesson.setLessonCode(lesson.getLessonCode());
+//            questionnaireLesson.setLessonName(lesson.getLessonName());
+//            questionnaireLesson.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+//            questionnaireLesson.setQuestionnaireName(questionnaire.getQuestionnaireName());
+//            this.questionnaireLessonService.insert(questionnaireLesson,account.getUserName());
+//            questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_LESSON_CODE);
+//            questionnaire.setQuestionnaireName(Questionnaire.ALREADY_WITH_LESSON_NAME);
+//            this.questionnaireService.update(questionnaire,account.getUserName());
+//        }catch (Exception e){
+//            return false;
+//        }
+//        return true;
+//    }
 
     /**
      * 修改数据
@@ -199,12 +165,18 @@ public class QuestionnaireController extends BaseController {
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        map.put("data",page.getContent());
-        map.put("count",page.getTotalElements());
-        map.put("limit",page.getPageSize());
-        map.put("page",page.getPageIndex());
-        returnMap.put("data",map);
-        returnMap.put("status",200);
+        if (page!=null){
+            map.put("data",page.getContent());
+            map.put("count",page.getTotalElements());
+            map.put("limit",page.getPageSize());
+            map.put("page",page.getPageIndex());
+            returnMap.put("data",map);
+            returnMap.put("status",200);
+        }else {
+            returnMap.put("data",map);
+            returnMap.put("msg","没有查询到数据");
+            returnMap.put("status",300);
+        }
         return returnMap;
     }
 }

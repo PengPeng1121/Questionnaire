@@ -3,24 +3,16 @@
  */
 package com.pp.web.controller.questionnaire;
 
-import com.pp.basic.domain.*;
+import com.pp.basic.domain.QuestionnaireStudent;
 import com.pp.basic.domain.vo.QuestionnaireStudentExportVo;
-import com.pp.basic.service.QuestionnaireLessonService;
-import com.pp.basic.service.QuestionnaireService;
 import com.pp.basic.service.QuestionnaireStudentService;
-import com.pp.basic.service.StudentLessonService;
 import com.pp.common.core.Page;
 import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
-import com.pp.web.controller.login.LoginController;
 import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.PoiUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +25,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,16 +42,6 @@ public class QuestionnaireStudentController extends BaseController {
 
     @Autowired
     QuestionnaireStudentService questionnaireStudentService;
-
-    @Autowired
-    QuestionnaireService questionnaireService;
-
-    @Autowired
-    QuestionnaireLessonService questionnaireLessonService;
-
-    @Autowired
-    StudentLessonService studentLessonService;
-
 
     Logger log = LoggerFactory.getLogger(QuestionnaireStudentController.class.getName());
     /**
@@ -156,12 +133,19 @@ public class QuestionnaireStudentController extends BaseController {
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        map.put("data",page.getContent());
-        map.put("count",page.getTotalElements());
-        map.put("limit",page.getPageSize());
-        map.put("page",page.getPageIndex());
-        returnMap.put("data",map);
-        returnMap.put("status",200);
+        if (page!=null){
+            map.put("data",page.getContent());
+
+            map.put("count",page.getTotalElements());
+            map.put("limit",page.getPageSize());
+            map.put("page",page.getPageIndex());
+            returnMap.put("data",map);
+            returnMap.put("status",200);
+        }else {
+            returnMap.put("data",map);
+            returnMap.put("msg","没有查询到数据");
+            returnMap.put("status",300);
+        }
         return returnMap;
     }
 
@@ -190,66 +174,72 @@ public class QuestionnaireStudentController extends BaseController {
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        map.put("data",page.getContent());
-        map.put("count",page.getTotalElements());
-        map.put("limit",page.getPageSize());
-        map.put("page",page.getPageIndex());
-        returnMap.put("data",map);
-        returnMap.put("status",200);
+        if (page!=null){
+            map.put("data",page.getContent());
+            map.put("count",page.getTotalElements());
+            map.put("limit",page.getPageSize());
+            map.put("page",page.getPageIndex());
+            returnMap.put("data",map);
+            returnMap.put("status",200);
+        }else {
+            returnMap.put("data",map);
+            returnMap.put("msg","没有查询到数据");
+            returnMap.put("status",300);
+        }
         return returnMap;
     }
 
 
-    @RequestMapping(value = "/pushQuestionnaire",method ={RequestMethod.POST,RequestMethod.GET})
-    @ResponseBody
-    public Boolean pushQuestionnaire(String questionnaireCode) {
-        log.info("pushQuestionnaire---questionnaireCode:"+questionnaireCode);
-        Account account = AccountUtils.getCurrentAccount();
-        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
-            throw new RuntimeException("为管理员操作，当前用户没有管理员权限");
-        }
-        Questionnaire questionnaire = new Questionnaire();
-        questionnaire.setQuestionnaireCode(questionnaireCode);
-        if(!this.questionnaireService.exists(questionnaire)){
-            throw new RuntimeException("该问卷编码找不到对应问卷，请确认");
-        }
-        questionnaire= this.questionnaireService.selectOne(questionnaire);
-        QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
-        List<QuestionnaireLesson> questionnaireLessonList = this.questionnaireLessonService.selectList(questionnaireLesson);
-        if(CollectionUtils.isEmpty(questionnaireLessonList)){
-            throw new RuntimeException("该问卷没有关联课程，请确认");
-        }
-        //得到了所有选择课程的学生
-        List<StudentLesson> studentLessonList = new ArrayList<>();
-        for (QuestionnaireLesson lesson: questionnaireLessonList) {
-            StudentLesson studentLesson = new StudentLesson();
-            studentLesson.setLessonCode(lesson.getLessonCode());
-            List<StudentLesson> subStudentLessons = this.studentLessonService.selectList(studentLesson);
-            studentLessonList.addAll(subStudentLessons);
-        }
-        List<QuestionnaireStudent> questionnaireStudentList = prepareData(studentLessonList,questionnaire);
-        this.questionnaireStudentService.insert(questionnaireStudentList,account.getUserName());
-        questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_STUDENT_CODE);
-        questionnaire.setQuestionnaireName(Questionnaire.ALREADY_WITH_STUDENT_NAME);
-        this.questionnaireService.update(questionnaire,account.getUserName());
-        // 返回查询结果
-        return true;
-    }
-
-    private List<QuestionnaireStudent> prepareData(List<StudentLesson> studentLessonList,Questionnaire questionnaire){
-        List<QuestionnaireStudent> questionnaireStudentList = new ArrayList<>();
-        for (StudentLesson studentLesson:studentLessonList) {
-            QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
-            questionnaireStudent.setStudentCode(studentLesson.getStudentCode());
-            questionnaireStudent.setStudentName(studentLesson.getStudentName());
-            questionnaireStudent.setQuestionnaireCode(QuestionnaireStudent.PROCESS_CODE_UNDO);
-            questionnaireStudent.setQuestionnaireName(QuestionnaireStudent.PROCESS_NAME_UNDO);
-            questionnaire.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
-            questionnaire.setQuestionnaireName(questionnaire.getQuestionnaireName());
-            questionnaireStudentList.add(questionnaireStudent);
-        }
-        return null;
-    }
+//    @RequestMapping(value = "/pushQuestionnaire",method ={RequestMethod.POST,RequestMethod.GET})
+//    @ResponseBody
+//    public Boolean pushQuestionnaire(String questionnaireCode) {
+//        log.info("pushQuestionnaire---questionnaireCode:"+questionnaireCode);
+//        Account account = AccountUtils.getCurrentAccount();
+//        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+//            throw new RuntimeException("为管理员操作，当前用户没有管理员权限");
+//        }
+//        Questionnaire questionnaire = new Questionnaire();
+//        questionnaire.setQuestionnaireCode(questionnaireCode);
+//        if(!this.questionnaireService.exists(questionnaire)){
+//            throw new RuntimeException("该问卷编码找不到对应问卷，请确认");
+//        }
+//        questionnaire= this.questionnaireService.selectOne(questionnaire);
+//        QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
+//        List<QuestionnaireLesson> questionnaireLessonList = this.questionnaireLessonService.selectList(questionnaireLesson);
+//        if(CollectionUtils.isEmpty(questionnaireLessonList)){
+//            throw new RuntimeException("该问卷没有关联课程，请确认");
+//        }
+//        //得到了所有选择课程的学生
+//        List<StudentLesson> studentLessonList = new ArrayList<>();
+//        for (QuestionnaireLesson lesson: questionnaireLessonList) {
+//            StudentLesson studentLesson = new StudentLesson();
+//            studentLesson.setLessonCode(lesson.getLessonCode());
+//            List<StudentLesson> subStudentLessons = this.studentLessonService.selectList(studentLesson);
+//            studentLessonList.addAll(subStudentLessons);
+//        }
+//        List<QuestionnaireStudent> questionnaireStudentList = prepareData(studentLessonList,questionnaire);
+//        this.questionnaireStudentService.insert(questionnaireStudentList,account.getUserName());
+//        questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_STUDENT_CODE);
+//        questionnaire.setQuestionnaireName(Questionnaire.ALREADY_WITH_STUDENT_NAME);
+//        this.questionnaireService.update(questionnaire,account.getUserName());
+//        // 返回查询结果
+//        return true;
+//    }
+//
+//    private List<QuestionnaireStudent> prepareData(List<StudentLesson> studentLessonList,Questionnaire questionnaire){
+//        List<QuestionnaireStudent> questionnaireStudentList = new ArrayList<>();
+//        for (StudentLesson studentLesson:studentLessonList) {
+//            QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
+//            questionnaireStudent.setStudentCode(studentLesson.getStudentCode());
+//            questionnaireStudent.setStudentName(studentLesson.getStudentName());
+//            questionnaireStudent.setQuestionnaireCode(QuestionnaireStudent.PROCESS_CODE_UNDO);
+//            questionnaireStudent.setQuestionnaireName(QuestionnaireStudent.PROCESS_NAME_UNDO);
+//            questionnaire.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+//            questionnaire.setQuestionnaireName(questionnaire.getQuestionnaireName());
+//            questionnaireStudentList.add(questionnaireStudent);
+//        }
+//        return null;
+//    }
 
     /**
      * 导出

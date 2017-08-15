@@ -4,62 +4,52 @@
 package com.pp.web.controller.questionnaire;
 
 import com.pp.basic.domain.Questionnaire;
+import com.pp.basic.domain.SystemConfig;
+import com.pp.basic.domain.SystemConstant;
+import com.pp.basic.domain.SystemUser;
+import com.pp.basic.service.QuestionnaireService;
+import com.pp.basic.service.SystemConfigService;
+import com.pp.basic.service.SystemConstantService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
-import com.pp.web.common.SystemCommon;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
+import com.pp.web.controller.until.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.pp.basic.domain.SystemConstant;
-import com.pp.basic.service.SystemConstantService;
-
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 /**
  * 系统常量Controller
- * 
+ *
  * @author
  */
 @Controller
-@RequestMapping("/web/systemconstant")
+@RequestMapping("/web")
 public class SystemConstantController extends BaseController {
+
+    Logger log = LoggerFactory.getLogger(SystemConstantController.class.getName());
 
     @Autowired
     SystemConstantService systemConstantService;
 
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "SystemConstant/system_constant_list";
-    }
+    @Autowired
+    SystemConfigService systemConfigService;
 
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "SystemConstant/system_constant_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "SystemConstant/system_constant_edit";
-    }
+    @Autowired
+    QuestionnaireService questionnaireService;
 
     /**
      * 保存数据
@@ -83,7 +73,7 @@ public class SystemConstantController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         int rows = this.systemConstantService.update(systemConstantUpdate, account.getUserCode());
         if (rows == 1) {
-            	return true;
+            return true;
         }
         return false;
     }
@@ -98,7 +88,7 @@ public class SystemConstantController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         int rows = this.systemConstantService.delete(id, account.getUserCode());
         if (rows == 1) {
-            	return true;
+            return true;
         }
         return false;
     }
@@ -110,24 +100,24 @@ public class SystemConstantController extends BaseController {
     @ResponseBody
     public Page<SystemConstant> pageQuery(SystemConstant systemConstantQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
         //TODO 数据验证
-        
+
         // 设置合理的参数
         if (pageNum < 1) {
-            	pageNum = 1;
+            pageNum = 1;
         }
         if (pageSize < 1) {
-            	pageSize = 20;
+            pageSize = 20;
         } else if (pageSize > 100) {
-            	pageSize = 100;
+            pageSize = 100;
         }
         // 开始页码
         int pageIndex = pageNum - 1;
         // 排序
         Sort sort = null;
         if ("desc".equalsIgnoreCase(sortOrder)) {
-            	sort = Sort.desc(sortName);
+            sort = Sort.desc(sortName);
         } else {
-            	sort = Sort.asc(sortName);
+            sort = Sort.asc(sortName);
         }
         // 创建分页对象
         Page<SystemConstant> page = new Page<SystemConstant>(pageIndex, pageSize, sort);
@@ -142,27 +132,72 @@ public class SystemConstantController extends BaseController {
     /**
      * 设置策略
      */
-    @RequestMapping(value = "/postStrategy", method ={RequestMethod.POST,RequestMethod.GET})
+    @RequestMapping(value = "/postStrategy", method ={RequestMethod.POST})
     @ResponseBody
     public HashMap<String,Object> postStrategy(Integer day) {
 
         Account account = AccountUtils.getCurrentAccount();
-        //先根据类型删除
-        SystemConstant systemConstant = new SystemConstant();
-        systemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
-        systemConstant.setIsDelete(1);
-        this.systemConstantService.update(systemConstant,account.getUserCode());
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        returnMap.put("status",200);
-
-        if(day==null){
+        returnMap.put("status",300);
+        try {
+            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+                returnMap.put("msg","为管理员操作，当前用户没有管理员权限");
+                return returnMap;
+            }
+            if(day==null){
+                returnMap.put("msg","超时时间不能为空！");
+                return returnMap;
+            }
+            Long time = day*24*60*60*1000L;
+            //先根据类型删除
+            SystemConstant systemConstant = new SystemConstant();
+            systemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
+            if (this.systemConstantService.exists(systemConstant)){
+                systemConstant = this.systemConstantService.selectOne(systemConstant);
+                if(systemConstant!=null){
+                    this.systemConstantService.delete(systemConstant.getId(),account.getUserCode());
+                }else {
+                    //不存在写入
+                    SystemConstant insertSystemConstant = new SystemConstant();
+                    insertSystemConstant.setConstant(day.toString());
+                    insertSystemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
+                    this.systemConstantService.insert(systemConstant,account.getUserCode());
+                }
+            }else {
+                //不存在写入
+                SystemConstant insertSystemConstant = new SystemConstant();
+                insertSystemConstant.setConstant(day.toString());
+                insertSystemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
+                this.systemConstantService.insert(systemConstant,account.getUserCode());
+            }
+            //设置systemConfig表
+            List<SystemConfig> systemConfigs  = this.systemConfigService.selectAll();
+            if(!CollectionUtils.isEmpty(systemConfigs)){
+                List<Long> ids = new ArrayList<>();
+                for (SystemConfig systemConfig :systemConfigs ) {
+                    ids.add(systemConfig.getId());
+                }
+                this.systemConfigService.delete(ids,account.getUserCode());
+            }
+            //写入提醒表
+            Questionnaire questionnaireQuery = new Questionnaire();
+            questionnaireQuery.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_STUDENT_CODE);
+            List<Questionnaire> questionnaireList = this.questionnaireService.selectList(questionnaireQuery);
+            if(!CollectionUtils.isEmpty(questionnaireList)){
+                List<SystemConfig> insertConfigList  = this.systemConfigService.selectAll();
+                for (Questionnaire questionnaire :questionnaireList ){
+                    SystemConfig insertConfig = new SystemConfig();
+                    insertConfig.setRemindTime(getDiffDate(questionnaire.getCreateTime(),time));
+                    insertConfig.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+                    insertConfig.setQuestionnaireName(questionnaire.getQuestionnaireName());
+                    insertConfigList.add(insertConfig);
+                }
+            }
+        }catch (Exception e){
+            log.error("设置策略失败："+e.getMessage(),e);
             returnMap.put("status",500);
-            returnMap.put("msg","超时时间不能为空！");
+            returnMap.put("msg",e.getMessage());
         }
-        systemConstant.setConstant(day.toString());
-        systemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
-        systemConstant.setIsDelete(0);
-        this.systemConstantService.insert(systemConstant,account.getUserCode());
 
         return returnMap;
     }
@@ -180,5 +215,16 @@ public class SystemConstantController extends BaseController {
         returnMap.put("data",systemConstant);
         returnMap.put("status",200);
         return returnMap;
+    }
+
+    private Date getDiffDate(Date remindDate,Long time){
+        if(remindDate==null){
+            return new Date();
+        }
+        Long diff = remindDate.getTime() - time;
+        if (diff!=null){
+            return DateUtils.timeStamp2Date(diff.toString());
+        }
+        return new Date();
     }
 }

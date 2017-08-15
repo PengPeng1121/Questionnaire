@@ -3,21 +3,19 @@
  */
 package com.pp.web.controller.questionnaire;
 
+import com.pp.basic.domain.SystemUser;
+import com.pp.basic.service.SystemUserService;
+import com.pp.common.core.Page;
+import com.pp.common.core.Sort;
+import com.pp.web.account.Account;
+import com.pp.web.controller.BaseController;
+import com.pp.web.controller.until.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.pp.web.account.Account;
-import com.pp.web.controller.until.AccountUtils;
-import com.pp.common.core.Page;
-import com.pp.common.core.Sort;
-import com.pp.web.controller.BaseController;
-import com.pp.basic.domain.SystemUser;
-import com.pp.basic.service.SystemUserService;
 
 /**
  * 学生信息表Controller
@@ -30,31 +28,6 @@ public class SystemUserController extends BaseController {
 
     @Autowired
     SystemUserService systemUserService;
-
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "common/core/SystemUser/system_user_list";
-    }
-
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "common/core/SystemUser/system_user_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "common/core/SystemUser/system_user_edit";
-    }
 
     /**
      * 保存数据

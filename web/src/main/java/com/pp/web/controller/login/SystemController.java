@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping("/web")
-public class TempController {
+public class SystemController {
 
     /**
      * 获取系统时间

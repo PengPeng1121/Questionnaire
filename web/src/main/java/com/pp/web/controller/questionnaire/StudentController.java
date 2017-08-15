@@ -3,9 +3,16 @@
  */
 package com.pp.web.controller.questionnaire;
 
+import com.pp.basic.domain.Student;
 import com.pp.basic.domain.vo.InitStudent;
 import com.pp.basic.domain.vo.InitStudentFail;
+import com.pp.basic.service.StudentService;
 import com.pp.basic.service.SystemUserService;
+import com.pp.common.core.Page;
+import com.pp.common.core.Sort;
+import com.pp.web.account.Account;
+import com.pp.web.controller.BaseController;
+import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -18,14 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.pp.web.account.Account;
-import com.pp.web.controller.until.AccountUtils;
-import com.pp.common.core.Page;
-import com.pp.common.core.Sort;
-import com.pp.web.controller.BaseController;
-import com.pp.basic.domain.Student;
-import com.pp.basic.service.StudentService;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -45,31 +44,6 @@ public class StudentController extends BaseController {
 
     @Autowired
     SystemUserService systemUserService;
-
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "common/core/Student/student_list";
-    }
-
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "common/core/Student/student_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "common/core/Student/student_edit";
-    }
 
     /**
      * 保存数据
@@ -146,12 +120,18 @@ public class StudentController extends BaseController {
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        map.put("data",page.getContent());
-        map.put("count",page.getTotalElements());
-        map.put("limit",page.getPageSize());
-        map.put("page",page.getPageIndex());
-        returnMap.put("data",map);
-        returnMap.put("status",200);
+        if (page!=null){
+            map.put("data",page.getContent());
+            map.put("count",page.getTotalElements());
+            map.put("limit",page.getPageSize());
+            map.put("page",page.getPageIndex());
+            returnMap.put("data",map);
+            returnMap.put("status",200);
+        }else {
+            returnMap.put("data",map);
+            returnMap.put("msg","没有查询到数据");
+            returnMap.put("status",300);
+        }
         return returnMap;
     }
 
