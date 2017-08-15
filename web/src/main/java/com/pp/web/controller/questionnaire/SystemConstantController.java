@@ -193,6 +193,7 @@ public class SystemConstantController extends BaseController {
                     insertConfigList.add(insertConfig);
                 }
             }
+            returnMap.put("status",200);
         }catch (Exception e){
             log.error("设置策略失败："+e.getMessage(),e);
             returnMap.put("status",500);
