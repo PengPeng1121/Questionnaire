@@ -480,4 +480,63 @@
             and q.questionnaire_code = 	#{questionnaireCode, jdbcType=VARCHAR}
         </where>
     </select>
+
+    <!-- 导出 -->
+    <select id="exportStudentUnDoInfo" resultType="com.pp.basic.domain.vo.QuestionnaireStudentExportVo" parameterType="java.util.Map">
+        SELECT
+        q.questionnaire_name as questionnaireName,
+        q.questionnaire_code as questionnaireCode,
+        q.create_time as createTime,
+        ql.lesson_name as lessonName,
+        qs.student_code as studentCode,
+        qs.student_name as studentName,
+        sc.remind_time as remindTime
+        FROM
+        questionnaire q
+        LEFT JOIN questionnaire_lesson ql on q.questionnaire_code = ql.questionnaire_code and ql.is_delete =0
+        LEFT JOIN questionnaire_student qs on q.questionnaire_code = qs.questionnaire_code and qs.is_delete =0
+        LEFT JOIN system_config sc on q.questionnaire_code = sc.questionnaire_code and sc.is_delete =0
+        <where>
+            q.questionnaire_status_code = 2 and qs.questionnaire_process_status_code = 0 and q.is_delete =0
+            and q.questionnaire_code = 	#{questionnaireCode, jdbcType=VARCHAR}
+        </where>
+    </select>
+
+    <!-- 查询详细 -->
+    <select id="showStudentQuestionnaire" resultType="com.pp.basic.domain.vo.QuestionnaireInfoVo" parameterType="java.util.Map">
+        SELECT
+        q.questionnaire_name as questionnaireName,
+        q.questionnaire_code as questionnaireCode,
+        ql.lesson_name as lessonName,
+        tl.teacher_name as teacherName
+        FROM
+        questionnaire q
+        LEFT JOIN questionnaire_lesson ql on q.questionnaire_code = ql.questionnaire_code and ql.is_delete =0
+        LEFT JOIN questionnaire_student qs on q.questionnaire_code = qs.questionnaire_code and qs.is_delete =0
+        LEFT JOIN teacher_lesson tl on tl.lesson_code = ql.lesson_code and tl.is_delete =0
+        <where>
+            q.is_delete = 0 AND qs.student_code = #{studentCode, jdbcType=VARCHAR}
+            <if test="questionnaireStatusCode != null and questionnaireStatusCode != ''">
+                AND q.questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR}    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
+            </if>
+        </where>
+        <include refid="pageClause"/>
+    </select>
+
+    <!-- 查询详细 -->
+    <select id="showStudentQuestionnaireCount" resultType="java.lang.Long" parameterType="java.util.Map">
+        SELECT
+        COUNT(1)
+        FROM
+        questionnaire q
+        LEFT JOIN questionnaire_lesson ql on q.questionnaire_code = ql.questionnaire_code and ql.is_delete =0
+        LEFT JOIN questionnaire_student qs on q.questionnaire_code = qs.questionnaire_code and qs.is_delete =0
+        LEFT JOIN teacher_lesson tl on tl.lesson_code = ql.lesson_code and tl.is_delete =0
+        <where>
+            q.is_delete = 0 AND qs.student_code = #{studentCode, jdbcType=VARCHAR}
+            <if test="questionnaireStatusCode != null and questionnaireStatusCode != ''">
+                AND q.questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR}    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
+            </if>
+        </where>
+    </select>
 </mapper>

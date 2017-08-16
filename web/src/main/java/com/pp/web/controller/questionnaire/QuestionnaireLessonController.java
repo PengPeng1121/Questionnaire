@@ -4,9 +4,7 @@
 package com.pp.web.controller.questionnaire;
 
 import com.pp.basic.domain.QuestionnaireLesson;
-import com.pp.basic.service.LessonService;
 import com.pp.basic.service.QuestionnaireLessonService;
-import com.pp.basic.service.QuestionnaireService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
@@ -31,13 +29,7 @@ import java.util.HashMap;
 public class QuestionnaireLessonController extends BaseController {
 
     @Autowired
-    QuestionnaireService questionnaireService;
-
-    @Autowired
     QuestionnaireLessonService questionnaireLessonService;
-
-    @Autowired
-    LessonService lessonService;
 
     /**
      * 保存数据

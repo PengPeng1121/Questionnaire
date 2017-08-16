@@ -5,6 +5,7 @@ package com.pp.basic.domain.vo;
 
 import com.pp.common.core.AbstractEntity;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -12,7 +13,7 @@ import java.util.Date;
  * 
  * @author
  */
-public final class QuestionnaireStudentExportVo {
+public final class QuestionnaireStudentExportVo implements Serializable{
 
     // 序列化
     private static final long serialVersionUID = 1L;

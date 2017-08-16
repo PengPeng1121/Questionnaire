@@ -60,9 +60,9 @@ public abstract class AbstractGenericDao<T extends AbstractEntity> extends SqlSe
 	protected static final String KEY_VERSION = "_version";
 
 	// 批处理操作最大数量
-	protected static final int MAX_BATCH = 1000;
+	protected static final int MAX_BATCH = 10000;
 	// 查询结果最大数量
-	protected static final int MAX_RESULT = 1000;
+	protected static final int MAX_RESULT = 10000;
 
 	// 数据实体类定义
 	private final Class<T> entityClass;

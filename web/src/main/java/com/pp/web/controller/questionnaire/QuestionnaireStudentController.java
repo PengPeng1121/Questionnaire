@@ -4,20 +4,19 @@
 package com.pp.web.controller.questionnaire;
 
 import com.pp.basic.domain.QuestionnaireStudent;
+import com.pp.basic.domain.vo.QuestionnaireInfoVo;
 import com.pp.basic.domain.vo.QuestionnaireStudentExportVo;
 import com.pp.basic.service.QuestionnaireStudentService;
 import com.pp.common.core.Page;
+import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.PoiUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,32 +41,6 @@ public class QuestionnaireStudentController extends BaseController {
 
     @Autowired
     QuestionnaireStudentService questionnaireStudentService;
-
-    Logger log = LoggerFactory.getLogger(QuestionnaireStudentController.class.getName());
-    /**
-     * 显示列表页面
-     */
-    @RequestMapping(value = "/listPage", method = RequestMethod.GET)
-    public String listPage() {
-        return "QuestionnaireStudent/questionnaire_student_list";
-    }
-
-    /**
-     * 显示新增页面
-     */
-    @RequestMapping(value = "/addPage", method = RequestMethod.GET)
-    public String addPage() {
-        return "QuestionnaireStudent/questionnaire_student_add";
-    }
-
-    /**
-     * 显示修改页面
-     */
-    @RequestMapping(value = "/editPage", method = RequestMethod.GET)
-    public String editPage(Long id, Model model) {
-        //TODO 数据验证
-        return "QuestionnaireStudent/questionnaire_student_edit";
-    }
 
     /**
      * 保存数据
@@ -116,19 +89,17 @@ public class QuestionnaireStudentController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
-    public HashMap<String,Object> pageQuery(QuestionnaireStudent questionnaireStudentQuery,
-                                                @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum,
-                                                @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize,
-                                                @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName,
-                                                @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
-        //TODO 数据验证
-
-
-        Page<QuestionnaireStudent> page = this.buildPage(pageNum, pageSize, sortName, sortOrder);
+    public HashMap<String,Object> pageQuery(String questionnaireStatusCode,Integer pageIndex) {
+        if (pageIndex == null){
+            pageIndex=0;
+        }
+        Page<QuestionnaireInfoVo> page = new Page<>(pageIndex, 20, Sort.desc("id"));
         Account account =AccountUtils.getCurrentAccount();
-        questionnaireStudentQuery.setStudentCode(account.getUserCode());
+        HashMap<String,Object> param = new HashMap<String,Object>();
+        param.put("studentCode",account.getUserCode());
+        param.put("questionnaireStatusCode",questionnaireStatusCode);
         // 执行查询
-        page = this.questionnaireStudentService.selectPage(questionnaireStudentQuery, page);
+        page = this.questionnaireStudentService.showStudentQuestionnaire(param, page);
         // 返回查询结果
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
