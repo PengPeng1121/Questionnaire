@@ -58,6 +58,9 @@ public class QuestionnaireQuestionController extends BaseController {
     @Autowired
     StudentLessonService studentLessonService;
 
+    @Autowired
+    TeacherLessonService teacherLessonService;
+
     /**
      * 保存数据
      */
@@ -108,15 +111,33 @@ public class QuestionnaireQuestionController extends BaseController {
         questionnaire.setQuestionnaireCode(questionnaireCode);
         // 执行查询
         questionnaire = this.questionnaireService.selectOne(questionnaire);
-
-
         QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
         questionnaireStudent.setQuestionnaireCode(questionnaireCode);
+        //查询改问卷的所有应做学生
         Long allStudent = this.questionnaireStudentService.count(questionnaireStudent);
         questionnaireStudent.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_DONE);
+        //查询改问卷的所有已做学生
         Long doneStudent = this.questionnaireStudentService.count(questionnaireStudent);
+        //查询改问卷的所对应的课程
+        QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
+        questionnaireLesson.setQuestionnaireCode(questionnaireCode);
+        questionnaireLesson = this.questionnaireLessonService.selectOne(questionnaireLesson);
+        String lessonName = "";
+        String teacherName = "";
+        if(questionnaireLesson!=null){
+            lessonName = questionnaireLesson.getLessonName();
+            TeacherLesson teacherLesson = new TeacherLesson();
+            teacherLesson.setLessonCode(questionnaireLesson.getLessonCode());
+            teacherLesson.setLessonName(lessonName);
+            teacherLesson = this.teacherLessonService.selectOne(teacherLesson);
+            if (teacherLesson!=null){
+                teacherName = teacherLesson.getTeacherName();
+            }
+        }
         // 返回查询结果
         map.put("questionnaire",questionnaire);
+        map.put("teacherName",teacherName);
+        map.put("lessonName",lessonName);
         map.put("allStudent",allStudent);
         map.put("doneStudent",doneStudent);
         if(questionnaire!=null){
@@ -178,7 +199,7 @@ public class QuestionnaireQuestionController extends BaseController {
             map.put("msg","问卷名称不能为空");
             return map;
         }
-            questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
+        questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
 
         try {
             if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
