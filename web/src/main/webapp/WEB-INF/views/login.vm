@@ -1,10 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>NEU问卷调查系统</title>
+    <title>问卷调查</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
 
+
+    <script type="text/javascript">
+        var springUrl = "#springUrl('')";   //上下文路径全局变量md5
+        var md5 = "$!md5";   //上下文路径全局变量
+    </script>
 </head>
-<body>
-hello
+
+<body class="blue-skin">
+
+<div class="page-content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="widget-main">
+                <form id="loginForm" class="form-horizontal" method="post" action="#springUrl('')/login/login">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label no-padding-right" for="code"></label>
+                        <div class="col-sm-4">
+                            <input type="text" id="userCode" name="userCode" class="form-control" data-rule=":required" data-msg-required="{0}用户名不能为空"/>
+                        </div>
+                    </div>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label no-padding-right" for="code"></label>
+                        <div class="col-sm-4">
+                            <input type="password" id="password" name="password" class="form-control" data-rule=":required" data-msg-required="{0}密码不能为空"/>
+                        </div>
+                    </div>
+                    <hr class="hr hr-32"/>
+                    <div class="center">
+                        <a id="btnLogin" class="button button-primary button-rounded button-normal" href="javascript:void(0)" >登录</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
+
 </html>
+

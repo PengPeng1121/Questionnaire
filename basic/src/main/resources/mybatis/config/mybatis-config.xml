@@ -14,11 +14,12 @@
         <mapper resource="mybatis/mysql/QuestionnaireQuestionAnswerDao.xml" />	<!-- 文卷调查问题答案信息表 -->
         <mapper resource="mybatis/mysql/StudentDao.xml" />	<!-- 学生信息表 -->
         <mapper resource="mybatis/mysql/StudentLessonDao.xml" />	<!-- 学生选课信息表 -->
-        <mapper resource="mybatis/mysql/SystemUserDao.xml" />	<!-- 学生信息表 -->
+        <mapper resource="mybatis/mysql/SystemUserDao.xml" />
         <mapper resource="mybatis/mysql/TeacherDao.xml" />	<!-- 教师信息表 -->
         <mapper resource="mybatis/mysql/TeacherLessonDao.xml" />	<!-- 教师授课信息表 -->
         <mapper resource="mybatis/mysql/QuestionnaireStudentDao.xml" />	<!-- 学生问卷调查关系表 -->
         <mapper resource="mybatis/mysql/SystemConfigDao.xml" />	<!-- 系统配置 -->
+        <mapper resource="mybatis/mysql/SystemConstantDao.xml" />
     </mappers>
     
 </configuration>

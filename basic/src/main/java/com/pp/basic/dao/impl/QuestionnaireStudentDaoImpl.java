@@ -80,7 +80,7 @@ public class QuestionnaireStudentDaoImpl extends AbstractDemoDao<QuestionnaireSt
     @Override
     public Long showStudentQuestionnaireCount(HashMap<String ,Object> parameterMap) {
         // 获取统计语句
-        String statement = this.getStatement("countByConditionUnion");
+        String statement = this.getStatement("showStudentQuestionnaireCount");
         // 执行统计语句
         Long count = this.getSqlSession().selectOne(statement, parameterMap);
         // 返回结果

@@ -16,6 +16,9 @@ import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.DateUtils;
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -66,7 +71,7 @@ public class SystemConstantController extends BaseController {
     /**
      * 修改数据
      */
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    @RequestMapping(value = "/updateUser", method = RequestMethod.POST)
     @ResponseBody
     public boolean update(SystemConstant systemConstantUpdate) {
         //TODO 数据验证
@@ -134,20 +139,34 @@ public class SystemConstantController extends BaseController {
      */
     @RequestMapping(value = "/postStrategy", method ={RequestMethod.POST})
     @ResponseBody
-    public HashMap<String,Object> postStrategy(Integer day) {
+    public HashMap<String,Object> postStrategy(HttpServletRequest request) {
 
         Account account = AccountUtils.getCurrentAccount();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         returnMap.put("status",300);
         try {
+            BufferedReader reader = request.getReader();
+            String input = "";
+            StringBuffer requestBody = new StringBuffer();
+            while ((input = reader.readLine())!=null){
+                requestBody.append(input);
+            }
+            String remindTime ;
+            if(StringUtils.isEmpty(requestBody.toString())){
+                throw new IllegalArgumentException("至少包含一条数据！");
+            }else{
+                JSONObject jsonObject = new JSONObject(requestBody.toString());
+                remindTime = (String) jsonObject.get("remindTime");
+            }
             if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
                 returnMap.put("msg","为管理员操作，当前用户没有管理员权限");
                 return returnMap;
             }
-            if(day==null){
+            if(remindTime==null){
                 returnMap.put("msg","超时时间不能为空！");
                 return returnMap;
             }
+            Integer day = Integer.parseInt(remindTime);
             Long time = day*24*60*60*1000L;
             //先根据类型删除
             SystemConstant systemConstant = new SystemConstant();
@@ -156,6 +175,9 @@ public class SystemConstantController extends BaseController {
                 systemConstant = this.systemConstantService.selectOne(systemConstant);
                 if(systemConstant!=null){
                     this.systemConstantService.delete(systemConstant.getId(),account.getUserCode());
+                    systemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
+                    systemConstant.setConstant(day.toString());
+                    this.systemConstantService.insert(systemConstant,account.getUserCode());
                 }else {
                     //不存在写入
                     SystemConstant insertSystemConstant = new SystemConstant();
@@ -187,11 +209,12 @@ public class SystemConstantController extends BaseController {
                 List<SystemConfig> insertConfigList  = this.systemConfigService.selectAll();
                 for (Questionnaire questionnaire :questionnaireList ){
                     SystemConfig insertConfig = new SystemConfig();
-                    insertConfig.setRemindTime(getDiffDate(questionnaire.getCreateTime(),time));
+                    insertConfig.setRemindTime(getDiffDate(questionnaire.getQuestionnaireEndTime(),time));
                     insertConfig.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
                     insertConfig.setQuestionnaireName(questionnaire.getQuestionnaireName());
                     insertConfigList.add(insertConfig);
                 }
+                this.systemConfigService.insert(insertConfigList,account.getUserCode());
             }
             returnMap.put("status",200);
         }catch (Exception e){
@@ -212,9 +235,13 @@ public class SystemConstantController extends BaseController {
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         SystemConstant systemConstant = new SystemConstant();
         systemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
-        systemConstant = this.systemConstantService.selectOne(systemConstant);
-        returnMap.put("data",systemConstant);
-        returnMap.put("status",200);
+        try{
+            systemConstant = this.systemConstantService.selectOne(systemConstant);
+            returnMap.put("remindTime",systemConstant.getConstant());
+            returnMap.put("status",200);
+        }catch (Exception e){
+            returnMap.put("status",400);
+        }
         return returnMap;
     }
 

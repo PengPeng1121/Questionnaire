@@ -1,6 +1,7 @@
 package com.pp.basic.domain.vo;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created by asus on 2017/8/16.
@@ -20,6 +21,18 @@ public class QuestionnaireInfoVo implements Serializable {
 
     // 教师姓名
     private String teacherName;
+
+    private Date questionnaireEndTime;
+
+    private String questionnaireProcessStatusName;
+
+    public String getQuestionnaireProcessStatusName() {
+        return questionnaireProcessStatusName;
+    }
+
+    public void setQuestionnaireProcessStatusName(String questionnaireProcessStatusName) {
+        this.questionnaireProcessStatusName = questionnaireProcessStatusName;
+    }
 
     public String getLessonName() {
         return lessonName;
@@ -51,5 +64,13 @@ public class QuestionnaireInfoVo implements Serializable {
 
     public void setTeacherName(String teacherName) {
         this.teacherName = teacherName;
+    }
+
+    public Date getQuestionnaireEndTime() {
+        return questionnaireEndTime;
+    }
+
+    public void setQuestionnaireEndTime(Date questionnaireEndTime) {
+        this.questionnaireEndTime = questionnaireEndTime;
     }
 }

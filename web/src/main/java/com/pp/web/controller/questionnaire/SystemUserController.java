@@ -3,7 +3,12 @@
  */
 package com.pp.web.controller.questionnaire;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pp.basic.domain.Student;
 import com.pp.basic.domain.SystemUser;
+import com.pp.basic.domain.vo.Answer;
+import com.pp.basic.service.StudentService;
 import com.pp.basic.service.SystemUserService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
@@ -11,6 +16,8 @@ import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +27,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * 学生信息表Controller
@@ -36,6 +47,8 @@ public class SystemUserController extends BaseController {
     @Autowired
     SystemUserService systemUserService;
 
+    @Autowired
+    StudentService studentService;
     /**
      * 保存数据
      */
@@ -46,6 +59,56 @@ public class SystemUserController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         this.systemUserService.insert(systemUser, account.getUserCode());
         return true;
+    }
+
+    /**
+     * 保存数据
+     */
+    @RequestMapping(value = "/updateUser", method = RequestMethod.POST)
+    @ResponseBody
+    public  HashMap<String,Object> updateUser(HttpServletRequest request,String userPassword, String userCode, String userName) {
+        //TODO 数据验证
+        Account account = AccountUtils.getCurrentAccount();
+        HashMap<String,Object> returnMap = new HashMap<String,Object>();
+        returnMap.put("status",300);
+        try {
+            BufferedReader reader = request.getReader();
+            String input = "";
+            StringBuffer requestBody = new StringBuffer();
+            while ((input = reader.readLine()) != null) {
+                requestBody.append(input);
+            }
+            SystemUser systemUser = new SystemUser();
+//            String password;
+//            String userName;
+//            if (org.apache.commons.lang.StringUtils.isEmpty(requestBody.toString())) {
+//                throw new IllegalArgumentException("至少包含一条数据！");
+//            } else {
+//                JSONObject jsonObject = new JSONObject(requestBody.toString());
+//                password = (String) jsonObject.get("userPassword");
+//                userName = (String) jsonObject.get("userName");
+//            }
+            if (!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+                returnMap.put("msg", "为管理员操作，当前用户没有管理员权限");
+                return returnMap;
+            }
+            systemUser.setUserCode(userCode);
+            systemUser = this.systemUserService.selectOne(systemUser);
+            if(systemUser == null){
+                returnMap.put("msg","没有查询到该用户信息！");
+            }
+            if(StringUtils.isNotEmpty(userPassword)){
+                systemUser.setUserPassword(userPassword);
+            }
+            if(StringUtils.isNoneEmpty(userName)){
+                systemUser.setUserName(userName);
+            }
+            this.systemUserService.update(systemUser, account.getUserCode());
+            returnMap.put("status",200);
+        }catch (Exception e){
+            returnMap.put("msg",e.getMessage());
+        }
+        return returnMap;
     }
 
     /**
@@ -73,7 +136,7 @@ public class SystemUserController extends BaseController {
             log.info(account.getUserName()+"在进行修改密码操作");
             //管理员可以修改任何人密码  并且不需要校验密码是否一致
             if(!(account.getRole().equals(SystemUser.AUTHOR_ADMIN))){
-                if(systemUserUpdate.getUserCode()!=account.getUserCode()){
+                if(!systemUserUpdate.getUserCode().equals(account.getUserCode())){
                     returnMap.put("msg","您不能进行该操作");
                     return returnMap;
                 }else if(!(passwordOld.equals(systemUserUpdate.getUserPassword()))){
@@ -94,52 +157,55 @@ public class SystemUserController extends BaseController {
     }
 
     /**
-     * 逻辑删除数据
+     * 逻辑删除用户   同时删除学生
      */
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
-    public boolean delete(Long id) {
+    public HashMap<String,Object> delete(Long id) {
         //TODO 数据验证
         Account account = AccountUtils.getCurrentAccount();
-        int rows = this.systemUserService.delete(id, account.getUserCode());
-        if (rows == 1) {
-            return true;
+        HashMap<String,Object> returnMap = new HashMap<String,Object>();
+        returnMap.put("status",300);
+        try {
+            SystemUser systemUser = this.systemUserService.selectOne(id);
+            this.systemUserService.delete(id, account.getUserCode());
+            Student student = new Student();
+            if(systemUser!=null){
+                student.setStudentCode(systemUser.getUserCode());
+                student = this.studentService.selectOne(student);
+                if(student!=null){
+                    this.studentService.delete(student.getId(), account.getUserCode());
+                }else {
+                    return returnMap;
+                }
+            }
+            returnMap.put("status",200);
+        }catch (Exception e){
+            returnMap.put("msg",e.getMessage());
+            return returnMap;
         }
-        return false;
+        return returnMap;
     }
 
     /**
      * 分页查询
      */
-    @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
+    @RequestMapping(value = "/showSystemUser", method = RequestMethod.GET)
     @ResponseBody
-    public Page<SystemUser> pageQuery(SystemUser systemUserQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
-        //TODO 数据验证
-
-        // 设置合理的参数
-        if (pageNum < 1) {
-            pageNum = 1;
-        }
-        if (pageSize < 1) {
-            pageSize = 20;
-        } else if (pageSize > 100) {
-            pageSize = 100;
-        }
-        // 开始页码
-        int pageIndex = pageNum - 1;
-        // 排序
-        Sort sort = null;
-        if ("desc".equalsIgnoreCase(sortOrder)) {
-            sort = Sort.desc(sortName);
-        } else {
-            sort = Sort.asc(sortName);
-        }
-        // 创建分页对象
-        Page<SystemUser> page = new Page<SystemUser>(pageIndex, pageSize, sort);
+    public HashMap<String,Object> pageQuery(SystemUser systemUserQuery){
+        HashMap<String,Object> returnMap = new HashMap<String,Object>();
         // 执行查询
-        page = this.systemUserService.selectPage(systemUserQuery, page);
+        SystemUser systemUser = this.systemUserService.selectOne(systemUserQuery);
+
+        if (systemUser!=null){
+            returnMap.put("status",200);
+            returnMap.put("systemUser",systemUser);
+        }else {
+            returnMap.put("status",300);
+            returnMap.put("msg","没有查询到该用户信息！");
+        }
         // 返回查询结果
-        return page;
+        return returnMap;
     }
 
 }

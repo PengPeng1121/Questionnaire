@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.ServletOutputStream;
@@ -97,7 +96,10 @@ public class QuestionnaireStudentController extends BaseController {
         Account account =AccountUtils.getCurrentAccount();
         HashMap<String,Object> param = new HashMap<String,Object>();
         param.put("studentCode",account.getUserCode());
-        param.put("questionnaireStatusCode",questionnaireStatusCode);
+        if(StringUtils.isNoneEmpty(questionnaireStatusCode)){
+            param.put("questionnaireStatusCode",questionnaireStatusCode);
+        }
+
         // 执行查询
         page = this.questionnaireStudentService.showStudentQuestionnaire(param, page);
         // 返回查询结果
@@ -125,34 +127,49 @@ public class QuestionnaireStudentController extends BaseController {
      */
     @RequestMapping(value = "/findUnDoQuestionnaire",method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public HashMap<String,Object> findUnDoQuestionnaire() {
+    public HashMap<String,Object> findUnDoQuestionnaire(Integer pageIndex) {
         //TODO 数据验证
 
         // 设置合理的参数
-        int pageNum = 1;
+        if (pageIndex == null || pageIndex < 1) {
+            pageIndex = 1;
+        }
         int pageSize = 20;
         // 排序--默认
         String sortName="ts";
         String sortOrder = "desc";
+        Sort sort = null;
+        if ("desc".equalsIgnoreCase(sortOrder)) {
+            sort = Sort.desc(sortName);
+        } else {
+            sort = Sort.asc(sortName);
+        }
         // 创建分页对象
-        Page<QuestionnaireStudent> page = this.buildPage(pageNum, pageSize, sortName, sortOrder);
+        Page<QuestionnaireInfoVo> page = new Page<QuestionnaireInfoVo>(pageIndex, pageSize, sort);
         Account account = AccountUtils.getCurrentAccount();
-        QuestionnaireStudent questionnaireStudentQuery = new QuestionnaireStudent();
-        questionnaireStudentQuery.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_UNDO);
-        questionnaireStudentQuery.setStudentCode(account.getUserCode());
         // 执行查询
-        page = this.questionnaireStudentService.selectPage(questionnaireStudentQuery, page);
-        // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
+        map.put("studentCode",account.getUserCode());
+
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        if (page!=null){
-            map.put("data",page.getContent());
-            map.put("count",page.getTotalElements());
-            map.put("limit",page.getPageSize());
-            map.put("page",page.getPageIndex());
-            returnMap.put("data",map);
-            returnMap.put("status",200);
-        }else {
+        try {
+            map.put("questionnaireProcessStatusCode",QuestionnaireStudent.PROCESS_CODE_UNDO);
+            page = this.questionnaireStudentService.showStudentQuestionnaire(map, page);
+            // 返回查询结果
+            map.clear();
+            if (page!=null){
+                map.put("data",page.getContent());
+                map.put("count",page.getContent().size());
+                map.put("limit",page.getPageSize());
+                map.put("page",page.getPageIndex());
+                returnMap.put("data",map);
+                returnMap.put("status",200);
+            }else {
+                returnMap.put("data",map);
+                returnMap.put("msg","没有查询到数据");
+                returnMap.put("status",300);
+            }
+        }catch (Exception e){
             returnMap.put("data",map);
             returnMap.put("msg","没有查询到数据");
             returnMap.put("status",300);
