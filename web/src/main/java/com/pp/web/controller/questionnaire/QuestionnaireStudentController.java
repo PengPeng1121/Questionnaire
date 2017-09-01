@@ -89,8 +89,8 @@ public class QuestionnaireStudentController extends BaseController {
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
     public HashMap<String,Object> pageQuery(String questionnaireStatusCode,Integer pageIndex) {
-        if (pageIndex == null){
-            pageIndex=0;
+        if (pageIndex == null || pageIndex < 1) {
+            pageIndex = 1;
         }
         Page<QuestionnaireInfoVo> page = new Page<>(pageIndex, 20, Sort.desc("id"));
         Account account =AccountUtils.getCurrentAccount();
