@@ -134,7 +134,7 @@ public class QuestionnaireStudentController extends BaseController {
         if (pageIndex == null || pageIndex < 1) {
             pageIndex = 1;
         }
-        int pageSize = 20;
+        int pageSize = 1000;
         // 排序--默认
         String sortName="ts";
         String sortOrder = "desc";
@@ -281,27 +281,28 @@ public class QuestionnaireStudentController extends BaseController {
             response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
 
             String[] columnName = {"学生姓名", "学号", "问卷调查名称","问卷创建时间","问卷提醒时间","课程名"};
-
             Object[][] data = null;
-            int index = 0;
-            if (data == null) {
-                Integer total = questionnaireStudentList.size();
-                if (total > 100000) {
-                    throw new RuntimeException("暂不支持导出数超过10万条记录！");
+            if(!CollectionUtils.isEmpty(questionnaireStudentList)){
+                int index = 0;
+                if (data == null) {
+                    Integer total = questionnaireStudentList.size();
+                    if (total > 100000) {
+                        throw new RuntimeException("暂不支持导出数超过10万条记录！");
+                    }
+                    data = new Object[total.intValue()][6];
                 }
-                data = new Object[total.intValue()][6];
+                for (int i = 0; i < questionnaireStudentList.size(); i++) {
+                    QuestionnaireStudentExportVo vo = questionnaireStudentList.get(i);
+                    data[index][0] = this.notNull(vo.getStudentName());
+                    data[index][1] = this.notNull(vo.getStudentCode());
+                    data[index][2] = this.notNull(vo.getQuestionnaireName());
+                    data[index][3] = this.notNull(f.format(vo.getCreateTime()));
+                    data[index][4] = this.notNull(f.format(vo.getRemindTime()));
+                    data[index][5] = this.notNull(vo.getLessonName());
+                    index++;
+                }
             }
 
-            for (int i = 0; i < questionnaireStudentList.size(); i++) {
-                QuestionnaireStudentExportVo vo = questionnaireStudentList.get(i);
-                data[index][0] = this.notNull(vo.getStudentName());
-                data[index][1] = this.notNull(vo.getStudentCode());
-                data[index][2] = this.notNull(vo.getQuestionnaireName());
-                data[index][3] = this.notNull(f.format(vo.getCreateTime()));
-                data[index][4] = this.notNull(f.format(vo.getRemindTime()));
-                data[index][5] = this.notNull(vo.getLessonName());
-                index++;
-            }
             ServletOutputStream outputStream = response.getOutputStream();
             PoiUtils.export(name, title, columnName, data,outputStream);
         } catch (Exception e) {

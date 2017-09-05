@@ -160,6 +160,7 @@ public class LessonController extends BaseController {
     @ResponseBody
     public Map<String,Object> InitLessonData(Model model, @RequestParam("fileLessonUpload") MultipartFile file) {
         HashMap<String,Object> map = new HashMap<>();
+        map.put("status", 302);
         int rows = 0;// 实际导入行数
         // 最大导入条数
         Integer importNum = 5000;
@@ -281,6 +282,7 @@ public class LessonController extends BaseController {
                     map.put("list", resultList);
                     map.put("size", resultList.size());
                 } else {
+                    map.put("status", 200);
                     map.put("msg", "数据导入全部成功！");
                 }
             } else {
@@ -288,6 +290,7 @@ public class LessonController extends BaseController {
             }
         } catch (Exception e) {
             map.put("msg", "导入失败说明：数据导入异常！");
+            return map;
         }
         return map;
     }
@@ -322,13 +325,6 @@ public class LessonController extends BaseController {
                 reason.append("学期;");
                 flag = false;
             }
-            if (row.getCell(6) == null || row.getCell(6).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
-                reason.append("学生学号;");
-                flag = false;
-            } if (row.getCell(7) == null || row.getCell(7).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
-                reason.append("学生姓名;");
-                flag = false;
-            }
             reason.append("不能为空");
         } catch (Exception e) {
             flag = false;
@@ -347,23 +343,23 @@ public class LessonController extends BaseController {
         }else {
             return;
         }
-        lesson.setLessonCode(row.getCell(0).toString());
-        lesson.setLessonName(row.getCell(1).toString());
-        lesson.setLessonTeacherCode(row.getCell(3).toString());
-        lesson.setLessonTeacherName(row.getCell(4).toString());
-        lesson.setTerm(row.getCell(5).toString());
+        lesson.setLessonCode(row.getCell(0).toString().trim());
+        lesson.setLessonName(row.getCell(1).toString().trim());
+        lesson.setLessonTeacherCode(row.getCell(3).toString().trim());
+        lesson.setLessonTeacherName(row.getCell(4).toString().trim());
+        lesson.setTerm(row.getCell(5).toString().trim());
 
         if(!teacherSets.contains(lesson.getLessonTeacherCode())){
-            teacher.setTeacherCode(row.getCell(3).toString());
-            teacher.setTeacherName(row.getCell(4).toString());
+            teacher.setTeacherCode(row.getCell(3).toString().trim());
+            teacher.setTeacherName(row.getCell(4).toString().trim());
         }
         teacherSets.add(lesson.getLessonTeacherCode());
 
-        teacherLesson.setLessonCode(row.getCell(0).toString());
-        teacherLesson.setLessonName(row.getCell(1).toString());
-        teacherLesson.setTeacherCode(row.getCell(3).toString());
-        teacherLesson.setTeacherName(row.getCell(4).toString());
-
+        teacherLesson.setLessonCode(row.getCell(0).toString().trim());
+        teacherLesson.setLessonName(row.getCell(1).toString().trim());
+        teacherLesson.setTeacherCode(row.getCell(3).toString().trim());
+        teacherLesson.setTeacherName(row.getCell(4).toString().trim());
+        teacherLesson.setTerm(row.getCell(5).toString().trim());
     }
 
 }

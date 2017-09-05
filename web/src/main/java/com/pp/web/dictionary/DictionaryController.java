@@ -5,6 +5,7 @@ import com.pp.basic.domain.Teacher;
 import com.pp.basic.service.LessonService;
 import com.pp.basic.service.TeacherService;
 import com.pp.web.common.ChoiceQuestionEnum;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by zhaopeng on 2017/3/14.
@@ -39,8 +38,14 @@ public class DictionaryController {
     @ResponseBody
     public Map<String,Object> dictionary() throws IllegalAccessException {
         Map<String,Object> map = new HashMap<>();
+        Set<String> set = new HashSet<>();
         List<Lesson> lessons = this.lessonService.selectAll();
-        map.put("lesson",lessons);
+        if (!CollectionUtils.isEmpty(lessons)){
+            for (Lesson lesson:lessons) {
+                set.add(lesson.getTerm());
+            }
+        }
+        map.put("terms",set);
         List<Teacher> teachers = this.teacherService.selectAll();
         map.put("teacher",teachers);
 
@@ -79,4 +84,14 @@ public class DictionaryController {
         return map;
     }
 
+    @RequestMapping(value = "/findLessonsByTerm", method ={RequestMethod.POST,RequestMethod.GET} )
+    @ResponseBody
+    public Map<String,Object> findLessonsByTerm(String term) throws IllegalAccessException {
+        Map<String,Object> map = new HashMap<>();
+        Lesson lesson = new Lesson();
+        lesson.setTerm(term);
+        List<Lesson> lessons = this.lessonService.selectList(lesson);
+        map.put("lessons",lessons);
+        return map;
+    }
 }

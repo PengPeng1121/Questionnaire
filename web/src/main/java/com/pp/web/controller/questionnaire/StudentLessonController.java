@@ -33,7 +33,7 @@ import java.util.Map;
 
 /**
  * 学生选课信息表Controller
- * 
+ *
  * @author
  */
 @Controller
@@ -65,7 +65,7 @@ public class StudentLessonController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         int rows = this.studentLessonService.update(studentLessonUpdate, account.getUserCode());
         if (rows == 1) {
-            	return true;
+            return true;
         }
         return false;
     }
@@ -80,7 +80,7 @@ public class StudentLessonController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         int rows = this.studentLessonService.delete(id, account.getUserCode());
         if (rows == 1) {
-            	return true;
+            return true;
         }
         return false;
     }
@@ -92,24 +92,24 @@ public class StudentLessonController extends BaseController {
     @ResponseBody
     public HashMap<String,Object> pageQuery(StudentLesson studentLessonQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
         //TODO 数据验证
-        
+
         // 设置合理的参数
         if (pageNum < 1) {
-            	pageNum = 1;
+            pageNum = 1;
         }
         if (pageSize < 1) {
-            	pageSize = 20;
+            pageSize = 20;
         } else if (pageSize > 100) {
-            	pageSize = 100;
+            pageSize = 100;
         }
         // 开始页码
         int pageIndex = pageNum - 1;
         // 排序
         Sort sort = null;
         if ("desc".equalsIgnoreCase(sortOrder)) {
-            	sort = Sort.desc(sortName);
+            sort = Sort.desc(sortName);
         } else {
-            	sort = Sort.asc(sortName);
+            sort = Sort.asc(sortName);
         }
         // 创建分页对象
         Page<StudentLesson> page = new Page<StudentLesson>(pageIndex, pageSize, sort);
@@ -151,6 +151,7 @@ public class StudentLessonController extends BaseController {
     @ResponseBody
     public Map<String,Object> InitStudentLessonData(Model model, @RequestParam("fileUpload") MultipartFile file) {
         HashMap<String,Object> map = new HashMap<>();
+        map.put("status", 302);
         int rows = 0;// 实际导入行数
         // 最大导入条数
         Integer importNum = 5000;
@@ -191,6 +192,34 @@ public class StudentLessonController extends BaseController {
                     map.put("msg", "本次导入不存在有效的课程与学生关系数据！");
                     return map;
                 }
+                //导入前删除本次导入的excel中已经有的关系
+                HashMap<String,Object> paramMap = new HashMap<>();
+                for (StudentLesson studentLesson : studentLessonList) {
+                    paramMap.put(studentLesson.getLessonCode()+"-"+studentLesson.getTerm(),studentLesson.getLessonCode()+"-"+studentLesson.getTerm());
+                }
+                if(!paramMap.isEmpty()){
+                    List<StudentLesson> studentLessonDelList = new ArrayList<>();
+                    for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
+                        String value = (String) entry.getValue();
+                        String str[] = value.split("-");
+                        String lessonCode = str[0];
+                        String term = str[1];
+                        StudentLesson studentLessonDel = new StudentLesson();
+                        studentLessonDel.setTerm(term);
+                        studentLessonDel.setLessonCode(lessonCode);
+                        List<StudentLesson> delList = this.studentLessonService.selectList(studentLessonDel);
+                        studentLessonDelList.addAll(delList);
+                    }
+                    if (!CollectionUtils.isEmpty(studentLessonDelList)){
+                        List<Long> delIds = new ArrayList<>();
+                        for (StudentLesson sl:studentLessonDelList) {
+                            delIds.add(sl.getId());
+                        }
+                        if(!CollectionUtils.isEmpty(delIds)){
+                            this.studentLessonService.delete(delIds,account.getUserCode());
+                        }
+                    }
+                }
                 //批量写入
                 //一次100条
                 List<StudentLesson> subList = new ArrayList<>();
@@ -217,6 +246,7 @@ public class StudentLessonController extends BaseController {
                     map.put("list", resultList);
                     map.put("size", resultList.size());
                 } else {
+                    map.put("status", 200);
                     map.put("msg", "数据导入全部成功！");
                 }
             } else {
@@ -224,6 +254,7 @@ public class StudentLessonController extends BaseController {
             }
         } catch (Exception e) {
             map.put("msg", "导入失败说明：数据导入异常！");
+            return map;
         }
         return map;
     }
@@ -251,6 +282,10 @@ public class StudentLessonController extends BaseController {
                 reason.append("姓名有误;");
                 flag = false;
             }
+            if (row.getCell(4) == null || row.getCell(4).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("学期有误;");
+                flag = false;
+            }
         } catch (Exception e) {
             flag = false;
         }
@@ -260,10 +295,11 @@ public class StudentLessonController extends BaseController {
             data.setFailReason(reason.toString());
             return new StudentLesson();
         }
-        studentLesson.setStudentName(row.getCell(3).toString());
-        studentLesson.setStudentCode(row.getCell(2).toString());
-        studentLesson.setLessonName(row.getCell(1).toString());
-        studentLesson.setLessonCode(row.getCell(0).toString());
+        studentLesson.setTerm(row.getCell(4).toString().trim());
+        studentLesson.setStudentName(row.getCell(3).toString().trim());
+        studentLesson.setStudentCode(row.getCell(2).toString().trim());
+        studentLesson.setLessonName(row.getCell(1).toString().trim());
+        studentLesson.setLessonCode(row.getCell(0).toString().trim());
         return studentLesson;
     }
 }

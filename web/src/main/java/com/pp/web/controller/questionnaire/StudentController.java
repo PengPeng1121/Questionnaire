@@ -4,6 +4,7 @@
 package com.pp.web.controller.questionnaire;
 
 import com.pp.basic.domain.Student;
+import com.pp.basic.domain.SystemUser;
 import com.pp.basic.domain.vo.InitStudent;
 import com.pp.basic.domain.vo.InitStudentFail;
 import com.pp.basic.service.StudentService;
@@ -139,6 +140,7 @@ public class StudentController extends BaseController {
     @ResponseBody
     public Map<String,Object> InitStudentData(Model model, @RequestParam("fileUpload") MultipartFile file) {
         HashMap<String,Object> map = new HashMap<>();
+        map.put("status", 302);
         int rows = 0;// 实际导入行数
         // 最大导入条数
         Integer importNum = 5000;
@@ -204,6 +206,35 @@ public class StudentController extends BaseController {
                     tempResultDealList.addAll(retDealList);
                     tempDealList.clear();
                 }
+                //导入之前清空数据
+                try {
+                    List<Student> allStudent = this.studentService.selectAll();
+                    SystemUser systemUser = new SystemUser();
+                    //删除用户表中的普通用户
+                    systemUser.setUserAuthority(SystemUser.AUTHOR_USER);
+                    List<SystemUser> allSystemUser = this.systemUserService.selectList(systemUser);
+                    List<Long> allStudentIds = new ArrayList<>();
+                    List<Long> allSystemUserIds = new ArrayList<>();
+                    if (!CollectionUtils.isEmpty(allStudent)){
+                        for (Student student:allStudent) {
+                            allStudentIds.add(student.getId());
+                        }
+                    }
+                    if (!CollectionUtils.isEmpty(allSystemUser)){
+                        for (SystemUser systemUser1:allSystemUser) {
+                            allSystemUserIds.add(systemUser1.getId());
+                        }
+                    }
+                    if(!CollectionUtils.isEmpty(allSystemUserIds)){
+                        this.systemUserService.delete(allSystemUserIds,account.getUserCode());
+                    }
+                    if(!CollectionUtils.isEmpty(allStudentIds)) {
+                        this.studentService.delete(allStudentIds, account.getUserCode());
+                    }
+                }catch (Exception e){
+                    map.put("msg", "导入失败说明：删除之前数据失败！msg:"+e.getMessage());
+                    return map;
+                }
                 //一次100条
                 List<InitStudent> subList = new ArrayList<>();
                 for (InitStudent initStudent : tempResultDealList) {
@@ -235,6 +266,7 @@ public class StudentController extends BaseController {
                     map.put("list", resultList);
                     map.put("size", resultList.size());
                 } else {
+                    map.put("status", 200);
                     map.put("msg", "数据导入全部成功！");
                 }
             } else {
@@ -242,6 +274,7 @@ public class StudentController extends BaseController {
             }
         } catch (Exception e) {
             map.put("msg", "导入失败说明：数据导入异常！");
+            return map;
         }
         return map;
     }
@@ -282,10 +315,10 @@ public class StudentController extends BaseController {
             return new InitStudent();
         }
         initStudent.setIsStudentGraduate(Integer.parseInt(row.getCell(4).toString()));
-        initStudent.setStudentClass(row.getCell(3).toString());
-        initStudent.setStudentGrade(row.getCell(2).toString());
-        initStudent.setStudentName(row.getCell(1).toString());
-        initStudent.setStudentCode(row.getCell(0).toString());
+        initStudent.setStudentClass(row.getCell(3).toString().trim());
+        initStudent.setStudentGrade(row.getCell(2).toString().trim());
+        initStudent.setStudentName(row.getCell(1).toString().trim());
+        initStudent.setStudentCode(row.getCell(0).toString().trim());
         return initStudent;
     }
 

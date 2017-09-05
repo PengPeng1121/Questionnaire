@@ -17,6 +17,7 @@ import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
+import com.pp.web.controller.until.PoiUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,13 +31,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * 文卷调查问题答案信息表Controller
@@ -157,7 +158,8 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
     @ResponseBody
     public Map<String,Object> saveAnswer(HttpServletRequest request) {
         Account account = AccountUtils.getCurrentAccount();
-        Map<String,Object> map = request.getParameterMap();
+        Map<String,Object> resultMap = new HashMap<String,Object>();
+        resultMap.put("status",300);
         try {
             BufferedReader reader = request.getReader();
             String input = "";
@@ -201,12 +203,13 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
                 questionnaireStudent.setQuestionnaireProcessStatusName(QuestionnaireStudent.PROCESS_NAME_DONE);
                 this.questionnaireStudentService.update(questionnaireStudent, account.getUserCode());
             }
-            map.put("status",200);
+            resultMap.put("status",200);
         } catch (Exception e) {
-            map.put("msg",e.getMessage());
+            resultMap.put("msg",e.getMessage());
             log.error(e.getMessage(),e);
+            return resultMap;
         }
-        return map;
+        return resultMap;
     }
 
     private void prepareDocData(List<Answer> answerList, Account account, List<QuestionnaireQuestionAnswer> questionAnswers,String questionnaireCode){
@@ -231,6 +234,32 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             }
         }else {
             throw new IllegalArgumentException("根据该问卷编码没有找到问卷，编码："+ questionnaireCode);
+        }
+    }
+
+    /**
+     * 导出问卷答题属性
+     */
+    @RequestMapping(value = "/exportAnswers", method = {RequestMethod.POST ,RequestMethod.GET})
+    public void exportAnswers(HttpServletResponse response) {
+
+        try {
+            SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+            Date date = new Date();
+            String title = "导入课程与学生关系模板_" + f.format(date);
+            String name = title;
+            String fileName = new String((name).getBytes(), PoiUtils.Excel_EnCode);
+
+            //类型设置
+            response.setContentType("application/binary;charset=ISO8859_1");
+            // 名称和格式
+            response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
+
+            String[] columnName = {"课程编码", "课程名称", "学生学号","学生姓名","学期"};
+            ServletOutputStream outputStream = response.getOutputStream();
+            PoiUtils.export(name, title, columnName, null,outputStream);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("导入课程模板导出失败!" + e.getMessage());
         }
     }
 }

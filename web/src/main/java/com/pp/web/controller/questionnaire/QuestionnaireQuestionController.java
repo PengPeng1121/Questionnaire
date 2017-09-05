@@ -129,6 +129,7 @@ public class QuestionnaireQuestionController extends BaseController {
             TeacherLesson teacherLesson = new TeacherLesson();
             teacherLesson.setLessonCode(questionnaireLesson.getLessonCode());
             teacherLesson.setLessonName(lessonName);
+            teacherLesson.setTerm(questionnaireLesson.getTerm());
             teacherLesson = this.teacherLessonService.selectOne(teacherLesson);
             if (teacherLesson!=null){
                 teacherName = teacherLesson.getTeacherName();
@@ -183,7 +184,7 @@ public class QuestionnaireQuestionController extends BaseController {
 
     @RequestMapping(value = "/importQuestion", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String endTime) {
+    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String term,String endTime) {
         HashMap<String,Object> map = new HashMap<>();
         map.put("status",300);
         Questionnaire questionnaire = new Questionnaire();
@@ -198,6 +199,9 @@ public class QuestionnaireQuestionController extends BaseController {
         }else if (StringUtils.isEmpty(questionnaireName)){
             map.put("msg","问卷名称不能为空");
             return map;
+        }else if (StringUtils.isEmpty(term)){
+            map.put("msg","学期不能为空");
+            return map;
         }
         questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
 
@@ -211,8 +215,10 @@ public class QuestionnaireQuestionController extends BaseController {
             questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
             questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
             this.questionnaireService.insert(questionnaire, account.getUserCode());
+            //根据课程和学期唯一确定
             Lesson lesson = new Lesson();
             lesson.setLessonCode(lessonCode);
+            lesson.setTerm(term);
             if(!this.lessonService.exists(lesson)){
                 map.put("msg","该课程编码找不到对应课程，请确认");
                 return map;
@@ -221,6 +227,7 @@ public class QuestionnaireQuestionController extends BaseController {
             QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
             questionnaireLesson.setLessonCode(lesson.getLessonCode());
             questionnaireLesson.setLessonName(lesson.getLessonName());
+            questionnaireLesson.setTerm(term);
             questionnaireLesson.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
             questionnaireLesson.setQuestionnaireName(questionnaire.getQuestionnaireName());
             this.questionnaireLessonService.insert(questionnaireLesson,account.getUserName());

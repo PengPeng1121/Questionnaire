@@ -27,6 +27,8 @@ public final class TeacherLesson extends AbstractEntity {
     // 课程名称
     private String lessonName;
 
+    //学期
+    private String term;
     /**
      * 设置教师编号
      * 
@@ -91,4 +93,11 @@ public final class TeacherLesson extends AbstractEntity {
         return this.lessonName;
     }
 
+    public String getTerm() {
+        return term;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
+    }
 }
