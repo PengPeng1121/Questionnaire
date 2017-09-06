@@ -9,9 +9,15 @@
         <id column="id" property="id" jdbcType="BIGINT" />                                                     <!-- 自增主键 -->
         <result column="questionnaire_code" property="questionnaireCode" jdbcType="VARCHAR" />                 <!-- 问卷编号 -->
         <result column="questionnaire_name" property="questionnaireName" jdbcType="VARCHAR" />                 <!-- 问卷名称 -->
-        <result column="questionnaire_status_code" property="questionnaireStatusCode" jdbcType="VARCHAR" />    <!-- 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） -->
-        <result column="questionnaire_status_name" property="questionnaireStatusName" jdbcType="VARCHAR" />    <!-- 问卷状态名称（初始;已关联课程；已推送学生） -->
-        <result column="questionnaire_end_time" property="questionnaireEndTime" jdbcType="TIMESTAMP" />                             <!-- 问卷截止时间 -->
+        <result column="questionnaire_status_code" property="questionnaireStatusCode" jdbcType="VARCHAR" />    <!-- 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） -->
+        <result column="questionnaire_status_name" property="questionnaireStatusName" jdbcType="VARCHAR" />    <!-- 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） -->
+        <result column="questionnaire_end_time" property="questionnaireEndTime" jdbcType="TIMESTAMP" />        <!-- 问卷截止时间 -->
+        <result column="teacher_code" property="teacherCode" jdbcType="VARCHAR" />                             <!-- 教师编码 -->
+        <result column="teacher_name" property="teacherName" jdbcType="VARCHAR" />                             <!-- 教师姓名 -->
+        <result column="lesson_code" property="lessonCode" jdbcType="VARCHAR" />                               <!-- 课程编码 -->
+        <result column="lesson_name" property="lessonName" jdbcType="VARCHAR" />                               <!-- 课程名称 -->
+        <result column="term" property="term" jdbcType="VARCHAR" />                                            <!-- 学期 -->
+        <result column="answer_group" property="answerGroup" jdbcType="VARCHAR" />                             <!-- 问题选项组 -->
         <result column="remark" property="remark" jdbcType="VARCHAR" />                                        <!-- 备注 -->
         <result column="version" property="version" jdbcType="VARCHAR" />                                      <!-- 数据版本 -->
         <result column="create_user" property="createUser" jdbcType="VARCHAR" />                               <!-- 创建人 -->
@@ -28,9 +34,15 @@
             id,                            /* 自增主键 */
             questionnaire_code,            /* 问卷编号 */
             questionnaire_name,            /* 问卷名称 */
-            questionnaire_status_code,     /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            questionnaire_status_name,     /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            questionnaire_end_time,
+            questionnaire_status_code,     /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
+            questionnaire_status_name,     /* 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） */
+            questionnaire_end_time,        /* 问卷截止时间 */
+            teacher_code,                  /* 教师编码 */
+            teacher_name,                  /* 教师姓名 */
+            lesson_code,                   /* 课程编码 */
+            lesson_name,                   /* 课程名称 */
+            term,                          /* 学期 */
+            answer_group,                  /* 问题选项组 */
             remark,                        /* 备注 */
             version,                       /* 数据版本 */
             create_user,                   /* 创建人 */
@@ -62,16 +74,34 @@
                 AND questionnaire_name = #{questionnaireName, jdbcType=VARCHAR}    /* 问卷名称 */
             </if>
             <if test="questionnaireStatusCode != null and questionnaireStatusCode != ''">
-                AND questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR}    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
+                AND questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR}    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
             </if>
             <if test="questionnaireStatusName != null and questionnaireStatusName != ''">
-                AND questionnaire_status_name = #{questionnaireStatusName, jdbcType=VARCHAR}    /* 问卷状态名称（初始;已关联课程；已推送学生） */
+                AND questionnaire_status_name = #{questionnaireStatusName, jdbcType=VARCHAR}    /* 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） */
             </if>
             <if test="questionnaireEndTimeBegin != null">
-                <![CDATA[ AND questionnaire_end_time >= #{questionnaireEndTimeBegin, jdbcType=TIMESTAMP} ]]>    /* 创建时间开始 */
+                <![CDATA[ AND questionnaire_end_time >= #{questionnaireEndTimeBegin, jdbcType=TIMESTAMP} ]]>    /* 问卷截止时间开始 */
             </if>
             <if test="questionnaireEndTimeEnd != null">
-                <![CDATA[ AND questionnaire_end_time <= #{questionnaireEndTimeEnd, jdbcType=TIMESTAMP} ]]>    /* 创建时间截止 */
+                <![CDATA[ AND questionnaire_end_time <= #{questionnaireEndTimeEnd, jdbcType=TIMESTAMP} ]]>    /* 问卷截止时间截止 */
+            </if>
+            <if test="teacherCode != null and teacherCode != ''">
+                AND teacher_code = #{teacherCode, jdbcType=VARCHAR}    /* 教师编码 */
+            </if>
+            <if test="teacherName != null and teacherName != ''">
+                AND teacher_name = #{teacherName, jdbcType=VARCHAR}    /* 教师姓名 */
+            </if>
+            <if test="lessonCode != null and lessonCode != ''">
+                AND lesson_code = #{lessonCode, jdbcType=VARCHAR}    /* 课程编码 */
+            </if>
+            <if test="lessonName != null and lessonName != ''">
+                AND lesson_name = #{lessonName, jdbcType=VARCHAR}    /* 课程名称 */
+            </if>
+            <if test="term != null and term != ''">
+                AND term = #{term, jdbcType=VARCHAR}    /* 学期 */
+            </if>
+            <if test="answerGroup != null and answerGroup != ''">
+                AND answer_group = #{answerGroup, jdbcType=VARCHAR}    /* 问题选项组 */
             </if>
             <if test="remark != null and remark != ''">
                 AND remark = #{remark, jdbcType=VARCHAR}    /* 备注 */
@@ -115,7 +145,7 @@
     <!-- 排序 -->
     <sql id="sortClause">
         <if test="_sort != null">
-            ORDER BY 
+            ORDER BY
             <foreach collection="_sort" item="item" index="index" separator=",">
                 <choose>
                     <when test="item.propertyName != null and item.propertyName == 'id'">
@@ -140,14 +170,63 @@
                         </choose>
                     </when>
                     <when test="item.propertyName != null and item.propertyName == 'questionnaireStatusCode'">
-                        questionnaire_status_code    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
+                        questionnaire_status_code    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
                         <choose>
                             <when test="item.ascending">ASC</when>
                             <otherwise>DESC</otherwise>
                         </choose>
                     </when>
                     <when test="item.propertyName != null and item.propertyName == 'questionnaireStatusName'">
-                        questionnaire_status_name    /* 问卷状态名称（初始;已关联课程；已推送学生） */
+                        questionnaire_status_name    /* 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'questionnaireEndTime'">
+                        questionnaire_end_time    /* 问卷截止时间 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'teacherCode'">
+                        teacher_code    /* 教师编码 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'teacherName'">
+                        teacher_name    /* 教师姓名 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'lessonCode'">
+                        lesson_code    /* 课程编码 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'lessonName'">
+                        lesson_name    /* 课程名称 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'term'">
+                        term    /* 学期 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'answerGroup'">
+                        answer_group    /* 问题选项组 */
                         <choose>
                             <when test="item.ascending">ASC</when>
                             <otherwise>DESC</otherwise>
@@ -225,57 +304,81 @@
     <!-- 插入数据 -->
     <insert id="insert" parameterType="com.pp.basic.domain.Questionnaire" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO questionnaire (
-            questionnaire_code,           /* 问卷编号 */
-            questionnaire_name,           /* 问卷名称 */
-            questionnaire_status_code,    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            questionnaire_status_name,    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            questionnaire_end_time,
-            remark,                       /* 备注 */
-            version,                      /* 数据版本 */
-            create_user,                  /* 创建人 */
-            create_time,                  /* 创建时间 */
-            update_user,                  /* 修改人 */
-            update_time,                  /* 修改时间 */
-            is_delete                     /* 是否删除（0:否;1:是） */
+        questionnaire_code,           /* 问卷编号 */
+        questionnaire_name,           /* 问卷名称 */
+        questionnaire_status_code,    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
+        questionnaire_status_name,    /* 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） */
+        questionnaire_end_time,       /* 问卷截止时间 */
+        teacher_code,                 /* 教师编码 */
+        teacher_name,                 /* 教师姓名 */
+        lesson_code,                  /* 课程编码 */
+        lesson_name,                  /* 课程名称 */
+        term,                         /* 学期 */
+        answer_group,                 /* 问题选项组 */
+        remark,                       /* 备注 */
+        version,                      /* 数据版本 */
+        create_user,                  /* 创建人 */
+        create_time,                  /* 创建时间 */
+        update_user,                  /* 修改人 */
+        update_time,                  /* 修改时间 */
+        is_delete                     /* 是否删除（0:否;1:是） */
         ) VALUES (
-            #{questionnaireCode, jdbcType=VARCHAR},          /* 问卷编号 */
-            #{questionnaireName, jdbcType=VARCHAR},          /* 问卷名称 */
-            #{questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            #{questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            #{questionnaireEndTime, jdbcType=TIMESTAMP},
-            #{remark, jdbcType=VARCHAR},                     /* 备注 */
-            #{version, jdbcType=VARCHAR},                    /* 数据版本 */
-            #{createUser, jdbcType=VARCHAR},                 /* 创建人 */
-            #{createTime, jdbcType=TIMESTAMP},               /* 创建时间 */
-            #{updateUser, jdbcType=VARCHAR},                 /* 修改人 */
-            #{updateTime, jdbcType=TIMESTAMP},               /* 修改时间 */
-            #{isDelete, jdbcType=TINYINT}                    /* 是否删除（0:否;1:是） */
+        #{questionnaireCode, jdbcType=VARCHAR},          /* 问卷编号 */
+        #{questionnaireName, jdbcType=VARCHAR},          /* 问卷名称 */
+        #{questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
+        #{questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） */
+        #{questionnaireEndTime, jdbcType=TIMESTAMP},     /* 问卷截止时间 */
+        #{teacherCode, jdbcType=VARCHAR},                /* 教师编码 */
+        #{teacherName, jdbcType=VARCHAR},                /* 教师姓名 */
+        #{lessonCode, jdbcType=VARCHAR},                 /* 课程编码 */
+        #{lessonName, jdbcType=VARCHAR},                 /* 课程名称 */
+        #{term, jdbcType=VARCHAR},                       /* 学期 */
+        #{answerGroup, jdbcType=VARCHAR},                /* 问题选项组 */
+        #{remark, jdbcType=VARCHAR},                     /* 备注 */
+        #{version, jdbcType=VARCHAR},                    /* 数据版本 */
+        #{createUser, jdbcType=VARCHAR},                 /* 创建人 */
+        #{createTime, jdbcType=TIMESTAMP},               /* 创建时间 */
+        #{updateUser, jdbcType=VARCHAR},                 /* 修改人 */
+        #{updateTime, jdbcType=TIMESTAMP},               /* 修改时间 */
+        #{isDelete, jdbcType=TINYINT}                    /* 是否删除（0:否;1:是） */
         )
     </insert>
 
     <!-- 批量插入数据 -->
     <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO questionnaire (
-            questionnaire_code,           /* 问卷编号 */
-            questionnaire_name,           /* 问卷名称 */
-            questionnaire_status_code,    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            questionnaire_status_name,    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            questionnaire_end_time,
-            remark,                       /* 备注 */
-            version,                      /* 数据版本 */
-            create_user,                  /* 创建人 */
-            create_time,                  /* 创建时间 */
-            update_user,                  /* 修改人 */
-            update_time,                  /* 修改时间 */
-            is_delete                     /* 是否删除（0:否;1:是） */
+        questionnaire_code,           /* 问卷编号 */
+        questionnaire_name,           /* 问卷名称 */
+        questionnaire_status_code,    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
+        questionnaire_status_name,    /* 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） */
+        questionnaire_end_time,       /* 问卷截止时间 */
+        teacher_code,                 /* 教师编码 */
+        teacher_name,                 /* 教师姓名 */
+        lesson_code,                  /* 课程编码 */
+        lesson_name,                  /* 课程名称 */
+        term,                         /* 学期 */
+        answer_group,                 /* 问题选项组 */
+        remark,                       /* 备注 */
+        version,                      /* 数据版本 */
+        create_user,                  /* 创建人 */
+        create_time,                  /* 创建时间 */
+        update_user,                  /* 修改人 */
+        update_time,                  /* 修改时间 */
+        is_delete                     /* 是否删除（0:否;1:是） */
         ) VALUES
         <foreach collection="list" item="item" index="index" separator=",">
-        (
+            (
             #{item.questionnaireCode, jdbcType=VARCHAR},          /* 问卷编号 */
             #{item.questionnaireName, jdbcType=VARCHAR},          /* 问卷名称 */
-            #{item.questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
-            #{item.questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生） */
-            #{questionnaireEndTime, jdbcType=TIMESTAMP},
+            #{item.questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
+            #{item.questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） */
+            #{item.questionnaireEndTime, jdbcType=TIMESTAMP},     /* 问卷截止时间 */
+            #{item.teacherCode, jdbcType=VARCHAR},                /* 教师编码 */
+            #{item.teacherName, jdbcType=VARCHAR},                /* 教师姓名 */
+            #{item.lessonCode, jdbcType=VARCHAR},                 /* 课程编码 */
+            #{item.lessonName, jdbcType=VARCHAR},                 /* 课程名称 */
+            #{item.term, jdbcType=VARCHAR},                       /* 学期 */
+            #{item.answerGroup, jdbcType=VARCHAR},                /* 问题选项组 */
             #{item.remark, jdbcType=VARCHAR},                     /* 备注 */
             #{item.version, jdbcType=VARCHAR},                    /* 数据版本 */
             #{item.createUser, jdbcType=VARCHAR},                 /* 创建人 */
@@ -283,7 +386,7 @@
             #{item.updateUser, jdbcType=VARCHAR},                 /* 修改人 */
             #{item.updateTime, jdbcType=TIMESTAMP},               /* 修改时间 */
             #{item.isDelete, jdbcType=TINYINT}                    /* 是否删除（0:否;1:是） */
-        )
+            )
         </foreach>
     </insert>
 
@@ -299,13 +402,31 @@
                     questionnaire_name = #{questionnaireName, jdbcType=VARCHAR},    /* 问卷名称 */
                 </if>
                 <if test="questionnaireStatusCode != null and questionnaireStatusCode != ''">
-                    questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
+                    questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR},    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
                 </if>
                 <if test="questionnaireStatusName != null and questionnaireStatusName != ''">
-                    questionnaire_status_name = #{questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生） */
+                    questionnaire_status_name = #{questionnaireStatusName, jdbcType=VARCHAR},    /* 问卷状态名称（初始;已关联课程；已推送学生3：学生已回答） */
                 </if>
                 <if test="questionnaireEndTime != null">
-                    questionnaire_end_time = #{questionnaireEndTime, jdbcType=TIMESTAMP},    /* 修改时间 */
+                    questionnaire_end_time = #{questionnaireEndTime, jdbcType=TIMESTAMP},    /* 问卷截止时间 */
+                </if>
+                <if test="teacherCode != null and teacherCode != ''">
+                    teacher_code = #{teacherCode, jdbcType=VARCHAR},    /* 教师编码 */
+                </if>
+                <if test="teacherName != null and teacherName != ''">
+                    teacher_name = #{teacherName, jdbcType=VARCHAR},    /* 教师姓名 */
+                </if>
+                <if test="lessonCode != null and lessonCode != ''">
+                    lesson_code = #{lessonCode, jdbcType=VARCHAR},    /* 课程编码 */
+                </if>
+                <if test="lessonName != null and lessonName != ''">
+                    lesson_name = #{lessonName, jdbcType=VARCHAR},    /* 课程名称 */
+                </if>
+                <if test="term != null and term != ''">
+                    term = #{term, jdbcType=VARCHAR},    /* 学期 */
+                </if>
+                <if test="answerGroup != null and answerGroup != ''">
+                    answer_group = #{answerGroup, jdbcType=VARCHAR},    /* 问题选项组 */
                 </if>
                 <if test="remark != null and remark != ''">
                     remark = #{remark, jdbcType=VARCHAR},    /* 备注 */
@@ -381,9 +502,9 @@
     <!-- 查询所有记录 -->
     <select id="selectAll" resultMap="resultMap">
         SELECT
-            <include refid="queryColumns"/>
+        <include refid="queryColumns"/>
         FROM
-            questionnaire
+        questionnaire
         <where>
             is_delete = 0    /* 是否删除(1:是;0:否) */
         </where>
@@ -392,9 +513,9 @@
     <!-- 按主键查询 -->
     <select id="selectByPrimaryKey" resultMap="resultMap" parameterType="java.lang.Long">
         SELECT
-            <include refid="queryColumns"/>
+        <include refid="queryColumns"/>
         FROM
-            questionnaire
+        questionnaire
         <where>
             id = #{id, jdbcType=BIGINT}	/* 主键 */
             AND is_delete = 0			/* 是否删除(1:是;0:否) */
@@ -404,9 +525,9 @@
     <!-- 按主键集合查询 -->
     <select id="selectByPrimaryKeys" resultMap="resultMap" parameterType="java.util.List">
         SELECT
-            <include refid="queryColumns"/>
+        <include refid="queryColumns"/>
         FROM
-            questionnaire
+        questionnaire
         <where>
             id in	/* 主键集合 */
             <foreach collection="list" item="id" open="(" separator="," close=")">
@@ -419,9 +540,9 @@
     <!-- 按条件查询 -->
     <select id="selectByCondition" resultMap="resultMap" parameterType="java.util.Map">
         SELECT
-            <include refid="queryColumns"/>
+        <include refid="queryColumns"/>
         FROM
-            questionnaire
+        questionnaire
         <include refid="queryClause"/>
         <include refid="sortClause"/>
         <include refid="pageClause"/>
@@ -430,9 +551,9 @@
     <!-- 按条件统计记录数 -->
     <select id="countByCondition" resultType="java.lang.Long" parameterType="java.util.Map">
         SELECT
-            COUNT(1)
+        COUNT(1)
         FROM
-            questionnaire
+        questionnaire
         <include refid="queryClause"/>
     </select>
 

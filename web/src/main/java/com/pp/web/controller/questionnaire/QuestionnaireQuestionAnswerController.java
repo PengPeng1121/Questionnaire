@@ -15,6 +15,8 @@ import com.pp.basic.service.QuestionnaireStudentService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
+import com.pp.web.common.ChoiceQuestionEnum_A;
+import com.pp.web.common.ChoiceQuestionEnum_B;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.PoiUtils;
@@ -177,6 +179,13 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
                 questionnaireCode = (String) jsonObject.get("questionnaireCode");
             }
 
+            Questionnaire questionnaire = new Questionnaire();
+            questionnaire.setQuestionnaireCode(questionnaireCode);
+            if (!this.questionnaireService.exists(questionnaire)){
+                throw new IllegalArgumentException("根据问卷编码查询不到问卷！");
+            }
+            questionnaire = this.questionnaireService.selectOne(questionnaire);
+
             ObjectMapper mapper = new ObjectMapper();
             List<Answer> answerList;
             if(StringUtils.isBlank(answerArray.toString())){
@@ -185,11 +194,11 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             try {
                 answerList = mapper.readValue(answerArray.toString(), new TypeReference<List<Answer>>() {});
             } catch (IOException e) {
-                throw new IllegalArgumentException("输入数量必须是正整数");
+                throw new IllegalArgumentException("解析json异常");
             }
             List<QuestionnaireQuestionAnswer> questionAnswers = new ArrayList<>();
             //准备数据
-            this.prepareDocData(answerList,account,questionAnswers,questionnaireCode);
+            this.prepareDocData(answerList,account,questionAnswers,questionnaire);
             //写入数据
             this.questionnaireQuestionAnswerService.insert(questionAnswers, account.getUserCode());
 
@@ -212,28 +221,31 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         return resultMap;
     }
 
-    private void prepareDocData(List<Answer> answerList, Account account, List<QuestionnaireQuestionAnswer> questionAnswers,String questionnaireCode){
+    private void prepareDocData(List<Answer> answerList, Account account, List<QuestionnaireQuestionAnswer> questionAnswers,Questionnaire questionnaire){
         if(CollectionUtils.isEmpty(answerList)){
             throw new IllegalArgumentException("至少包含一条数据!");
         }
-        Questionnaire questionnaire =new Questionnaire();
-        questionnaire.setQuestionnaireCode(questionnaireCode);
-        if (this.questionnaireService.exists(questionnaire)){
-            questionnaire = this.questionnaireService.selectOne(questionnaire);
-            for (Answer answer:answerList) {
-                QuestionnaireQuestionAnswer questionAnswer = new QuestionnaireQuestionAnswer();
-                questionAnswer.setAnswer(answer.getAnswer());
-                questionAnswer.setAnswerCode(answer.getQuestionCode()+"_answer");
-                questionAnswer.setQuestionCode(answer.getQuestionCode());
-                questionAnswer.setQuestionName(answer.getQuestionName());
-                questionAnswer.setQuestionnaireCode(answer.getQuestionCode());
-                questionAnswer.setQuestionnaireName(questionnaire.getQuestionnaireName());
-                questionAnswer.setStudentCode(account.getUserCode());
-                questionAnswer.setStudentName(account.getUserName());
-                questionAnswers.add(questionAnswer);
+        String group = questionnaire.getAnswerGroup();
+        for (Answer answer:answerList) {
+            QuestionnaireQuestionAnswer questionAnswer = new QuestionnaireQuestionAnswer();
+            questionAnswer.setAnswer(answer.getAnswer());
+            //取出答案的值
+            if (group.toLowerCase().equals("a")){
+                questionAnswer.setAnswerValue(ChoiceQuestionEnum_A.getName(answer.getAnswer()));
+            }else if (group.toLowerCase().equals("b")) {
+                questionAnswer.setAnswerValue(ChoiceQuestionEnum_B.getName(answer.getAnswer()));
+            }else {
+                //简答题
+                questionAnswer.setAnswerValue(answer.getAnswer());
             }
-        }else {
-            throw new IllegalArgumentException("根据该问卷编码没有找到问卷，编码："+ questionnaireCode);
+            questionAnswer.setAnswerCode(answer.getQuestionCode()+"_answer");
+            questionAnswer.setQuestionCode(answer.getQuestionCode());
+            questionAnswer.setQuestionName(answer.getQuestionName());
+            questionAnswer.setQuestionnaireCode(answer.getQuestionCode());
+            questionAnswer.setQuestionnaireName(questionnaire.getQuestionnaireName());
+            questionAnswer.setStudentCode(account.getUserCode());
+            questionAnswer.setStudentName(account.getUserName());
+            questionAnswers.add(questionAnswer);
         }
     }
 

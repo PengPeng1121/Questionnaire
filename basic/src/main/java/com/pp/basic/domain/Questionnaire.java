@@ -52,6 +52,24 @@ public final class Questionnaire extends AbstractEntity {
     // 问卷截止时间/止(虚拟字段：用于时间段查询)
     @Transient
     private Date questionnaireEndTimeEnd;
+
+    // 教师编码
+    private String teacherCode;
+
+    // 教师姓名
+    private String teacherName;
+
+    // 课程编码
+    private String lessonCode;
+
+    // 课程名称
+    private String lessonName;
+
+    // 学期
+    private String term;
+
+    // 问题选项组
+    private String answerGroup;
     /**
      * 设置问卷编号
      * 
@@ -138,5 +156,53 @@ public final class Questionnaire extends AbstractEntity {
 
     public void setQuestionnaireEndTimeEnd(Date questionnaireEndTimeEnd) {
         this.questionnaireEndTimeEnd = questionnaireEndTimeEnd;
+    }
+
+    public String getTeacherCode() {
+        return teacherCode;
+    }
+
+    public void setTeacherCode(String teacherCode) {
+        this.teacherCode = teacherCode;
+    }
+
+    public String getTeacherName() {
+        return teacherName;
+    }
+
+    public void setTeacherName(String teacherName) {
+        this.teacherName = teacherName;
+    }
+
+    public String getLessonCode() {
+        return lessonCode;
+    }
+
+    public void setLessonCode(String lessonCode) {
+        this.lessonCode = lessonCode;
+    }
+
+    public String getLessonName() {
+        return lessonName;
+    }
+
+    public void setLessonName(String lessonName) {
+        this.lessonName = lessonName;
+    }
+
+    public String getTerm() {
+        return term;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
+    }
+
+    public String getAnswerGroup() {
+        return answerGroup;
+    }
+
+    public void setAnswerGroup(String answerGroup) {
+        this.answerGroup = answerGroup;
     }
 }

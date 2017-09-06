@@ -61,6 +61,9 @@ public class QuestionnaireQuestionController extends BaseController {
     @Autowired
     TeacherLessonService teacherLessonService;
 
+    @Autowired
+    TeacherService teacherService;
+
     /**
      * 保存数据
      */
@@ -184,12 +187,16 @@ public class QuestionnaireQuestionController extends BaseController {
 
     @RequestMapping(value = "/importQuestion", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String term,String endTime) {
+    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String term,String answerGroup,String teacherCode,String endTime) {
         HashMap<String,Object> map = new HashMap<>();
         map.put("status",300);
         Questionnaire questionnaire = new Questionnaire();
         Account account = AccountUtils.getCurrentAccount();
         String questionnaireCode = UUID.randomUUID().toString()+"_"+questionnaireName;
+        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+            map.put("msg","为管理员操作，当前用户没有管理员权限");
+            return map;
+        }
         if(StringUtils.isEmpty(endTime)){
             map.put("msg","截止时间不能为空");
             return map;
@@ -203,42 +210,36 @@ public class QuestionnaireQuestionController extends BaseController {
             map.put("msg","学期不能为空");
             return map;
         }
+        //准备数据
+        questionnaire.setQuestionnaireName(questionnaireName);
+        questionnaire.setQuestionnaireCode(questionnaireCode);
+        questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
+        questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
+        questionnaire.setTerm(term);
+        questionnaire.setAnswerGroup(answerGroup);
         questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
 
-        try {
-            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
-                map.put("msg","为管理员操作，当前用户没有管理员权限");
-                return map;
-            }
-            questionnaire.setQuestionnaireName(questionnaireName);
-            questionnaire.setQuestionnaireCode(questionnaireCode);
-            questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
-            questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
-            this.questionnaireService.insert(questionnaire, account.getUserCode());
-            //根据课程和学期唯一确定
-            Lesson lesson = new Lesson();
-            lesson.setLessonCode(lessonCode);
-            lesson.setTerm(term);
-            if(!this.lessonService.exists(lesson)){
-                map.put("msg","该课程编码找不到对应课程，请确认");
-                return map;
-            }
-            lesson = this.lessonService.selectOne(lesson);
-            QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
-            questionnaireLesson.setLessonCode(lesson.getLessonCode());
-            questionnaireLesson.setLessonName(lesson.getLessonName());
-            questionnaireLesson.setTerm(term);
-            questionnaireLesson.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
-            questionnaireLesson.setQuestionnaireName(questionnaire.getQuestionnaireName());
-            this.questionnaireLessonService.insert(questionnaireLesson,account.getUserName());
-            questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_LESSON_CODE);
-            questionnaire.setQuestionnaireStatusName(Questionnaire.ALREADY_WITH_LESSON_NAME);
-            this.questionnaireService.update(questionnaire,account.getUserName());
-        }catch (Exception e){
-            map.put("msg","请求出错："+e.getMessage());
+        //根据课程和学期唯一确定
+        Lesson lesson = new Lesson();
+        lesson.setLessonCode(lessonCode);
+        lesson.setTerm(term);
+        if(!this.lessonService.exists(lesson)){
+            map.put("msg","该课程编码找不到对应课程，请确认");
             return map;
         }
-
+        lesson = this.lessonService.selectOne(lesson);
+        //查询教师
+        Teacher teacher = new Teacher();
+        teacher.setTeacherCode(teacherCode);
+        if(!this.teacherService.exists(teacher)){
+            map.put("msg","该教师编码找不到对应教师，请确认");
+            return map;
+        }
+        teacher= teacherService.selectOne(teacher);
+        questionnaire.setLessonCode(lesson.getLessonCode());
+        questionnaire.setLessonName(lesson.getLessonName());
+        questionnaire.setTeacherName(teacher.getTeacherName());
+        questionnaire.setTeacherCode(teacher.getTeacherCode());
         // 保存附件
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         MultipartFile multipartFile = multipartRequest.getFile("questionFile");
@@ -250,7 +251,6 @@ public class QuestionnaireQuestionController extends BaseController {
         int lastIndexOfDot = fileName.lastIndexOf('.');
         int fileNameLength = fileName.length();
         String prefix = fileName.substring(lastIndexOfDot + 1, fileNameLength);
-
         try {
             if (prefix.toLowerCase().equals("xlsx") || prefix.toLowerCase().equals("xls")) {
                 InputStream in = multipartFile.getInputStream();
@@ -304,6 +304,26 @@ public class QuestionnaireQuestionController extends BaseController {
             }
         } catch (Exception e) {
             map.put("msg", "导入失败说明：数据导入异常！"+e.getMessage());
+        }
+
+        try {
+            //写入
+            this.questionnaireService.insert(questionnaire, account.getUserCode());
+
+            QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
+            questionnaireLesson.setLessonCode(lesson.getLessonCode());
+            questionnaireLesson.setLessonName(lesson.getLessonName());
+            questionnaireLesson.setTerm(term);
+            questionnaireLesson.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+            questionnaireLesson.setQuestionnaireName(questionnaire.getQuestionnaireName());
+
+            this.questionnaireLessonService.insert(questionnaireLesson,account.getUserName());
+            questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_LESSON_CODE);
+            questionnaire.setQuestionnaireStatusName(Questionnaire.ALREADY_WITH_LESSON_NAME);
+            this.questionnaireService.update(questionnaire,account.getUserName());
+        }catch (Exception e){
+            map.put("msg","请求出错："+e.getMessage());
+            return map;
         }
         return map;
     }

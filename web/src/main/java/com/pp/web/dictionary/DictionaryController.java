@@ -2,12 +2,13 @@ package com.pp.web.dictionary;
 
 import com.pp.basic.domain.Lesson;
 import com.pp.basic.domain.Teacher;
+import com.pp.basic.domain.TeacherLesson;
 import com.pp.basic.service.LessonService;
+import com.pp.basic.service.TeacherLessonService;
 import com.pp.basic.service.TeacherService;
-import com.pp.web.common.ChoiceQuestionEnum;
+import com.pp.web.common.ChoiceQuestionEnum_A;
+import com.pp.web.common.ChoiceQuestionEnum_B;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,9 @@ public class DictionaryController {
 
     @Autowired
     TeacherService teacherService;
+
+    @Autowired
+    TeacherLessonService teacherLessonService;
 
     /**
      * 查询字典  课程和教师
@@ -50,11 +54,11 @@ public class DictionaryController {
         map.put("teacher",teachers);
 
         Map<String,Object> answerMap = new HashMap<>();
-        answerMap.put("A",ChoiceQuestionEnum.CHOICE_A.getName());
-        answerMap.put("B",ChoiceQuestionEnum.CHOICE_B.getName());
-        answerMap.put("C",ChoiceQuestionEnum.CHOICE_C.getName());
-        answerMap.put("D",ChoiceQuestionEnum.CHOICE_D.getName());
-        answerMap.put("E",ChoiceQuestionEnum.CHOICE_E.getName());
+        answerMap.put("A", ChoiceQuestionEnum_A.CHOICE_A.getName());
+        answerMap.put("B", ChoiceQuestionEnum_A.CHOICE_B.getName());
+        answerMap.put("C", ChoiceQuestionEnum_A.CHOICE_C.getName());
+        answerMap.put("D", ChoiceQuestionEnum_A.CHOICE_D.getName());
+        answerMap.put("E", ChoiceQuestionEnum_A.CHOICE_E.getName());
         map.put("answer",answerMap);
 
         Map<String,Object> questionnaireStatusMap = new HashMap<>();
@@ -74,13 +78,21 @@ public class DictionaryController {
 
     @RequestMapping(value = "/dictionaryChoice", method ={RequestMethod.POST,RequestMethod.GET} )
     @ResponseBody
-    public Map<String,Object> dictionaryChoice() throws IllegalAccessException {
+    public Map<String,Object> dictionaryChoice(String group) throws IllegalAccessException {
         Map<String,Object> map = new HashMap<>();
-        map.put("A",ChoiceQuestionEnum.CHOICE_A.getName());
-        map.put("B",ChoiceQuestionEnum.CHOICE_B.getName());
-        map.put("C",ChoiceQuestionEnum.CHOICE_C.getName());
-        map.put("D",ChoiceQuestionEnum.CHOICE_D.getName());
-        map.put("E",ChoiceQuestionEnum.CHOICE_E.getName());
+        if(group.toLowerCase().equals("a")){
+            map.put("A", ChoiceQuestionEnum_A.CHOICE_A.getName());
+            map.put("B", ChoiceQuestionEnum_A.CHOICE_B.getName());
+            map.put("C", ChoiceQuestionEnum_A.CHOICE_C.getName());
+            map.put("D", ChoiceQuestionEnum_A.CHOICE_D.getName());
+            map.put("E", ChoiceQuestionEnum_A.CHOICE_E.getName());
+        }else {
+            map.put("A", ChoiceQuestionEnum_B.CHOICE_A.getName());
+            map.put("B", ChoiceQuestionEnum_B.CHOICE_B.getName());
+            map.put("C", ChoiceQuestionEnum_B.CHOICE_C.getName());
+            map.put("D", ChoiceQuestionEnum_B.CHOICE_D.getName());
+            map.put("E", ChoiceQuestionEnum_B.CHOICE_E.getName());
+        }
         return map;
     }
 
@@ -92,6 +104,18 @@ public class DictionaryController {
         lesson.setTerm(term);
         List<Lesson> lessons = this.lessonService.selectList(lesson);
         map.put("lessons",lessons);
+        return map;
+    }
+
+    @RequestMapping(value = "/findTeacherByTermAndLesson", method ={RequestMethod.POST,RequestMethod.GET} )
+    @ResponseBody
+    public Map<String,Object> findTeacherByTermAndLesson(String term,String lessonCode) throws IllegalAccessException {
+        Map<String,Object> map = new HashMap<>();
+        TeacherLesson teacherLesson = new TeacherLesson();
+        teacherLesson.setTerm(term);
+        teacherLesson.setLessonCode(lessonCode);
+        List<TeacherLesson> teachers = this.teacherLessonService.selectList(teacherLesson);
+        map.put("teachers",teachers);
         return map;
     }
 }

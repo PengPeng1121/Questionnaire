@@ -219,7 +219,6 @@ public class LessonController extends BaseController {
                 List<Lesson> subLessons = new ArrayList<>();
                 List<Teacher> subTeacherList = new ArrayList<>();
                 List<TeacherLesson> subTeacherLessonList = new ArrayList<>();
-                List<StudentLesson> subStudentLessonList = new ArrayList<>();
                 for (Lesson lesson : lessonList) {
                     subLessons.add(lesson);
                     if (subLessons.size() == 100) {

@@ -33,6 +33,9 @@ public final class QuestionnaireQuestionAnswer extends AbstractEntity {
     // 答案
     private String answer;
 
+    // 答案值
+    private String answerValue;
+
     // 学号(回答者编号)
     private String studentCode;
 
@@ -167,4 +170,11 @@ public final class QuestionnaireQuestionAnswer extends AbstractEntity {
         return this.studentName;
     }
 
+    public String getAnswerValue() {
+        return answerValue;
+    }
+
+    public void setAnswerValue(String answerValue) {
+        this.answerValue = answerValue;
+    }
 }
