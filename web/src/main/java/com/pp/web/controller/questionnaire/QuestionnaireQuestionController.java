@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -192,7 +193,7 @@ public class QuestionnaireQuestionController extends BaseController {
         map.put("status",300);
         Questionnaire questionnaire = new Questionnaire();
         Account account = AccountUtils.getCurrentAccount();
-        String questionnaireCode = UUID.randomUUID().toString()+"_"+questionnaireName;
+        String questionnaireCode = "Q_"+UUID.randomUUID().toString();
         if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
             map.put("msg","为管理员操作，当前用户没有管理员权限");
             return map;
@@ -365,12 +366,12 @@ public class QuestionnaireQuestionController extends BaseController {
     //根据规则 过滤一行中必须填的内容 是否为空
     private void prepareData(QuestionnaireQuestion questionnaireQuestion,HSSFRow row,int i,Questionnaire questionnaire) {
         try {
-            if (row.getCell(0).toString().equals("简答题") ){
-                questionnaireQuestion.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_DESC);
-                questionnaireQuestion.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_DESC);
-            } else {
+            if (row.getCell(0).toString().equals("选择题") ){
                 questionnaireQuestion.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_CHOICE);
                 questionnaireQuestion.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_CHOICE);
+            } else {
+                questionnaireQuestion.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_DESC);
+                questionnaireQuestion.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_DESC);
             }
             questionnaireQuestion.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
             questionnaireQuestion.setQuestionnaireName(questionnaire.getQuestionnaireName());

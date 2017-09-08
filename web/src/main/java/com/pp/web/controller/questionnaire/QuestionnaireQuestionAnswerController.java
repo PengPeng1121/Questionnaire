@@ -5,11 +5,10 @@ package com.pp.web.controller.questionnaire;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pp.basic.domain.Questionnaire;
-import com.pp.basic.domain.QuestionnaireQuestionAnswer;
-import com.pp.basic.domain.QuestionnaireStudent;
+import com.pp.basic.domain.*;
 import com.pp.basic.domain.vo.Answer;
 import com.pp.basic.service.QuestionnaireQuestionAnswerService;
+import com.pp.basic.service.QuestionnaireQuestionService;
 import com.pp.basic.service.QuestionnaireService;
 import com.pp.basic.service.QuestionnaireStudentService;
 import com.pp.common.core.Page;
@@ -20,6 +19,7 @@ import com.pp.web.common.ChoiceQuestionEnum_B;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.PoiUtils;
+import com.sun.org.apache.bcel.internal.generic.SWITCH;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,6 +38,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -61,6 +63,9 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
     @Autowired
     QuestionnaireStudentService questionnaireStudentService;
+
+    @Autowired
+    QuestionnaireQuestionService questionnaireQuestionService;
 
     /**
      * 保存数据
@@ -231,17 +236,35 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             questionAnswer.setAnswer(answer.getAnswer());
             //取出答案的值
             if (group.toLowerCase().equals("a")){
-                questionAnswer.setAnswerValue(ChoiceQuestionEnum_A.getName(answer.getAnswer()));
+                if(!StringUtils.isEmpty(answer.getAnswer())){
+                    questionAnswer.setAnswerValue(ChoiceQuestionEnum_A.getName(answer.getAnswer()));
+                }
             }else if (group.toLowerCase().equals("b")) {
-                questionAnswer.setAnswerValue(ChoiceQuestionEnum_B.getName(answer.getAnswer()));
+                if(!StringUtils.isEmpty(answer.getAnswer())) {
+                    questionAnswer.setAnswerValue(ChoiceQuestionEnum_B.getName(answer.getAnswer()));
+                }
             }else {
                 //简答题
                 questionAnswer.setAnswerValue(answer.getAnswer());
             }
+            if(answer.getIsMustAnswer()!= QuestionnaireQuestionAnswer.IS_MUST_ANSWER || answer.getIsMustAnswer()!=QuestionnaireQuestionAnswer.IS_NOT_MUST_ANSWER ){
+                throw new  IllegalArgumentException("是否必答只能为0或者1");
+            }else {
+                questionAnswer.setIsMustAnswer(answer.getIsMustAnswer());
+            }
+            if(answer.getQuestionTypeCode().equals(QuestionnaireQuestionAnswer.QUESTION_TYPE_CODE_CHOICE)){
+                questionAnswer.setQuestionTypeCode(answer.getQuestionTypeCode());
+                questionAnswer.setQuestionTypeName(QuestionnaireQuestionAnswer.QUESTION_TYPE_NAME_CHOICE);
+            }else  if(answer.getQuestionTypeCode().equals(QuestionnaireQuestionAnswer.QUESTION_TYPE_CODE_DESC )){
+                questionAnswer.setQuestionTypeCode(answer.getQuestionTypeCode());
+                questionAnswer.setQuestionTypeName(QuestionnaireQuestionAnswer.QUESTION_TYPE_NAME_DESC);
+            }else {
+                throw new  IllegalArgumentException("题型只能为选择或者简答题");
+            }
             questionAnswer.setAnswerCode(answer.getQuestionCode()+"_answer");
             questionAnswer.setQuestionCode(answer.getQuestionCode());
             questionAnswer.setQuestionName(answer.getQuestionName());
-            questionAnswer.setQuestionnaireCode(answer.getQuestionCode());
+            questionAnswer.setQuestionnaireCode(answer.getQuestionnaireCode());
             questionAnswer.setQuestionnaireName(questionnaire.getQuestionnaireName());
             questionAnswer.setStudentCode(account.getUserCode());
             questionAnswer.setStudentName(account.getUserName());
@@ -253,25 +276,199 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
      * 导出问卷答题属性
      */
     @RequestMapping(value = "/exportAnswers", method = {RequestMethod.POST ,RequestMethod.GET})
-    public void exportAnswers(HttpServletResponse response) {
-
+    public void exportAnswers(HttpServletResponse response,HttpServletRequest request, String questionnaireCode) {
+//        Account account = AccountUtils.getCurrentAccount();
+//        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+//            throw new IllegalArgumentException("为管理员操作，当前用户没有管理员权限!");
+//        }
+        StringBuilder sb = new StringBuilder();
+        OutputStream fOut = null;
+        //1 .首先查询出问卷
+        Questionnaire questionnaire = new Questionnaire();
+        questionnaire.setQuestionnaireCode(questionnaireCode);
+        questionnaire = this.questionnaireService.selectOne(questionnaire);
         try {
+            if(questionnaire==null){
+                throw new IllegalArgumentException("没有这个问卷!");
+            }
+            //写入头部
+            writeHead(sb,questionnaire);
+            //2 .查询出问卷的所有选择题
+            QuestionnaireQuestion questionnaireQuestion = new QuestionnaireQuestion();
+            questionnaireQuestion.setQuestionnaireCode(questionnaireCode);
+            questionnaireQuestion.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_CHOICE);
+            List<QuestionnaireQuestion> choiceList = this.questionnaireQuestionService.selectList(questionnaireQuestion);
+            if(!CollectionUtils.isEmpty(choiceList)){
+                for (QuestionnaireQuestion choice:choiceList) {
+                    QuestionnaireQuestionAnswer questionAnswer = new QuestionnaireQuestionAnswer();
+                    questionAnswer.setQuestionCode(choice.getQuestionCode());
+                    questionAnswer.setQuestionnaireCode(questionnaireCode);
+                    List<QuestionnaireQuestionAnswer> choiceAnswerList = this.questionnaireQuestionAnswerService.selectList(questionAnswer);
+                    Integer a=0;
+                    Integer b=0;
+                    Integer c=0;
+                    Integer d=0;
+                    Integer e=0;
+                    if(!CollectionUtils.isEmpty(choiceAnswerList)){
+                        for (QuestionnaireQuestionAnswer choiceAnswer:choiceAnswerList) {
+                            switch(choiceAnswer.getAnswer().toLowerCase()){
+                                case "a": a=a+1;
+                                    break;
+                                case "b": b=b+1;
+                                    break;
+                                case "c": c=c+1;
+                                    break;
+                                case "d": d=d+1;
+                                    break;
+                                case "e": e=e+1;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            //写入选择
+                            writeChoice(sb,choiceAnswer.getQuestionName(),a,b,c,d,e,choiceAnswer.getIsMustAnswer());
+                        }
+                    }
+                }
+            }else {
+                sb.append("<tr>");
+                sb.append("<td>题目名称：</td>");
+                sb.append("<td></td>");
+                sb.append("<td>选A人数：</td>");
+                sb.append("<td></td>");
+                sb.append("<td>选B人数:</td>");
+                sb.append("<td></td>");
+                sb.append("<td>选C人数:</td>");
+                sb.append("<td></td>");
+                sb.append("<td>选D人数:</td>");
+                sb.append("<td></td>");
+                sb.append("<td>选E人数:</td>");
+                sb.append("<td></td>");
+                sb.append("<td>是否必答:</td>");
+                sb.append("<td></td>");
+                sb.append("</tr>");
+            }
+            sb.append("<tr><td colspan=\"14\"  style='text-align: center;  font-size: 18pt;'>简答题具体情况</td></tr>");
+            //3 .查询出问卷的所有学生
+            QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
+            questionnaireStudent.setQuestionnaireCode(questionnaireCode);
+            questionnaireStudent.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_DONE);
+            List<QuestionnaireStudent> doneStudentList = this.questionnaireStudentService.selectList(questionnaireStudent);
+            if(!CollectionUtils.isEmpty(doneStudentList)){
+                for (QuestionnaireStudent doneStudent:doneStudentList) {
+                    QuestionnaireQuestionAnswer questionAnswer = new QuestionnaireQuestionAnswer();
+                    questionAnswer.setStudentCode(doneStudent.getStudentCode());
+                    questionAnswer.setQuestionnaireCode(questionnaireCode);
+                    questionAnswer.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_DESC);
+                    List<QuestionnaireQuestionAnswer> descAnswerList = this.questionnaireQuestionAnswerService.selectList(questionAnswer);
+                    if(!CollectionUtils.isEmpty(descAnswerList)){
+                        //写入简答
+                        writeDesc(sb,descAnswerList);
+                    }
+                }
+            }
+            sb.append("</tbody>");
+            sb.append("</table>");
+
+
             SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
             Date date = new Date();
-            String title = "导入课程与学生关系模板_" + f.format(date);
-            String name = title;
-            String fileName = new String((name).getBytes(), PoiUtils.Excel_EnCode);
+            String title = "导出"+ questionnaire.getQuestionnaireName() +"问卷回答情况_"+ f.format(date);
 
-            //类型设置
-            response.setContentType("application/binary;charset=ISO8859_1");
-            // 名称和格式
-            response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
-
-            String[] columnName = {"课程编码", "课程名称", "学生学号","学生姓名","学期"};
-            ServletOutputStream outputStream = response.getOutputStream();
-            PoiUtils.export(name, title, columnName, null,outputStream);
+            final String userAgent = request.getHeader("USER-AGENT");
+            String finalFileName = null;
+            if(StringUtils.contains(userAgent, "MSIE")){//IE浏览器
+                finalFileName = URLEncoder.encode(title, "UTF-8");
+            }else if(StringUtils.contains(userAgent, "Mozilla")){//google,火狐浏览器
+                finalFileName = new String(title.getBytes(), "ISO8859-1");
+            }else{
+                finalFileName = URLEncoder.encode(title, "UTF-8");//其他浏览器
+            }
+            response.setHeader("Content-Disposition","attachment; filename=" + finalFileName + ".xls");
+            //将数据插入的execl表格中
+            fOut = response.getOutputStream();
+            if(fOut!=null)
+                fOut.write(sb.toString().getBytes());
         } catch (Exception e) {
-            throw new IllegalArgumentException("导入课程模板导出失败!" + e.getMessage());
+            log.error("导出"+questionnaire.getQuestionnaireName()+"回答详情出错！"+e.getMessage(),e);
+            throw new RuntimeException("导出"+questionnaire.getQuestionnaireName()+"回答详情出错！");
+        } finally{
+            //关闭输出文件流
+            try{
+                if(fOut!=null){
+                    fOut.flush();
+                    fOut.close();
+                }
+            }catch (IOException e){
+                log.error("colse io is error",e);
+            }
         }
     }
+
+    //将问卷选择题答题情况写入
+    private void writeDesc(StringBuilder sb,List<QuestionnaireQuestionAnswer> descAnswerList){
+        for (QuestionnaireQuestionAnswer descAnswer:descAnswerList) {
+            sb.append("<tr>");
+            sb.append("<td>题目名称:</td>");
+            sb.append("<td colspan=\"5\">"+descAnswer.getQuestionName()+"</td>");
+            sb.append("<td>答案:</td>");
+            sb.append("<td colspan=\"5\">"+descAnswer.getAnswerValue()+"</td>");
+            sb.append("<td>是否必答:</td>");
+            String isMustAnswerStr = "";
+            if(descAnswer.getIsMustAnswer() == 0){
+                isMustAnswerStr ="否";
+            }else {
+                isMustAnswerStr ="是";
+            }
+            sb.append("<td>"+isMustAnswerStr+"</td>");
+            sb.append("</tr>");
+        }
+    }
+
+    //将问卷选择题答题情况写入
+    private void writeChoice(StringBuilder sb,String questionName,Integer a,Integer b,Integer c,Integer d,Integer e,Integer isMustAnswer){
+        sb.append("<tr>");
+        sb.append("<td>题目名称:</td>");
+        sb.append("<td>"+questionName+"</td>");
+        sb.append("<td>选A人数:</td>");
+        sb.append("<td>"+a+"</td>");
+        sb.append("<td>选B人数:</td>");
+        sb.append("<td>"+b+"</td>");
+        sb.append("<td>选C人数:</td>");
+        sb.append("<td>"+c+"</td>");
+        sb.append("<td>选D人数:</td>");
+        sb.append("<td>"+d+"</td>");
+        sb.append("<td>选E人数:</td>");
+        sb.append("<td>"+e+"</td>");
+        sb.append("<td>是否必答:</td>");
+        String isMustAnswerStr = "";
+        if(isMustAnswer == 0){
+            isMustAnswerStr ="否";
+        }else {
+            isMustAnswerStr ="是";
+        }
+        sb.append("<td>"+isMustAnswerStr+"</td>");
+        sb.append("</tr>");
+    }
+
+    //将问卷属性写入
+    private void writeHead(StringBuilder sb,Questionnaire questionnaire){
+        sb.append("<table cellspacing=\"0\" cellpadding=\"5\" rules=\"all\" border=\"1\">");
+        sb.append("<thead>");
+        sb.append("<tr><td colspan=\"14\"  style='text-align: center;  font-size: 18pt;'>"+questionnaire.getQuestionnaireName()+"回答详情</td></tr>");
+        sb.append("<tr><td colspan=\"4\" style='text-align: center;'>问卷名称</td>");
+        sb.append("<td colspan=\"3\" style='text-align: center;'>课程名称</td>");
+        sb.append("<td colspan=\"4\" style='text-align: center;'>教师名称</td>");
+        sb.append("<td colspan=\"3\" style='text-align: center;'>学期</td>");
+        sb.append("</tr>");
+        sb.append("<tr><td colspan=\"4\" style='text-align: center;'>"+questionnaire.getQuestionnaireName()+"</td>");
+        sb.append("<td colspan=\"3\" style='text-align: center;'>"+questionnaire.getLessonName()+"</td>");
+        sb.append("<td colspan=\"4\" style='text-align: center;'>"+questionnaire.getTeacherName()+"</td>");
+        sb.append("<td colspan=\"3\" style='text-align: center;'>"+questionnaire.getTerm()+"</td>");
+        sb.append("</tr>");
+        sb.append("</thead>");
+        sb.append("<tbody>");
+        sb.append("<tr><td colspan=\"14\"  style='text-align: center;  font-size: 18pt;'>选择题答题情况</td></tr>");
+    }
+
 }

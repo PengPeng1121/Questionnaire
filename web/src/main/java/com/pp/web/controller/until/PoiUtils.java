@@ -147,29 +147,31 @@ public class PoiUtils {
             cell.setCellValue(columnName[i]);
         }
 
-        // 构建表体数据（二维数组），不能为空
-        for (int i = 0; i < data.length; i++) {
-            headRow = sheet.createRow(++offset);
-            for (int j = 0; j < data[0].length; j++) {
-                cell = headRow.createCell(j);
+        if(data!=null){
+            // 构建表体数据（二维数组），不能为空
+            for (int i = 0; i < data.length; i++) {
+                headRow = sheet.createRow(++offset);
+                for (int j = 0; j < data[0].length; j++) {
+                    cell = headRow.createCell(j);
 
-                if (data[i][j] instanceof BigDecimal)
-                    cell.setCellValue(((BigDecimal) data[i][j]).doubleValue());
-                else if (data[i][j] instanceof Double)
-                    cell.setCellValue((Double) data[i][j]);
-                else if (data[i][j] instanceof Long)
-                    cell.setCellValue((Long) data[i][j]);
-                else if (data[i][j] instanceof Integer)
-                    cell.setCellValue((Integer) data[i][j]);
-                else if (data[i][j] instanceof Boolean)
-                    cell.setCellValue((Boolean) data[i][j]);
-                else if (data[i][j] instanceof Date)
-                    cell.setCellValue(sdf.format((Date) data[i][j]));
-                else if (data[i][j] instanceof Calendar)
-                    cell.setCellValue(sdf.format(((Calendar) data[i][j]).getTime()));
-                else //if (data[i][j] instanceof String)
-                    cell.setCellValue((String) data[i][j]);
+                    if (data[i][j] instanceof BigDecimal)
+                        cell.setCellValue(((BigDecimal) data[i][j]).doubleValue());
+                    else if (data[i][j] instanceof Double)
+                        cell.setCellValue((Double) data[i][j]);
+                    else if (data[i][j] instanceof Long)
+                        cell.setCellValue((Long) data[i][j]);
+                    else if (data[i][j] instanceof Integer)
+                        cell.setCellValue((Integer) data[i][j]);
+                    else if (data[i][j] instanceof Boolean)
+                        cell.setCellValue((Boolean) data[i][j]);
+                    else if (data[i][j] instanceof Date)
+                        cell.setCellValue(sdf.format((Date) data[i][j]));
+                    else if (data[i][j] instanceof Calendar)
+                        cell.setCellValue(sdf.format(((Calendar) data[i][j]).getTime()));
+                    else //if (data[i][j] instanceof String)
+                        cell.setCellValue((String) data[i][j]);
 
+                }
             }
         }
 

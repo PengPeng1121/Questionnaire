@@ -12,6 +12,18 @@ import com.pp.common.core.AbstractEntity;
  */
 public final class QuestionnaireQuestionAnswer extends AbstractEntity {
 
+    public static final String QUESTION_TYPE_CODE_CHOICE ="0";
+
+    public static final String QUESTION_TYPE_CODE_DESC ="1";
+
+    public static final String QUESTION_TYPE_NAME_CHOICE ="选择题";
+
+    public static final String QUESTION_TYPE_NAME_DESC ="简答题";
+
+    public static final Integer IS_MUST_ANSWER =1;
+
+    public static final Integer IS_NOT_MUST_ANSWER =0;
+
     // 序列化
     private static final long serialVersionUID = 1L;
 
@@ -41,6 +53,15 @@ public final class QuestionnaireQuestionAnswer extends AbstractEntity {
 
     // 姓名(回答者姓名)
     private String studentName;
+
+    // 问题类型代码 0：选择题；1：简答题
+    private String questionTypeCode;
+
+    // 问题类型名称 选择题 ；简答题
+    private String questionTypeName;
+
+    // 是否必答题 0 ：否 ；1是
+    private Integer isMustAnswer;
 
     /**
      * 设置问卷编号
@@ -176,5 +197,29 @@ public final class QuestionnaireQuestionAnswer extends AbstractEntity {
 
     public void setAnswerValue(String answerValue) {
         this.answerValue = answerValue;
+    }
+
+    public String getQuestionTypeCode() {
+        return questionTypeCode;
+    }
+
+    public void setQuestionTypeCode(String questionTypeCode) {
+        this.questionTypeCode = questionTypeCode;
+    }
+
+    public String getQuestionTypeName() {
+        return questionTypeName;
+    }
+
+    public void setQuestionTypeName(String questionTypeName) {
+        this.questionTypeName = questionTypeName;
+    }
+
+    public Integer getIsMustAnswer() {
+        return isMustAnswer;
+    }
+
+    public void setIsMustAnswer(Integer isMustAnswer) {
+        this.isMustAnswer = isMustAnswer;
     }
 }

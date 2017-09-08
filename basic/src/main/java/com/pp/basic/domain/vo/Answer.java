@@ -10,7 +10,7 @@ import com.pp.common.core.AbstractEntity;
  * 
  * @author
  */
-public final class Answer extends AbstractEntity {
+public final class Answer{
 
     // 序列化
     private static final long serialVersionUID = 1L;
@@ -27,7 +27,11 @@ public final class Answer extends AbstractEntity {
     // 答案
     private String answer;
 
+    // 问题类型代码 0：选择题；1：简答题
+    private String questionTypeCode;
 
+    // 是否必答题 0 ：否 ；1是
+    private Integer isMustAnswer;
     /**
      * 设置问卷编号
      * 
@@ -92,4 +96,19 @@ public final class Answer extends AbstractEntity {
         return this.answer;
     }
 
+    public String getQuestionTypeCode() {
+        return questionTypeCode;
+    }
+
+    public void setQuestionTypeCode(String questionTypeCode) {
+        this.questionTypeCode = questionTypeCode;
+    }
+
+    public Integer getIsMustAnswer() {
+        return isMustAnswer;
+    }
+
+    public void setIsMustAnswer(Integer isMustAnswer) {
+        this.isMustAnswer = isMustAnswer;
+    }
 }

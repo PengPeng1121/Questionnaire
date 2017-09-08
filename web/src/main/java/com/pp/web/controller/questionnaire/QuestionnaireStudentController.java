@@ -88,7 +88,7 @@ public class QuestionnaireStudentController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
-    public HashMap<String,Object> pageQuery(String questionnaireStatusCode,Integer pageIndex) {
+    public HashMap<String,Object> pageQuery(String questionnaireProcessStatusCode,Integer pageIndex) {
         if (pageIndex == null || pageIndex < 1) {
             pageIndex = 1;
         }
@@ -96,24 +96,22 @@ public class QuestionnaireStudentController extends BaseController {
         Account account =AccountUtils.getCurrentAccount();
         HashMap<String,Object> param = new HashMap<String,Object>();
         param.put("studentCode",account.getUserCode());
-        if(StringUtils.isNoneEmpty(questionnaireStatusCode)){
-            param.put("questionnaireStatusCode",questionnaireStatusCode);
+        if(StringUtils.isNotEmpty(questionnaireProcessStatusCode)){
+            param.put("questionnaireStatusCode",questionnaireProcessStatusCode);
         }
 
         // 执行查询
         page = this.questionnaireStudentService.showStudentQuestionnaire(param, page);
         // 返回查询结果
-        // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         if (page!=null){
             map.put("data",page.getContent());
-
             map.put("count",page.getTotalElements());
             map.put("limit",page.getPageSize());
             map.put("page",page.getPageIndex());
-            returnMap.put("data",map);
             returnMap.put("status",200);
+            returnMap.put("data",map);
         }else {
             returnMap.put("data",map);
             returnMap.put("msg","没有查询到数据");

@@ -16,6 +16,9 @@
         <result column="answer_value" property="answerValue" jdbcType="VARCHAR" />                <!-- 答案值 -->
         <result column="student_code" property="studentCode" jdbcType="VARCHAR" />                <!-- 学号(回答者编号) -->
         <result column="student_name" property="studentName" jdbcType="VARCHAR" />                <!-- 姓名(回答者姓名) -->
+        <result column="question_type_code" property="questionTypeCode" jdbcType="VARCHAR" />     <!-- 问题类型代码 0：选择题；1：简答题 -->
+        <result column="question_type_name" property="questionTypeName" jdbcType="VARCHAR" />     <!-- 问题类型名称 选择题 ；简答题 -->
+        <result column="is_must_answer" property="isMustAnswer" jdbcType="TINYINT" />             <!-- 是否必答题 0 ：否 ；1是 -->
         <result column="remark" property="remark" jdbcType="VARCHAR" />                           <!-- 备注 -->
         <result column="version" property="version" jdbcType="VARCHAR" />                         <!-- 数据版本 -->
         <result column="create_user" property="createUser" jdbcType="VARCHAR" />                  <!-- 创建人 -->
@@ -39,6 +42,9 @@
             answer_value,           /* 答案值 */
             student_code,           /* 学号(回答者编号) */
             student_name,           /* 姓名(回答者姓名) */
+            question_type_code,     /* 问题类型代码 0：选择题；1：简答题 */
+            question_type_name,     /* 问题类型名称 选择题 ；简答题 */
+            is_must_answer,         /* 是否必答题 0 ：否 ；1是 */
             remark,                 /* 备注 */
             version,                /* 数据版本 */
             create_user,            /* 创建人 */
@@ -89,6 +95,15 @@
             </if>
             <if test="studentName != null and studentName != ''">
                 AND student_name = #{studentName, jdbcType=VARCHAR}    /* 姓名(回答者姓名) */
+            </if>
+            <if test="questionTypeCode != null and questionTypeCode != ''">
+                AND question_type_code = #{questionTypeCode, jdbcType=VARCHAR}    /* 问题类型代码 0：选择题；1：简答题 */
+            </if>
+            <if test="questionTypeName != null and questionTypeName != ''">
+                AND question_type_name = #{questionTypeName, jdbcType=VARCHAR}    /* 问题类型名称 选择题 ；简答题 */
+            </if>
+            <if test="isMustAnswer != null">
+                AND is_must_answer = #{isMustAnswer, jdbcType=TINYINT}    /* 是否必答题 0 ：否 ；1是 */
             </if>
             <if test="remark != null and remark != ''">
                 AND remark = #{remark, jdbcType=VARCHAR}    /* 备注 */
@@ -205,6 +220,27 @@
                             <otherwise>DESC</otherwise>
                         </choose>
                     </when>
+                    <when test="item.propertyName != null and item.propertyName == 'questionTypeCode'">
+                        question_type_code    /* 问题类型代码 0：选择题；1：简答题 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'questionTypeName'">
+                        question_type_name    /* 问题类型名称 选择题 ；简答题 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'isMustAnswer'">
+                        is_must_answer    /* 是否必答题 0 ：否 ；1是 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
                     <when test="item.propertyName != null and item.propertyName == 'remark'">
                         remark    /* 备注 */
                         <choose>
@@ -286,6 +322,9 @@
         answer_value,          /* 答案值 */
         student_code,          /* 学号(回答者编号) */
         student_name,          /* 姓名(回答者姓名) */
+        question_type_code,    /* 问题类型代码 0：选择题；1：简答题 */
+        question_type_name,    /* 问题类型名称 选择题 ；简答题 */
+        is_must_answer,        /* 是否必答题 0 ：否 ；1是 */
         remark,                /* 备注 */
         version,               /* 数据版本 */
         create_user,           /* 创建人 */
@@ -303,6 +342,9 @@
         #{answerValue, jdbcType=VARCHAR},          /* 答案值 */
         #{studentCode, jdbcType=VARCHAR},          /* 学号(回答者编号) */
         #{studentName, jdbcType=VARCHAR},          /* 姓名(回答者姓名) */
+        #{questionTypeCode, jdbcType=VARCHAR},     /* 问题类型代码 0：选择题；1：简答题 */
+        #{questionTypeName, jdbcType=VARCHAR},     /* 问题类型名称 选择题 ；简答题 */
+        #{isMustAnswer, jdbcType=TINYINT},         /* 是否必答题 0 ：否 ；1是 */
         #{remark, jdbcType=VARCHAR},               /* 备注 */
         #{version, jdbcType=VARCHAR},              /* 数据版本 */
         #{createUser, jdbcType=VARCHAR},           /* 创建人 */
@@ -325,6 +367,9 @@
         answer_value,          /* 答案值 */
         student_code,          /* 学号(回答者编号) */
         student_name,          /* 姓名(回答者姓名) */
+        question_type_code,    /* 问题类型代码 0：选择题；1：简答题 */
+        question_type_name,    /* 问题类型名称 选择题 ；简答题 */
+        is_must_answer,        /* 是否必答题 0 ：否 ；1是 */
         remark,                /* 备注 */
         version,               /* 数据版本 */
         create_user,           /* 创建人 */
@@ -344,6 +389,9 @@
             #{item.answerValue, jdbcType=VARCHAR},          /* 答案值 */
             #{item.studentCode, jdbcType=VARCHAR},          /* 学号(回答者编号) */
             #{item.studentName, jdbcType=VARCHAR},          /* 姓名(回答者姓名) */
+            #{item.questionTypeCode, jdbcType=VARCHAR},     /* 问题类型代码 0：选择题；1：简答题 */
+            #{item.questionTypeName, jdbcType=VARCHAR},     /* 问题类型名称 选择题 ；简答题 */
+            #{item.isMustAnswer, jdbcType=TINYINT},         /* 是否必答题 0 ：否 ；1是 */
             #{item.remark, jdbcType=VARCHAR},               /* 备注 */
             #{item.version, jdbcType=VARCHAR},              /* 数据版本 */
             #{item.createUser, jdbcType=VARCHAR},           /* 创建人 */
@@ -386,6 +434,15 @@
                 </if>
                 <if test="studentName != null and studentName != ''">
                     student_name = #{studentName, jdbcType=VARCHAR},    /* 姓名(回答者姓名) */
+                </if>
+                <if test="questionTypeCode != null and questionTypeCode != ''">
+                    question_type_code = #{questionTypeCode, jdbcType=VARCHAR},    /* 问题类型代码 0：选择题；1：简答题 */
+                </if>
+                <if test="questionTypeName != null and questionTypeName != ''">
+                    question_type_name = #{questionTypeName, jdbcType=VARCHAR},    /* 问题类型名称 选择题 ；简答题 */
+                </if>
+                <if test="isMustAnswer != null">
+                    is_must_answer = #{isMustAnswer, jdbcType=TINYINT},    /* 是否必答题 0 ：否 ；1是 */
                 </if>
                 <if test="remark != null and remark != ''">
                     remark = #{remark, jdbcType=VARCHAR},    /* 备注 */

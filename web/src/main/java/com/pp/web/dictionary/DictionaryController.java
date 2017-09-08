@@ -86,7 +86,7 @@ public class DictionaryController {
             map.put("C", ChoiceQuestionEnum_A.CHOICE_C.getName());
             map.put("D", ChoiceQuestionEnum_A.CHOICE_D.getName());
             map.put("E", ChoiceQuestionEnum_A.CHOICE_E.getName());
-        }else {
+        }else if(group.toLowerCase().equals("b")){
             map.put("A", ChoiceQuestionEnum_B.CHOICE_A.getName());
             map.put("B", ChoiceQuestionEnum_B.CHOICE_B.getName());
             map.put("C", ChoiceQuestionEnum_B.CHOICE_C.getName());

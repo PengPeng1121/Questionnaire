@@ -58,7 +58,8 @@ public class SystemController {
 
             String[] columnName = {"课程编码", "课程名称", "课程类型代码(0:实践课;1:理论课)","授课教师编码","授课教师名称","学期"};
             ServletOutputStream outputStream = response.getOutputStream();
-            PoiUtils.export(name, title, columnName, null,outputStream);
+            Object[][] data = null;
+            PoiUtils.export(name, title, columnName, data,outputStream);
         } catch (Exception e) {
             throw new IllegalArgumentException("导入课程模板导出失败!" + e.getMessage());
         }
