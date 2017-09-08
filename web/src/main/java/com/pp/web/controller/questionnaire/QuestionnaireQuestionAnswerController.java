@@ -277,10 +277,10 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
      */
     @RequestMapping(value = "/exportAnswers", method = {RequestMethod.POST ,RequestMethod.GET})
     public void exportAnswers(HttpServletResponse response,HttpServletRequest request, String questionnaireCode) {
-//        Account account = AccountUtils.getCurrentAccount();
-//        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
-//            throw new IllegalArgumentException("为管理员操作，当前用户没有管理员权限!");
-//        }
+        Account account = AccountUtils.getCurrentAccount();
+        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+            throw new IllegalArgumentException("为管理员操作，当前用户没有管理员权限!");
+        }
         StringBuilder sb = new StringBuilder();
         OutputStream fOut = null;
         //1 .首先查询出问卷
