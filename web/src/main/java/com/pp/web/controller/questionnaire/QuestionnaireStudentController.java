@@ -88,7 +88,7 @@ public class QuestionnaireStudentController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
-    public HashMap<String,Object> pageQuery(String questionnaireProcessStatusCode,Integer pageIndex) {
+    public HashMap<String,Object> pageQuery(String questionnaireProcessStatusCode,String term,Integer pageIndex) {
         if (pageIndex == null || pageIndex < 1) {
             pageIndex = 1;
         }
@@ -97,9 +97,11 @@ public class QuestionnaireStudentController extends BaseController {
         HashMap<String,Object> param = new HashMap<String,Object>();
         param.put("studentCode",account.getUserCode());
         if(StringUtils.isNotEmpty(questionnaireProcessStatusCode)){
-            param.put("questionnaireStatusCode",questionnaireProcessStatusCode);
+            param.put("questionnaireProcessStatusCode",questionnaireProcessStatusCode);
         }
-
+        if(StringUtils.isNotEmpty(term)){
+            param.put("term",term);
+        }
         // 执行查询
         page = this.questionnaireStudentService.showStudentQuestionnaire(param, page);
         // 返回查询结果

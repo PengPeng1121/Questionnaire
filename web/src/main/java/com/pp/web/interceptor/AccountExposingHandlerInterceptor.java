@@ -17,7 +17,7 @@ import javax.servlet.http.HttpSession;
 public class AccountExposingHandlerInterceptor implements HandlerInterceptor {
 
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
+		request.setCharacterEncoding("utf-8");
 		Account account = AccountContext.getAccount();
 
 		HttpSession session = request.getSession();

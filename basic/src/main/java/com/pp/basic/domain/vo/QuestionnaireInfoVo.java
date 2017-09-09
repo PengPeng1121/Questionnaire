@@ -26,6 +26,8 @@ public class QuestionnaireInfoVo implements Serializable {
 
     private String questionnaireProcessStatusName;
 
+    private String term;
+
     public String getQuestionnaireProcessStatusName() {
         return questionnaireProcessStatusName;
     }
@@ -72,5 +74,13 @@ public class QuestionnaireInfoVo implements Serializable {
 
     public void setQuestionnaireEndTime(Date questionnaireEndTime) {
         this.questionnaireEndTime = questionnaireEndTime;
+    }
+
+    public String getTerm() {
+        return term;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
     }
 }

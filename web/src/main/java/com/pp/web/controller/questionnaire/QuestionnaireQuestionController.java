@@ -188,7 +188,7 @@ public class QuestionnaireQuestionController extends BaseController {
 
     @RequestMapping(value = "/importQuestion", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String term,String answerGroup,String teacherCode,String endTime) {
+    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String term,String group,String teacherCode,String endTime) {
         HashMap<String,Object> map = new HashMap<>();
         map.put("status",300);
         Questionnaire questionnaire = new Questionnaire();
@@ -217,7 +217,7 @@ public class QuestionnaireQuestionController extends BaseController {
         questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
         questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
         questionnaire.setTerm(term);
-        questionnaire.setAnswerGroup(answerGroup);
+        questionnaire.setAnswerGroup(group);
         questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
 
         //根据课程和学期唯一确定
@@ -241,10 +241,11 @@ public class QuestionnaireQuestionController extends BaseController {
         questionnaire.setLessonName(lesson.getLessonName());
         questionnaire.setTeacherName(teacher.getTeacherName());
         questionnaire.setTeacherCode(teacher.getTeacherCode());
+
         // 保存附件
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         MultipartFile multipartFile = multipartRequest.getFile("questionFile");
-        questionnaire = this.questionnaireService.selectOne(questionnaire);
+
         int rows = 0;// 实际导入行数
         // 最大导入条数
         Integer importNum = 50;
@@ -253,6 +254,9 @@ public class QuestionnaireQuestionController extends BaseController {
         int fileNameLength = fileName.length();
         String prefix = fileName.substring(lastIndexOfDot + 1, fileNameLength);
         try {
+            //写入
+            this.questionnaireService.insert(questionnaire, account.getUserCode());
+            questionnaire = this.questionnaireService.selectOne(questionnaire);
             if (prefix.toLowerCase().equals("xlsx") || prefix.toLowerCase().equals("xls")) {
                 InputStream in = multipartFile.getInputStream();
                 HSSFWorkbook wb = new HSSFWorkbook(in);
@@ -266,7 +270,7 @@ public class QuestionnaireQuestionController extends BaseController {
                     return map;
                 }
                 List<QuestionnaireQuestion> questionnaireQuestionList = new ArrayList<>();
-                for (int i = 1; i <= rows; i++) {
+                for (int i = 2; i <= rows; i++) {
                     HSSFRow row = sheet.getRow(i);
                     if (row != null) {
                         QuestionnaireQuestion questionnaireQuestion = new QuestionnaireQuestion();
@@ -284,14 +288,6 @@ public class QuestionnaireQuestionController extends BaseController {
                     } catch (Exception r) {
                         map.put("msg","写入失败：" + r.getMessage());
                     }
-                    //关联学生
-                    StudentLesson studentLesson = new StudentLesson();
-                    studentLesson.setLessonCode(lessonCode);
-                    List<StudentLesson> studentLessonList = new ArrayList<>();
-                    if(this.studentLessonService.exists(studentLesson)){
-                        studentLessonList =  this.studentLessonService.selectList(studentLesson);
-                    }
-                    relateStudent(studentLessonList,questionnaire,account.getUserCode());
                 }
                 if (CollectionUtils.isNotEmpty(resultList)) {
                     map.put("list", resultList);
@@ -308,8 +304,6 @@ public class QuestionnaireQuestionController extends BaseController {
         }
 
         try {
-            //写入
-            this.questionnaireService.insert(questionnaire, account.getUserCode());
 
             QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
             questionnaireLesson.setLessonCode(lesson.getLessonCode());
@@ -322,6 +316,14 @@ public class QuestionnaireQuestionController extends BaseController {
             questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_LESSON_CODE);
             questionnaire.setQuestionnaireStatusName(Questionnaire.ALREADY_WITH_LESSON_NAME);
             this.questionnaireService.update(questionnaire,account.getUserName());
+            //关联学生
+            StudentLesson studentLesson = new StudentLesson();
+            studentLesson.setLessonCode(lessonCode);
+            List<StudentLesson> studentLessonList = new ArrayList<>();
+            if(this.studentLessonService.exists(studentLesson)){
+                studentLessonList =  this.studentLessonService.selectList(studentLesson);
+            }
+            relateStudent(studentLessonList,questionnaire,account.getUserCode());
         }catch (Exception e){
             map.put("msg","请求出错："+e.getMessage());
             return map;

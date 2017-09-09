@@ -486,6 +486,7 @@
         SELECT
         q.questionnaire_name as questionnaireName,
         q.questionnaire_code as questionnaireCode,
+        q.term as term,
         ql.lesson_name as lessonName,
         tl.teacher_name as teacherName,
         q.questionnaire_end_time as questionnaireEndTime,
@@ -502,6 +503,9 @@
             </if>
             <if test="questionnaireProcessStatusCode != null and questionnaireProcessStatusCode != ''">
                 AND  qs.questionnaire_process_status_code = #{questionnaireProcessStatusCode, jdbcType=VARCHAR}   /* 问卷进度 0：未答；1：进行中：2：答完 */
+            </if>
+            <if test="term != null and term != ''">
+                AND q.term = #{term, jdbcType=VARCHAR}
             </if>
         </where>
         <include refid="pageClause"/>
@@ -520,6 +524,9 @@
             q.is_delete = 0 AND qs.student_code = #{studentCode, jdbcType=VARCHAR}
             <if test="questionnaireStatusCode != null and questionnaireStatusCode != ''">
                 AND q.questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR}    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生） */
+            </if>
+            <if test="term != null and term != ''">
+                AND q.term = #{term, jdbcType=VARCHAR}
             </if>
             <if test="questionnaireProcessStatusCode != null and questionnaireProcessStatusCode != ''">
                 AND  qs.questionnaire_process_status_code = #{questionnaireProcessStatusCode, jdbcType=VARCHAR}   /* 问卷进度 0：未答；1：进行中：2：答完 */

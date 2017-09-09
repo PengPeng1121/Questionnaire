@@ -43,7 +43,7 @@ public enum ChoiceQuestionEnum_A {
     public static String getName(String index) {
         String name = "";
         for (ChoiceQuestionEnum_A o : ChoiceQuestionEnum_A.values()) {
-            if (index == o.getIndex()) {
+            if (index .equals( o.getIndex())) {
                 name = o.getName();
                 break;
             }

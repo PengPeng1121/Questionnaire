@@ -247,7 +247,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
                 //简答题
                 questionAnswer.setAnswerValue(answer.getAnswer());
             }
-            if(answer.getIsMustAnswer()!= QuestionnaireQuestionAnswer.IS_MUST_ANSWER || answer.getIsMustAnswer()!=QuestionnaireQuestionAnswer.IS_NOT_MUST_ANSWER ){
+            if(answer.getIsMustAnswer()!= QuestionnaireQuestionAnswer.IS_MUST_ANSWER && answer.getIsMustAnswer()!=QuestionnaireQuestionAnswer.IS_NOT_MUST_ANSWER ){
                 throw new  IllegalArgumentException("是否必答只能为0或者1");
             }else {
                 questionAnswer.setIsMustAnswer(answer.getIsMustAnswer());
@@ -264,7 +264,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             questionAnswer.setAnswerCode(answer.getQuestionCode()+"_answer");
             questionAnswer.setQuestionCode(answer.getQuestionCode());
             questionAnswer.setQuestionName(answer.getQuestionName());
-            questionAnswer.setQuestionnaireCode(answer.getQuestionnaireCode());
+            questionAnswer.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
             questionAnswer.setQuestionnaireName(questionnaire.getQuestionnaireName());
             questionAnswer.setStudentCode(account.getUserCode());
             questionAnswer.setStudentName(account.getUserName());
@@ -280,6 +280,9 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
             throw new IllegalArgumentException("为管理员操作，当前用户没有管理员权限!");
+        }
+        if(StringUtils.isEmpty(questionnaireCode)){
+            throw new IllegalArgumentException("参数不能为空!");
         }
         StringBuilder sb = new StringBuilder();
         OutputStream fOut = null;
@@ -388,7 +391,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             //将数据插入的execl表格中
             fOut = response.getOutputStream();
             if(fOut!=null)
-                fOut.write(sb.toString().getBytes());
+                fOut.write(sb.toString().getBytes("UTF-8"));
         } catch (Exception e) {
             log.error("导出"+questionnaire.getQuestionnaireName()+"回答详情出错！"+e.getMessage(),e);
             throw new RuntimeException("导出"+questionnaire.getQuestionnaireName()+"回答详情出错！");

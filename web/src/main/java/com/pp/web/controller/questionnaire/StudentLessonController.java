@@ -174,7 +174,7 @@ public class StudentLessonController extends BaseController {
                     return map;
                 }
                 List<StudentLesson> studentLessonList = new ArrayList<>();
-                for (int i = 1; i <= rows; i++) {
+                for (int i = 2; i <= rows; i++) {
                     InitStudentLessonFail failData = new InitStudentLessonFail();
                     HSSFRow row = sheet.getRow(i);
                     if (row != null) {

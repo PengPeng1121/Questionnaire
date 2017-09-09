@@ -163,7 +163,7 @@ public class StudentController extends BaseController {
                     return map;
                 }
                 List<InitStudent> InitStudentList = new ArrayList<>();
-                for (int i = 1; i <= rows; i++) {
+                for (int i = 2; i <= rows; i++) {
                     InitStudentFail failData = new InitStudentFail();
                     HSSFRow row = sheet.getRow(i);
                     if (row != null) {
@@ -189,22 +189,6 @@ public class StudentController extends BaseController {
                     map.put("size", resultList.size());
                     map.put("msg", "本次导入不存在有效数据！！");
                     return map;
-                }
-                List<InitStudent> tempDealList = new ArrayList<InitStudent>();
-                List<InitStudent> tempResultDealList = new ArrayList<InitStudent>();
-                List<InitStudent> retDealList = new ArrayList<InitStudent>();
-                for (InitStudent InitStudent : dealList) {
-                    tempDealList.add(InitStudent);
-                    if (tempDealList.size() == 1000) {
-                        retDealList = filterInvalidData(tempDealList, resultList);
-                        tempResultDealList.addAll(retDealList);
-                        tempDealList.clear();
-                    }
-                }
-                if (!tempDealList.isEmpty()) {
-                    retDealList = filterInvalidData(tempDealList, resultList);
-                    tempResultDealList.addAll(retDealList);
-                    tempDealList.clear();
                 }
                 //导入之前清空数据
                 try {
@@ -237,7 +221,7 @@ public class StudentController extends BaseController {
                 }
                 //一次100条
                 List<InitStudent> subList = new ArrayList<>();
-                for (InitStudent initStudent : tempResultDealList) {
+                for (InitStudent initStudent : dealList) {
                     subList.add(initStudent);
                     if (subList.size() == 100) {
                         try {

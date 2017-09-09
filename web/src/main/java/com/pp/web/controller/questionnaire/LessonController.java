@@ -186,7 +186,7 @@ public class LessonController extends BaseController {
                 List<TeacherLesson> teacherLessons = new ArrayList<>();
                 List<Teacher> teachers = new ArrayList<>();
                 HashSet<String> teacherSets = new HashSet<>();
-                for (int i = 1; i <= rows; i++) {
+                for (int i = 2; i <= rows; i++) {
                     InitLessonFail failData = new InitLessonFail();
                     HSSFRow row = sheet.getRow(i);
                     if (row != null) {
