@@ -9,6 +9,7 @@ import com.pp.basic.domain.Teacher;
 import com.pp.basic.domain.TeacherLesson;
 import com.pp.basic.domain.vo.InitLessonFail;
 import com.pp.basic.service.LessonService;
+import com.pp.basic.service.StudentLessonService;
 import com.pp.basic.service.TeacherLessonService;
 import com.pp.basic.service.TeacherService;
 import com.pp.common.core.Page;
@@ -50,6 +51,9 @@ public class LessonController extends BaseController {
 
     @Autowired
     TeacherService teacherService;
+
+    @Autowired
+    StudentLessonService studentLessonService;
 
     /**
      * 保存数据
@@ -127,12 +131,24 @@ public class LessonController extends BaseController {
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         if (page!=null){
-            map.put("data",page.getContent());
+            if(!CollectionUtils.isEmpty(page.getContent())){
+                for (Lesson lesson:page.getContent()){
+                    StudentLesson studentLesson = new StudentLesson();
+                    studentLesson.setLessonCode(lesson.getLessonCode());
+                    studentLesson.setTerm(lesson.getTerm());
+                    Long total = this.studentLessonService.count(studentLesson);
+                    lesson.setStudentAccount(total);
+                }
+                map.put("data",page.getContent());
+            }else {
+                map.put("data",page.getContent());
+            }
             map.put("count",page.getTotalElements());
             map.put("limit",page.getPageSize());
             map.put("page",page.getPageIndex());
             returnMap.put("data",map);
             returnMap.put("status",200);
+
         }else {
             returnMap.put("data",map);
             returnMap.put("msg","没有查询到数据");

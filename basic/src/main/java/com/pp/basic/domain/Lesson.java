@@ -3,6 +3,7 @@
  */
 package com.pp.basic.domain;
 
+import com.pp.common.annotation.Transient;
 import com.pp.common.core.AbstractEntity;
 
 /**
@@ -35,6 +36,9 @@ public final class Lesson extends AbstractEntity {
 
     //学期
     private String term;
+
+    @Transient
+    private Long studentAccount;
     /**
      * 设置课程代码
      * 
@@ -137,5 +141,13 @@ public final class Lesson extends AbstractEntity {
 
     public void setTerm(String term) {
         this.term = term;
+    }
+
+    public Long getStudentAccount() {
+        return studentAccount;
+    }
+
+    public void setStudentAccount(Long studentAccount) {
+        this.studentAccount = studentAccount;
     }
 }

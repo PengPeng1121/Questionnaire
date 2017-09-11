@@ -71,7 +71,7 @@
                 AND questionnaire_code = #{questionnaireCode, jdbcType=VARCHAR}    /* 问卷编号 */
             </if>
             <if test="questionnaireName != null and questionnaireName != ''">
-                AND questionnaire_name = #{questionnaireName, jdbcType=VARCHAR}    /* 问卷名称 */
+                AND questionnaire_name like concat(concat('%',#{questionnaireName}),'%')      /* 问卷名称 */
             </if>
             <if test="questionnaireStatusCode != null and questionnaireStatusCode != ''">
                 AND questionnaire_status_code = #{questionnaireStatusCode, jdbcType=VARCHAR}    /* 问卷状态编号（0:初始;1:已关联课程；2:已推送学生；3：学生已回答） */
@@ -95,7 +95,7 @@
                 AND lesson_code = #{lessonCode, jdbcType=VARCHAR}    /* 课程编码 */
             </if>
             <if test="lessonName != null and lessonName != ''">
-                AND lesson_name = #{lessonName, jdbcType=VARCHAR}    /* 课程名称 */
+                AND lesson_name like concat(concat('%',#{lessonName}),'%')     /* 课程名称 */
             </if>
             <if test="term != null and term != ''">
                 AND term = #{term, jdbcType=VARCHAR}    /* 学期 */

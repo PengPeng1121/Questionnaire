@@ -63,7 +63,7 @@
                 AND lesson_code = #{lessonCode, jdbcType=VARCHAR}    /* 课程代码 */
             </if>
             <if test="lessonName != null and lessonName != ''">
-                AND lesson_name = #{lessonName, jdbcType=VARCHAR}    /* 课程名称 */
+                AND lesson_name like concat(concat('%',#{lessonName}),'%')   /* 课程名称 */
             </if>
             <if test="lessonTypeCode != null and lessonTypeCode != ''">
                 AND lesson_type_code = #{lessonTypeCode, jdbcType=VARCHAR}    /* 课程类型代码 0：实践课；1：理论课 */
