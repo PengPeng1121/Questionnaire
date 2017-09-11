@@ -13,4 +13,8 @@ public final class AccountContext {
 	public static Account getAccount(){
 		return ACCOUNT_HOLDER.get();
 	}
+
+	public static void removeAccount(){
+		ACCOUNT_HOLDER.remove();
+	}
 }

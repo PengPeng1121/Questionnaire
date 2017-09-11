@@ -1,11 +1,9 @@
 package com.pp.web.dictionary;
 
 import com.pp.basic.domain.Lesson;
-import com.pp.basic.domain.Teacher;
 import com.pp.basic.domain.TeacherLesson;
 import com.pp.basic.service.LessonService;
 import com.pp.basic.service.TeacherLessonService;
-import com.pp.basic.service.TeacherService;
 import com.pp.web.common.ChoiceQuestionEnum_A;
 import com.pp.web.common.ChoiceQuestionEnum_B;
 import org.apache.commons.collections.CollectionUtils;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.*;
 
 /**
@@ -29,9 +26,6 @@ public class DictionaryController {
 
     @Autowired
     LessonService lessonService;
-
-    @Autowired
-    TeacherService teacherService;
 
     @Autowired
     TeacherLessonService teacherLessonService;

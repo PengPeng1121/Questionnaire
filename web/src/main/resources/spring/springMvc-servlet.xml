@@ -56,6 +56,8 @@
 
 	<!-- 静态文件使用默认Servlet -->
 	<mvc:default-servlet-handler />
+	<mvc:resources location="/static/" mapping="/static/**" cache-period="864000" />
+	<mvc:resources location="/js/" mapping="/js/**" cache-period="864000" />
 
 	<!-- 视图配置 -->
 	<bean id="velocityConfig"
@@ -87,17 +89,17 @@
 	</bean>
 
 
-	<!--&lt;!&ndash; 拦截器 &ndash;&gt;-->
-	<!--<mvc:interceptors>-->
-		<!--&lt;!&ndash; 登录 &ndash;&gt;-->
-		<!--<mvc:interceptor>-->
-			<!--<mvc:mapping path="/login/login" />-->
-			<!--<bean class="com.pp.web.interceptor.LoginHandlerInterceptor"></bean>-->
-		<!--</mvc:interceptor>-->
-		<!--&lt;!&ndash; 用户 &ndash;&gt;-->
-		<!--<mvc:interceptor>-->
-			<!--<mvc:mapping path="/web/**" />-->
-			<!--<bean class="com.pp.web.interceptor.AccountExposingHandlerInterceptor"></bean>-->
-		<!--</mvc:interceptor>-->
-	<!--</mvc:interceptors>-->
+	<!-- 拦截器 -->
+	<mvc:interceptors>
+		<!-- 登录 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/login/login" />
+			<bean class="com.pp.web.interceptor.LoginHandlerInterceptor"></bean>
+		</mvc:interceptor>
+		<!-- 用户 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/web/**" />
+			<bean class="com.pp.web.interceptor.AccountExposingHandlerInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
 </beans>

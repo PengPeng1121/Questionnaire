@@ -52,8 +52,7 @@ public class LoginController {
      */
     @RequestMapping(value = "/login", method ={RequestMethod.POST,RequestMethod.GET} )
     @ResponseBody
-    public Map<String,Object> login(HttpServletRequest request, HttpServletResponse response, String userCode, String password)
-            throws IllegalAccessException {
+    public Map<String,Object> login(HttpServletRequest request, HttpServletResponse response, String userCode, String password){
         log.info("welcome user:"+userCode);
         Map<String,Object> map = new HashMap<>();
         Account account = AccountContext.getAccount();
@@ -61,12 +60,12 @@ public class LoginController {
         if(!StringUtils.isEmpty(userCode)){
             systemUser.setUserCode(userCode);
         }else {
-            throw new IllegalAccessException("用户名不能为空");
+            throw new IllegalArgumentException("用户名不能为空");
         }
         if(!StringUtils.isEmpty(userCode)){
             systemUser.setUserPassword(password);
         }else {
-            throw new IllegalAccessException("密码不能为空");
+            throw new IllegalArgumentException("密码不能为空");
         }
         //判断用户是否存在 及权限
         if(this.systemUserService.exists(systemUser)){
@@ -104,7 +103,7 @@ public class LoginController {
             map.put("account",account);
             AccountContext.setAccount(account);
         }else {
-            throw new IllegalAccessException("用户不存在或者密码错误！");
+            throw new IllegalArgumentException("用户不存在或者密码错误！");
         }
         return map;
     }
@@ -117,6 +116,7 @@ public class LoginController {
             return true;
         }
         session.removeAttribute(SystemCommon.COOKIE_NAME);
+        AccountUtils.removeAccount();
         return true;
     }
 
