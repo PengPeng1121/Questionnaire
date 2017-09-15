@@ -98,7 +98,7 @@ public class SystemConfigController extends BaseController {
     /**
      * 查询提醒问卷
      */
-    @RequestMapping(value = "/findRemindQuestionnaire", method ={RequestMethod.POST})
+    @RequestMapping(value = "/findRemindQuestionnaire", method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
     public HashMap<String,Object> findRemindQuestionnaire() {
         //查询未做的问卷个数

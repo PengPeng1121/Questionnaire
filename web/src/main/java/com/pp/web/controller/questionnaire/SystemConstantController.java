@@ -137,7 +137,7 @@ public class SystemConstantController extends BaseController {
     /**
      * 设置策略
      */
-    @RequestMapping(value = "/postStrategy", method ={RequestMethod.POST})
+    @RequestMapping(value = "/postStrategy", method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
     public HashMap<String,Object> postStrategy(HttpServletRequest request) {
 

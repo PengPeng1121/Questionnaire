@@ -122,18 +122,19 @@ public class LoginController {
 
     @RequestMapping(value = "/isLogin",method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public HashMap<String,Object> isLogin() throws IOException {
-        Account account = AccountUtils.getCurrentAccount();
+    public HashMap<String,Object> isLogin(HttpServletRequest request) throws IOException {
+        HttpSession session = request.getSession();
         HashMap<String,Object> map = new HashMap<String,Object> ();
-        if(account!=null){
-            if(account.getRole().equals("1")){
+        SystemUser systemUser= (SystemUser)session.getAttribute(SystemCommon.COOKIE_NAME);
+        if(systemUser!=null){
+            if(systemUser.getUserAuthority().equals("1")){
                 map.put("admin",true);
             }else {
                 map.put("admin",false);
             }
             map.put("status",200);
-            map.put("userName",account.getUserName());
-            map.put("userCode",account.getUserCode());
+            map.put("userName",systemUser.getUserName());
+            map.put("userCode",systemUser.getUserCode());
         }else {
             map.put("status",302);
         }

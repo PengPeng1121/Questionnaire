@@ -356,7 +356,7 @@ public class LessonController extends BaseController {
             lesson.setLessonTypeCode(row.getCell(2).toString());
             lesson.setLessonTypeName("理论课");
         }else {
-            return;
+           throw new IllegalArgumentException("课程类型错误！");
         }
         lesson.setLessonCode(row.getCell(0).toString().trim());
         lesson.setLessonName(row.getCell(1).toString().trim());

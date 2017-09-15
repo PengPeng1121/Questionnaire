@@ -243,9 +243,6 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
                 if(!StringUtils.isEmpty(answer.getAnswer())) {
                     questionAnswer.setAnswerValue(ChoiceQuestionEnum_B.getName(answer.getAnswer()));
                 }
-            }else {
-                //简答题
-                questionAnswer.setAnswerValue(answer.getAnswer());
             }
             if(answer.getIsMustAnswer()!= QuestionnaireQuestionAnswer.IS_MUST_ANSWER && answer.getIsMustAnswer()!=QuestionnaireQuestionAnswer.IS_NOT_MUST_ANSWER ){
                 throw new  IllegalArgumentException("是否必答只能为0或者1");
@@ -258,6 +255,8 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             }else  if(answer.getQuestionTypeCode().equals(QuestionnaireQuestionAnswer.QUESTION_TYPE_CODE_DESC )){
                 questionAnswer.setQuestionTypeCode(answer.getQuestionTypeCode());
                 questionAnswer.setQuestionTypeName(QuestionnaireQuestionAnswer.QUESTION_TYPE_NAME_DESC);
+                //简答题
+                questionAnswer.setAnswerValue(answer.getAnswer());
             }else {
                 throw new  IllegalArgumentException("题型只能为选择或者简答题");
             }

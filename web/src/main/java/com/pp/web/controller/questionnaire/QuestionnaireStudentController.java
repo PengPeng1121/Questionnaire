@@ -296,8 +296,17 @@ public class QuestionnaireStudentController extends BaseController {
                     data[index][0] = this.notNull(vo.getStudentName());
                     data[index][1] = this.notNull(vo.getStudentCode());
                     data[index][2] = this.notNull(vo.getQuestionnaireName());
-                    data[index][3] = this.notNull(f.format(vo.getCreateTime()));
-                    data[index][4] = this.notNull(f.format(vo.getRemindTime()));
+                    if(vo.getCreateTime()!=null){
+                        data[index][3] = this.notNull(f.format(vo.getCreateTime()));
+                    }else {
+                        data[index][3] = "";
+                    }
+                    if(vo.getRemindTime()!=null){
+                        data[index][4] = this.notNull(f.format(vo.getRemindTime()));
+                    }else {
+                        data[index][4] = "";
+                    }
+
                     data[index][5] = this.notNull(vo.getLessonName());
                     index++;
                 }
