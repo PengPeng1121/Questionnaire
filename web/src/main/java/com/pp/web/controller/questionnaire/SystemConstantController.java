@@ -145,6 +145,10 @@ public class SystemConstantController extends BaseController {
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         returnMap.put("status",300);
         try {
+            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+                returnMap.put("msg","为管理员操作，当前用户没有管理员权限");
+                return returnMap;
+            }
             BufferedReader reader = request.getReader();
             String input = "";
             StringBuffer requestBody = new StringBuffer();
@@ -157,10 +161,6 @@ public class SystemConstantController extends BaseController {
             }else{
                 JSONObject jsonObject = new JSONObject(requestBody.toString());
                 remindTime = (String) jsonObject.get("remindTime");
-            }
-            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
-                returnMap.put("msg","为管理员操作，当前用户没有管理员权限");
-                return returnMap;
             }
             if(remindTime==null){
                 returnMap.put("msg","超时时间不能为空！");

@@ -5,6 +5,7 @@ package com.pp.web.controller.questionnaire;
 
 import com.pp.basic.domain.Questionnaire;
 import com.pp.basic.domain.QuestionnaireQuestion;
+import com.pp.basic.domain.SystemUser;
 import com.pp.basic.service.QuestionnaireQuestionService;
 import com.pp.basic.service.QuestionnaireService;
 import com.pp.common.core.Page;
@@ -12,6 +13,8 @@ import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
+import com.pp.web.controller.until.DateUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,14 +89,38 @@ public class QuestionnaireController extends BaseController {
      */
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @ResponseBody
-    public boolean update(Questionnaire questionnaireUpdate) {
-        //TODO 数据验证
+    public HashMap<String,Object> update(String questionnaireCode,String questionnaireName,String endTime) {
         Account account = AccountUtils.getCurrentAccount();
-        int rows = this.questionnaireService.update(questionnaireUpdate, account.getUserCode());
-        if (rows == 1) {
-            return true;
+        HashMap<String,Object> returnMap =new HashMap<>();
+        returnMap.put("status",300);
+        try{
+            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+                returnMap.put("msg","为管理员操作，当前用户没有管理员权限");
+                return returnMap;
+            }
+            Questionnaire questionnaire = new Questionnaire();
+            questionnaire.setQuestionnaireCode(questionnaireCode);
+            if(this.questionnaireService.exists(questionnaire)){
+                questionnaire= this.questionnaireService.selectOne(questionnaire);
+                if(!StringUtils.isEmpty(questionnaireName)){
+                    questionnaire.setQuestionnaireName(questionnaireName);
+                }
+                if(!StringUtils.isEmpty(endTime)){
+                    questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
+                }
+                int rows = this.questionnaireService.update(questionnaire, account.getUserCode());
+                if (rows == 1) {
+                    returnMap.put("status",200);
+                }else {
+                    returnMap.put("msg","没有查询到问卷："+questionnaireName);
+                }
+            }else{
+                returnMap.put("msg","没有查询到问卷："+questionnaireName);
+            }
+        }catch (Exception e){
+            returnMap.put("msg",e.getMessage());
         }
-        return false;
+        return returnMap;
     }
 
     /**
@@ -101,14 +128,25 @@ public class QuestionnaireController extends BaseController {
      */
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
-    public boolean delete(Long id) {
-        //TODO 数据验证
+    public HashMap<String,Object> delete(Long id) {
         Account account = AccountUtils.getCurrentAccount();
-        int rows = this.questionnaireService.delete(id, account.getUserCode());
-        if (rows == 1) {
-            return true;
+        HashMap<String,Object> returnMap =new HashMap<>();
+        returnMap.put("status",300);
+        returnMap.put("msg","删除失败");
+        try{
+            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+                returnMap.put("msg","为管理员操作，当前用户没有管理员权限");
+                return returnMap;
+            }
+            int rows = this.questionnaireService.delete(id, account.getUserCode());
+            if (rows == 1) {
+                returnMap.put("status",200);
+            }
+        }catch (Exception e){
+            returnMap.put("msg",e.getMessage());
+            returnMap.put("status",300);
         }
-        return false;
+        return returnMap;
     }
 
     /**

@@ -13,6 +13,7 @@ import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,7 +26,7 @@ import java.util.List;
 
 /**
  * 系统配置Controller
- * 
+ *
  * @author
  */
 @Controller
@@ -60,7 +61,7 @@ public class SystemConfigController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         int rows = this.systemConfigService.update(systemConfigUpdate, account.getUserCode());
         if (rows == 1) {
-            	return true;
+            return true;
         }
         return false;
     }
@@ -75,7 +76,7 @@ public class SystemConfigController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         int rows = this.systemConfigService.delete(id, account.getUserCode());
         if (rows == 1) {
-            	return true;
+            return true;
         }
         return false;
     }
@@ -105,36 +106,48 @@ public class SystemConfigController extends BaseController {
         Account account = AccountUtils.getCurrentAccount();
         QuestionnaireStudent questionnaireStudentQuery = new QuestionnaireStudent();
         questionnaireStudentQuery.setStudentCode(account.getUserCode());
-        questionnaireStudentQuery.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_UNDO);
-        List<QuestionnaireStudent> list = this.questionnaireStudentService.selectList(questionnaireStudentQuery);
-        //构建 查询问卷条件
-        List<SystemConfig> configQuestionnaires = new ArrayList<>();
-        if(list!=null&&list.size()>0){
-            for (QuestionnaireStudent student:list) {
-                SystemConfig configQuestionnaire = new SystemConfig();
-                configQuestionnaire.setQuestionnaireCode(student.getQuestionnaireCode());
-                //与当前时间对比
-                configQuestionnaire.setRemindTimeEnd(new Date());
-                configQuestionnaires.add(configQuestionnaire);
-            }
-        }
-        //根据条件查询，结果为当前时间的提醒问卷
-        List<SystemConfig> remindList = new ArrayList<>();
-        if(configQuestionnaires!=null&&configQuestionnaires.size()>0){
-            for (SystemConfig systemConfig:configQuestionnaires) {
-                SystemConfig remindConfig  = this.systemConfigService.selectOne(systemConfig);
-                if (remindConfig!=null){
-                    remindList.add(remindConfig);
-                }
-            }
-        }
-        // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        map.put("data",remindList);
-        map.put("count",remindList.size());
-        returnMap.put("data",map);
-        returnMap.put("status",200);
+        try {
+            questionnaireStudentQuery.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_UNDO);
+            List<QuestionnaireStudent> list = this.questionnaireStudentService.selectList(questionnaireStudentQuery);
+            //构建 查询问卷条件
+            List<SystemConfig> configQuestionnaires = new ArrayList<>();
+            if(list!=null&&list.size()>0){
+                for (QuestionnaireStudent student:list) {
+                    SystemConfig configQuestionnaire = new SystemConfig();
+                    configQuestionnaire.setQuestionnaireCode(student.getQuestionnaireCode());
+                    //与当前时间对比
+                    configQuestionnaire.setRemindTimeEnd(new Date());
+                    configQuestionnaires.add(configQuestionnaire);
+                }
+            }
+            //根据条件查询，结果为当前时间的提醒问卷
+            List<SystemConfig> remindList = new ArrayList<>();
+            if(configQuestionnaires!=null&&configQuestionnaires.size()>0){
+                for (SystemConfig systemConfig:configQuestionnaires) {
+                    SystemConfig remindConfig  = this.systemConfigService.selectOne(systemConfig);
+                    if (remindConfig!=null){
+                        remindList.add(remindConfig);
+                    }
+                }
+            }
+
+            // 返回查询结果
+            if (!CollectionUtils.isEmpty(remindList)){
+                map.put("data",remindList);
+                map.put("count",remindList.size());
+                returnMap.put("data",map);
+                returnMap.put("status",200);
+            }else {
+                returnMap.put("data",map);
+                returnMap.put("msg","没有查询到数据");
+                returnMap.put("status",300);
+            }
+        }catch (Exception e){
+            returnMap.put("msg","没有查询到数据");
+            returnMap.put("status",300);
+        }
         return returnMap;
     }
 
