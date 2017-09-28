@@ -47,6 +47,9 @@ public final class QuestionnaireQuestion extends AbstractEntity {
     // 是否必答题 0 ：否 ；1是
     private Integer isMustAnswer;
 
+    // 问题选项组
+    private String answerGroup;
+
     /**
      * 设置问卷编号
      *
@@ -159,4 +162,11 @@ public final class QuestionnaireQuestion extends AbstractEntity {
         return this.isMustAnswer;
     }
 
+    public String getAnswerGroup() {
+        return answerGroup;
+    }
+
+    public void setAnswerGroup(String answerGroup) {
+        this.answerGroup = answerGroup;
+    }
 }

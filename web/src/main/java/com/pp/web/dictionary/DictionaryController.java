@@ -70,9 +70,6 @@ public class DictionaryController {
         }else if(group.toLowerCase().equals("b")){
             map.put("A", ChoiceQuestionEnum_B.CHOICE_A.getName());
             map.put("B", ChoiceQuestionEnum_B.CHOICE_B.getName());
-            map.put("C", ChoiceQuestionEnum_B.CHOICE_C.getName());
-            map.put("D", ChoiceQuestionEnum_B.CHOICE_D.getName());
-            map.put("E", ChoiceQuestionEnum_B.CHOICE_E.getName());
         }
         answerMap.put("answers",map);
         return answerMap;

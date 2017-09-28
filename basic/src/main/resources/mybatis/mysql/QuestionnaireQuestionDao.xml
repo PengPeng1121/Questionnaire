@@ -12,7 +12,8 @@
         <result column="question_code" property="questionCode" jdbcType="VARCHAR" />              <!-- 问题编号 -->
         <result column="question_name" property="questionName" jdbcType="VARCHAR" />              <!-- 问题 -->
         <result column="question_type_code" property="questionTypeCode" jdbcType="VARCHAR" />     <!-- 问题类型代码 0：选择题；1：简答题 -->
-        <result column="question_type_name" property="questionTypeName" jdbcType="VARCHAR" />     <!-- 问题类型名称 选择题 ；简答题 -->
+        <result column="question_type_name" property="questionTypeName" jdbcType="VARCHAR" />
+        <result column="answer_group" property="answerGroup" jdbcType="VARCHAR" />   <!-- 问题类型名称 选择题 ；简答题 -->
         <result column="is_must_answer" property="isMustAnswer" jdbcType="TINYINT" />             <!-- 是否必答题 0 ：否 ；1是 -->
         <result column="remark" property="remark" jdbcType="VARCHAR" />                           <!-- 备注 -->
         <result column="version" property="version" jdbcType="VARCHAR" />                         <!-- 数据版本 -->
@@ -35,6 +36,7 @@
             question_type_code,     /* 问题类型代码 0：选择题；1：简答题 */
             question_type_name,     /* 问题类型名称 选择题 ；简答题 */
             is_must_answer,         /* 是否必答题 0 ：否 ；1是 */
+            answer_group,                  /* 问题选项组 */
             remark,                 /* 备注 */
             version,                /* 数据版本 */
             create_user,            /* 创建人 */
@@ -79,6 +81,9 @@
             </if>
             <if test="isMustAnswer != null">
                 AND is_must_answer = #{isMustAnswer, jdbcType=TINYINT}    /* 是否必答题 0 ：否 ；1是 */
+            </if>
+            <if test="answerGroup != null and answerGroup != ''">
+                AND answer_group = #{answerGroup, jdbcType=VARCHAR}    /* 问题选项组 */
             </if>
             <if test="remark != null and remark != ''">
                 AND remark = #{remark, jdbcType=VARCHAR}    /* 备注 */
@@ -260,6 +265,7 @@
             question_type_code,    /* 问题类型代码 0：选择题；1：简答题 */
             question_type_name,    /* 问题类型名称 选择题 ；简答题 */
             is_must_answer,        /* 是否必答题 0 ：否 ；1是 */
+            answer_group,                 /* 问题选项组 */
             remark,                /* 备注 */
             version,               /* 数据版本 */
             create_user,           /* 创建人 */
@@ -275,6 +281,7 @@
             #{questionTypeCode, jdbcType=VARCHAR},     /* 问题类型代码 0：选择题；1：简答题 */
             #{questionTypeName, jdbcType=VARCHAR},     /* 问题类型名称 选择题 ；简答题 */
             #{isMustAnswer, jdbcType=TINYINT},         /* 是否必答题 0 ：否 ；1是 */
+            #{answerGroup, jdbcType=VARCHAR},                /* 问题选项组 */
             #{remark, jdbcType=VARCHAR},               /* 备注 */
             #{version, jdbcType=VARCHAR},              /* 数据版本 */
             #{createUser, jdbcType=VARCHAR},           /* 创建人 */
@@ -295,6 +302,7 @@
             question_type_code,    /* 问题类型代码 0：选择题；1：简答题 */
             question_type_name,    /* 问题类型名称 选择题 ；简答题 */
             is_must_answer,        /* 是否必答题 0 ：否 ；1是 */
+            answer_group,                 /* 问题选项组 */
             remark,                /* 备注 */
             version,               /* 数据版本 */
             create_user,           /* 创建人 */
@@ -312,6 +320,7 @@
             #{item.questionTypeCode, jdbcType=VARCHAR},     /* 问题类型代码 0：选择题；1：简答题 */
             #{item.questionTypeName, jdbcType=VARCHAR},     /* 问题类型名称 选择题 ；简答题 */
             #{item.isMustAnswer, jdbcType=TINYINT},         /* 是否必答题 0 ：否 ；1是 */
+            #{item.answerGroup, jdbcType=VARCHAR},                /* 问题选项组 */
             #{item.remark, jdbcType=VARCHAR},               /* 备注 */
             #{item.version, jdbcType=VARCHAR},              /* 数据版本 */
             #{item.createUser, jdbcType=VARCHAR},           /* 创建人 */

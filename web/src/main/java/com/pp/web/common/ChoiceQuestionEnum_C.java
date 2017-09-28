@@ -3,10 +3,16 @@ package com.pp.web.common;
 /**
  * Created by asus on 2017/6/20.
  */
-public enum ChoiceQuestionEnum_B {
-    CHOICE_A("是","A"),
+public enum ChoiceQuestionEnum_C {
+    CHOICE_A("100分","A"),
 
-    CHOICE_B("否","B");
+    CHOICE_B("80分","B"),
+
+    CHOICE_C("60分","C"),
+
+    CHOICE_D("40分","D"),
+
+    CHOICE_E("20分","E");
 
     private String name;
 
@@ -28,7 +34,7 @@ public enum ChoiceQuestionEnum_B {
         this.index = index;
     }
 
-    ChoiceQuestionEnum_B(String name, String index){
+    ChoiceQuestionEnum_C(String name, String index){
         this.name = name;
         this.index = index;
     }
@@ -36,8 +42,8 @@ public enum ChoiceQuestionEnum_B {
     //根据索引获取名称
     public static String getName(String index) {
         String name = "";
-        for (ChoiceQuestionEnum_B o : ChoiceQuestionEnum_B.values()) {
-            if (index .equals(o.getIndex()) ) {
+        for (ChoiceQuestionEnum_C o : ChoiceQuestionEnum_C.values()) {
+            if (index .equals( o.getIndex())) {
                 name = o.getName();
                 break;
             }

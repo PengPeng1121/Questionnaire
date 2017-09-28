@@ -16,10 +16,9 @@ import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
 import com.pp.web.common.ChoiceQuestionEnum_A;
 import com.pp.web.common.ChoiceQuestionEnum_B;
+import com.pp.web.common.ChoiceQuestionEnum_C;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
-import com.pp.web.controller.until.PoiUtils;
-import com.sun.org.apache.bcel.internal.generic.SWITCH;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -230,18 +228,24 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         if(CollectionUtils.isEmpty(answerList)){
             throw new IllegalArgumentException("至少包含一条数据!");
         }
-        String group = questionnaire.getAnswerGroup();
         for (Answer answer:answerList) {
             QuestionnaireQuestionAnswer questionAnswer = new QuestionnaireQuestionAnswer();
             questionAnswer.setAnswer(answer.getAnswer());
             //取出答案的值
-            if (group.toLowerCase().equals("a")){
-                if(!StringUtils.isEmpty(answer.getAnswer())){
-                    questionAnswer.setAnswerValue(ChoiceQuestionEnum_A.getName(answer.getAnswer()));
-                }
-            }else if (group.toLowerCase().equals("b")) {
-                if(!StringUtils.isEmpty(answer.getAnswer())) {
-                    questionAnswer.setAnswerValue(ChoiceQuestionEnum_B.getName(answer.getAnswer()));
+            String group = answer.getAnswerGroup();
+            if(!StringUtils.isEmpty(group)){
+                if (group.toLowerCase().equals("a")){
+                    if(!StringUtils.isEmpty(answer.getAnswer())){
+                        questionAnswer.setAnswerValue(ChoiceQuestionEnum_A.getName(answer.getAnswer()));
+                    }
+                }else if (group.toLowerCase().equals("b")) {
+                    if(!StringUtils.isEmpty(answer.getAnswer())) {
+                        questionAnswer.setAnswerValue(ChoiceQuestionEnum_B.getName(answer.getAnswer()));
+                    }
+                }else if (group.toLowerCase().equals("c")) {
+                    if(!StringUtils.isEmpty(answer.getAnswer())) {
+                        questionAnswer.setAnswerValue(ChoiceQuestionEnum_C.getName(answer.getAnswer()));
+                    }
                 }
             }
             if(answer.getIsMustAnswer()!= QuestionnaireQuestionAnswer.IS_MUST_ANSWER && answer.getIsMustAnswer()!=QuestionnaireQuestionAnswer.IS_NOT_MUST_ANSWER ){
@@ -375,7 +379,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
             SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
             Date date = new Date();
-            String title = "导出"+ questionnaire.getQuestionnaireName() +"问卷回答情况_"+ f.format(date);
+            String title = "导出"+ questionnaire.getQuestionnaireName() +"问卷的异常回答情况_"+ f.format(date);
 
             final String userAgent = request.getHeader("USER-AGENT");
             String finalFileName = null;
@@ -409,6 +413,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
     //将问卷选择题答题情况写入
     private void writeDesc(StringBuilder sb,List<QuestionnaireQuestionAnswer> descAnswerList){
+        sb.append("<tr><td colspan=\"14\">XX的回答如下：</td></tr>");
         for (QuestionnaireQuestionAnswer descAnswer:descAnswerList) {
             sb.append("<tr>");
             sb.append("<td>题目名称:</td>");
@@ -429,6 +434,8 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
     //将问卷选择题答题情况写入
     private void writeChoice(StringBuilder sb,String questionName,Integer a,Integer b,Integer c,Integer d,Integer e,Integer isMustAnswer){
+        sb.append("<tbody>");
+        sb.append("<tr><td colspan=\"14\"  style='text-align: center;  font-size: 18pt;'>选择题答题情况</td></tr>");
         sb.append("<tr>");
         sb.append("<td>题目名称:</td>");
         sb.append("<td>"+questionName+"</td>");
@@ -469,8 +476,112 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         sb.append("<td colspan=\"3\" style='text-align: center;'>"+questionnaire.getTerm()+"</td>");
         sb.append("</tr>");
         sb.append("</thead>");
-        sb.append("<tbody>");
-        sb.append("<tr><td colspan=\"14\"  style='text-align: center;  font-size: 18pt;'>选择题答题情况</td></tr>");
     }
 
+
+    /**
+     * 导出问卷答题属性
+     */
+    @RequestMapping(value = "/exportExceptionAnswer", method = {RequestMethod.POST ,RequestMethod.GET})
+    public void exportExceptionAnswer(HttpServletResponse response,HttpServletRequest request, String questionnaireCode) {
+        Account account = AccountUtils.getCurrentAccount();
+        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+            throw new IllegalArgumentException("为管理员操作，当前用户没有管理员权限!");
+        }
+        if(StringUtils.isEmpty(questionnaireCode)){
+            throw new IllegalArgumentException("参数不能为空!");
+        }
+        StringBuilder sb = new StringBuilder();
+        OutputStream fOut = null;
+        //1 .首先查询出问卷
+        Questionnaire questionnaire = new Questionnaire();
+        questionnaire.setQuestionnaireCode(questionnaireCode);
+        questionnaire = this.questionnaireService.selectOne(questionnaire);
+        try {
+            if(questionnaire==null){
+                throw new IllegalArgumentException("没有这个问卷!");
+            }
+            //写入头部
+            writeHead(sb,questionnaire);
+            sb.append("<tr><td colspan=\"14\"  style='text-align: center;  font-size: 18pt;'>简答题回答异常情况</td></tr>");
+            //2 .查询出问卷的所有学生
+            QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
+            questionnaireStudent.setQuestionnaireCode(questionnaireCode);
+            questionnaireStudent.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_DONE);
+            List<QuestionnaireStudent> doneStudentList = this.questionnaireStudentService.selectList(questionnaireStudent);
+            if(!CollectionUtils.isEmpty(doneStudentList)){
+                for (QuestionnaireStudent doneStudent:doneStudentList) {
+                    QuestionnaireQuestionAnswer questionAnswer = new QuestionnaireQuestionAnswer();
+                    questionAnswer.setStudentCode(doneStudent.getStudentCode());
+                    questionAnswer.setQuestionnaireCode(questionnaireCode);
+                    questionAnswer.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_DESC);
+                    List<QuestionnaireQuestionAnswer> descAnswerList = this.questionnaireQuestionAnswerService.selectList(questionAnswer);
+                    if(!CollectionUtils.isEmpty(descAnswerList)){
+                        //写入简答
+                        writeExceptionDesc(sb,descAnswerList);
+                    }
+                }
+            }
+            sb.append("</tbody>");
+            sb.append("</table>");
+
+
+            SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+            Date date = new Date();
+            String title = "导出"+ questionnaire.getQuestionnaireName() +"问卷回答情况_"+ f.format(date);
+
+            final String userAgent = request.getHeader("USER-AGENT");
+            String finalFileName = null;
+            if(StringUtils.contains(userAgent, "MSIE")){//IE浏览器
+                finalFileName = URLEncoder.encode(title, "UTF-8");
+            }else if(StringUtils.contains(userAgent, "Mozilla")){//google,火狐浏览器
+                finalFileName = new String(title.getBytes(), "ISO8859-1");
+            }else{
+                finalFileName = URLEncoder.encode(title, "UTF-8");//其他浏览器
+            }
+            response.setHeader("Content-Disposition","attachment; filename=" + finalFileName + ".xls");
+            //将数据插入的execl表格中
+            fOut = response.getOutputStream();
+            if(fOut!=null)
+                fOut.write(sb.toString().getBytes("UTF-8"));
+        } catch (Exception e) {
+            log.error("导出"+questionnaire.getQuestionnaireName()+"回答详情出错！"+e.getMessage(),e);
+            throw new RuntimeException("导出"+questionnaire.getQuestionnaireName()+"回答详情出错！");
+        } finally{
+            //关闭输出文件流
+            try{
+                if(fOut!=null){
+                    fOut.flush();
+                    fOut.close();
+                }
+            }catch (IOException e){
+                log.error("colse io is error",e);
+            }
+        }
+    }
+
+    //将问卷选择题答题情况写入
+    private void writeExceptionDesc(StringBuilder sb,List<QuestionnaireQuestionAnswer> descAnswerList){
+        sb.append("<tr><td colspan=\"14\">XX的回答如下：</td></tr>");
+        for (QuestionnaireQuestionAnswer descAnswer:descAnswerList) {
+            if(!StringUtils.isEmpty(descAnswer.getAnswerValue())){
+                if(descAnswer.getAnswerValue().length()>30){
+                    sb.append("<tr>");
+                    sb.append("<td>题目名称:</td>");
+                    sb.append("<td colspan=\"5\">"+descAnswer.getQuestionName()+"</td>");
+                    sb.append("<td>答案:</td>");
+                    sb.append("<td colspan=\"5\">"+descAnswer.getAnswerValue()+"</td>");
+                    sb.append("<td>是否必答:</td>");
+                    String isMustAnswerStr = "";
+                    if(descAnswer.getIsMustAnswer() == 0){
+                        isMustAnswerStr ="否";
+                    }else {
+                        isMustAnswerStr ="是";
+                    }
+                    sb.append("<td>"+isMustAnswerStr+"</td>");
+                    sb.append("</tr>");
+                }
+            }
+        }
+    }
 }

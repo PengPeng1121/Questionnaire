@@ -188,7 +188,7 @@ public class QuestionnaireQuestionController extends BaseController {
 
     @RequestMapping(value = "/importQuestion", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String term,String group,String teacherCode,String endTime) {
+    public Map<String,Object> importQuestion(HttpServletRequest request, String questionnaireName,String lessonCode,String term,String teacherCode,String endTime) {
         HashMap<String,Object> map = new HashMap<>();
         map.put("status",300);
         Questionnaire questionnaire = new Questionnaire();
@@ -217,7 +217,7 @@ public class QuestionnaireQuestionController extends BaseController {
         questionnaire.setQuestionnaireStatusCode(Questionnaire.CODE_INIT);
         questionnaire.setQuestionnaireStatusName(Questionnaire.NAME_INIT);
         questionnaire.setTerm(term);
-        questionnaire.setAnswerGroup(group);
+        questionnaire.setAnswerGroup("");
         questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
 
         //根据课程和学期唯一确定
@@ -298,9 +298,14 @@ public class QuestionnaireQuestionController extends BaseController {
                 }
             } else {
                 map.put("msg", "导入失败说明：文件格式不正确，仅支持xlsx和xls文件！");
+                return map;
             }
         } catch (Exception e) {
+            if(questionnaire!=null){
+                this.questionnaireService.delete(questionnaire.getId(), account.getUserCode());
+            }
             map.put("msg", "导入失败说明：数据导入异常！"+e.getMessage());
+            return map;
         }
 
         try {
@@ -325,6 +330,9 @@ public class QuestionnaireQuestionController extends BaseController {
             }
             relateStudent(studentLessonList,questionnaire,account.getUserCode());
         }catch (Exception e){
+            if(questionnaire!=null){
+                this.questionnaireService.delete(questionnaire.getId(), account.getUserCode());
+            }
             map.put("msg","请求出错："+e.getMessage());
             return map;
         }
@@ -351,9 +359,20 @@ public class QuestionnaireQuestionController extends BaseController {
             if (row.getCell(2) == null || row.getCell(2).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
                 reason.append("是否必填为空;");
                 flag = false;
-            }else if (!(row.getCell(0).toString().equals("是") || !row.getCell(0).toString().equals("否"))) {
+            }else if(!(row.getCell(2).toString().equals("是") || row.getCell(2).toString().equals("否")))  {
                 reason.append("是否必填为空有误，只能为“是”或者“否”;");
                 flag = false;
+            }
+            if (row.getCell(0).toString().equals("选择题")){
+                    if (row.getCell(3) == null || row.getCell(3).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                    reason.append("选项组应该（a或b或c）;");
+                    flag = false;
+                }else if(! (row.getCell(3).toString().toLowerCase().equals("a") ||
+                            row.getCell(3).toString().toLowerCase().equals("b") ||
+                            row.getCell(3).toString().toLowerCase().equals("c")) ){
+                    reason.append("选项组目前只能为a或b或c）");
+                    flag = false;
+                }
             }
         } catch (Exception e) {
             flag = false;
@@ -371,6 +390,7 @@ public class QuestionnaireQuestionController extends BaseController {
             if (row.getCell(0).toString().equals("选择题") ){
                 questionnaireQuestion.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_CHOICE);
                 questionnaireQuestion.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_CHOICE);
+                questionnaireQuestion.setAnswerGroup(row.getCell(3).toString());
             } else {
                 questionnaireQuestion.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_DESC);
                 questionnaireQuestion.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_DESC);

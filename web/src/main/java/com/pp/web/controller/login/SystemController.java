@@ -1,10 +1,7 @@
 package com.pp.web.controller.login;
 
-import com.pp.basic.domain.vo.QuestionnaireStudentExportVo;
 import com.pp.web.controller.until.PoiUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -14,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -109,7 +105,7 @@ public class SystemController {
             // 名称和格式
             response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
 
-            String[] columnName = {"问题类型（简答题或选择题）", "问题内容", "是否必答（是或否）"};
+            String[] columnName = {"问题类型（简答题或选择题）", "问题内容", "是否必答（是或否）", "选项组（a或b或c）"};
             ServletOutputStream outputStream = response.getOutputStream();
             PoiUtils.export(name, title, columnName, null,outputStream);
         } catch (Exception e) {

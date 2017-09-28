@@ -3,8 +3,6 @@
  */
 package com.pp.basic.domain.vo;
 
-import com.pp.common.core.AbstractEntity;
-
 /**
  * 学生回答问题
  * 
@@ -32,6 +30,9 @@ public final class Answer{
 
     // 是否必答题 0 ：否 ；1是
     private Integer isMustAnswer;
+
+    // 问题选项组
+    private String answerGroup;
     /**
      * 设置问卷编号
      * 
@@ -110,5 +111,13 @@ public final class Answer{
 
     public void setIsMustAnswer(Integer isMustAnswer) {
         this.isMustAnswer = isMustAnswer;
+    }
+
+    public String getAnswerGroup() {
+        return answerGroup;
+    }
+
+    public void setAnswerGroup(String answerGroup) {
+        this.answerGroup = answerGroup;
     }
 }
