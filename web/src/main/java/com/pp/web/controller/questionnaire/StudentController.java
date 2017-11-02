@@ -19,6 +19,8 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -46,6 +48,7 @@ public class StudentController extends BaseController {
     @Autowired
     SystemUserService systemUserService;
 
+    Logger log = LoggerFactory.getLogger(StudentController.class.getName());
     /**
      * 保存数据
      */
@@ -257,7 +260,8 @@ public class StudentController extends BaseController {
                 map.put("msg", "导入失败说明：文件格式不正确，仅支持xlsx和xls文件！");
             }
         } catch (Exception e) {
-            map.put("msg", "导入失败说明：数据导入异常！");
+            log.error("导入失败说明：数据导入异常！msg:"+e.getMessage());
+            map.put("msg", "导入失败说明：数据导入异常！msg:"+e.getMessage());
             return map;
         }
         return map;
