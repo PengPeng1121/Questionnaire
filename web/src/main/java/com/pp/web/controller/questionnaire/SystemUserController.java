@@ -196,7 +196,6 @@ public class SystemUserController extends BaseController {
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         // 执行查询
         SystemUser systemUser = this.systemUserService.selectOne(systemUserQuery);
-
         if (systemUser!=null){
             returnMap.put("status",200);
             returnMap.put("systemUser",systemUser);

@@ -43,8 +43,8 @@ public class QuestionnaireStudentServiceImpl extends AbstractGenericService<Ques
         int pageIndex = page.getPageIndex();
         int pageSize = page.getPageSize();
 
-        int rowOffset = ( pageIndex -1) * pageSize;
-        int rowLimit = pageIndex * pageSize;
+        int rowOffset = pageIndex  * pageSize;
+        int rowLimit = (pageIndex+1) * pageSize;
 
         long count = questionnaireStudentManager.showStudentQuestionnaireCount(map);
 

@@ -96,20 +96,16 @@ public class StudentController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public HashMap<String,Object> pageQuery(Student studentQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
+    public HashMap<String,Object> pageQuery(Student studentQuery,
+                                            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+                                            @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
+                                            @RequestParam(value = "sd") String sortName) {
         //TODO 数据验证
 
         // 设置合理的参数
-        if (pageNum < 1) {
-            pageNum = 1;
-        }
-        if (pageSize < 1) {
-            pageSize = 20;
-        } else if (pageSize > 100) {
-            pageSize = 100;
-        }
         // 开始页码
-        int pageIndex = pageNum - 1;
+        int pageIndex = page - 1;
         // 排序
         Sort sort = null;
         if ("desc".equalsIgnoreCase(sortOrder)) {
@@ -118,17 +114,17 @@ public class StudentController extends BaseController {
             sort = Sort.asc(sortName);
         }
         // 创建分页对象
-        Page<Student> page = new Page<Student>(pageIndex, pageSize, sort);
+        Page<Student> studentPage = new Page<Student>(pageIndex, size, sort);
         // 执行查询
-        page = this.studentService.selectPage(studentQuery, page);
+        studentPage = this.studentService.selectPage(studentQuery, studentPage);
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        if (page!=null){
-            map.put("data",page.getContent());
-            map.put("count",page.getTotalElements());
-            map.put("limit",page.getPageSize());
-            map.put("page",page.getPageIndex());
+        if (studentPage!=null){
+            map.put("data",studentPage.getContent());
+            map.put("count",studentPage.getTotalElements());
+            map.put("limit",studentPage.getPageSize());
+            map.put("page",studentPage.getPageIndex()+1);
             returnMap.put("data",map);
             returnMap.put("status",200);
         }else {

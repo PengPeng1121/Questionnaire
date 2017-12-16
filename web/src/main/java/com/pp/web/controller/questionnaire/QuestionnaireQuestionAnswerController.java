@@ -112,20 +112,16 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
-    public HashMap<String,Object> pageQuery(QuestionnaireQuestionAnswer questionnaireQuestionAnswerQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
+    public HashMap<String,Object> pageQuery(QuestionnaireQuestionAnswer questionnaireQuestionAnswerQuery,
+                                            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+                                            @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
+                                            @RequestParam(value = "sd") String sortName) {
         //TODO 数据验证
 
         // 设置合理的参数
-        if (pageNum < 1) {
-            pageNum = 1;
-        }
-        if (pageSize < 1) {
-            pageSize = 20;
-        } else if (pageSize > 100) {
-            pageSize = 100;
-        }
         // 开始页码
-        int pageIndex = pageNum - 1;
+        int pageIndex = page - 1;
         // 排序
         Sort sort = null;
         if ("desc".equalsIgnoreCase(sortOrder)) {
@@ -134,17 +130,17 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             sort = Sort.asc(sortName);
         }
         // 创建分页对象
-        Page<QuestionnaireQuestionAnswer> page = new Page<QuestionnaireQuestionAnswer>(pageIndex, pageSize, sort);
+        Page<QuestionnaireQuestionAnswer> questionnaireQuestionAnswerPage = new Page<QuestionnaireQuestionAnswer>(pageIndex, size, sort);
         // 执行查询
-        page = this.questionnaireQuestionAnswerService.selectPage(questionnaireQuestionAnswerQuery, page);
+        questionnaireQuestionAnswerPage = this.questionnaireQuestionAnswerService.selectPage(questionnaireQuestionAnswerQuery, questionnaireQuestionAnswerPage);
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        if (page!=null){
-            map.put("data",page.getContent());
-            map.put("count",page.getTotalElements());
-            map.put("limit",page.getPageSize());
-            map.put("page",page.getPageIndex());
+        if (questionnaireQuestionAnswerPage!=null){
+            map.put("data",questionnaireQuestionAnswerPage.getContent());
+            map.put("count",questionnaireQuestionAnswerPage.getTotalElements());
+            map.put("limit",questionnaireQuestionAnswerPage.getPageSize());
+            map.put("page",questionnaireQuestionAnswerPage.getPageIndex()+1);
             returnMap.put("data",map);
             returnMap.put("status",200);
         }else {

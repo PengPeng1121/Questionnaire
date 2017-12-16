@@ -93,20 +93,13 @@ public class StudentLessonController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public HashMap<String,Object> pageQuery(StudentLesson studentLessonQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
-        //TODO 数据验证
-
-        // 设置合理的参数
-        if (pageNum < 1) {
-            pageNum = 1;
-        }
-        if (pageSize < 1) {
-            pageSize = 20;
-        } else if (pageSize > 100) {
-            pageSize = 100;
-        }
+    public HashMap<String,Object> pageQuery(StudentLesson studentLessonQuery,
+                                            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+                                            @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
+                                            @RequestParam(value = "sd") String sortName) {
         // 开始页码
-        int pageIndex = pageNum - 1;
+        int pageIndex = page - 1;
         // 排序
         Sort sort = null;
         if ("desc".equalsIgnoreCase(sortOrder)) {
@@ -115,17 +108,17 @@ public class StudentLessonController extends BaseController {
             sort = Sort.asc(sortName);
         }
         // 创建分页对象
-        Page<StudentLesson> page = new Page<StudentLesson>(pageIndex, pageSize, sort);
+        Page<StudentLesson> studentLessonPage = new Page<StudentLesson>(pageIndex, size, sort);
         // 执行查询
-        page = this.studentLessonService.selectPage(studentLessonQuery, page);
+        studentLessonPage = this.studentLessonService.selectPage(studentLessonQuery, studentLessonPage);
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        if (page!=null){
-            map.put("data",page.getContent());
-            map.put("count",page.getTotalElements());
-            map.put("limit",page.getPageSize());
-            map.put("page",page.getPageIndex());
+        if (studentLessonPage!=null){
+            map.put("data",studentLessonPage.getContent());
+            map.put("count",studentLessonPage.getTotalElements());
+            map.put("limit",studentLessonPage.getPageSize());
+            map.put("page",studentLessonPage.getPageIndex()+1);
             returnMap.put("data",map);
             returnMap.put("status",200);
         }else {
@@ -290,6 +283,10 @@ public class StudentLessonController extends BaseController {
                 reason.append("学期有误;");
                 flag = false;
             }
+            if (row.getCell(5) == null || row.getCell(5).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("教师编码有误;");
+                flag = false;
+            }
         } catch (Exception e) {
             flag = false;
         }
@@ -299,11 +296,14 @@ public class StudentLessonController extends BaseController {
             data.setFailReason(reason.toString());
             return new StudentLesson();
         }
+        //本系统的课程编码为 东大的课程编码+"_"+教师编码+"_"+学期
+        String lessonCode = row.getCell(0).toString().trim()+"_"+row.getCell(5).toString().trim()+"_"+row.getCell(4).toString().trim();
+
         studentLesson.setTerm(row.getCell(4).toString().trim());
         studentLesson.setStudentName(row.getCell(3).toString().trim());
         studentLesson.setStudentCode(row.getCell(2).toString().trim());
         studentLesson.setLessonName(row.getCell(1).toString().trim());
-        studentLesson.setLessonCode(row.getCell(0).toString().trim());
+        studentLesson.setLessonCode(lessonCode);
         return studentLesson;
     }
 }

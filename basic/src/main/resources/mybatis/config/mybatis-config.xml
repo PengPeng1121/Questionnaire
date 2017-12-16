@@ -20,6 +20,7 @@
         <mapper resource="mybatis/mysql/QuestionnaireStudentDao.xml" />	<!-- 学生问卷调查关系表 -->
         <mapper resource="mybatis/mysql/SystemConfigDao.xml" />	<!-- 系统配置 -->
         <mapper resource="mybatis/mysql/SystemConstantDao.xml" />
+        <mapper resource="mybatis/mysql/LessonContrastDao.xml" />	<!-- 课程对照课程表 -->
     </mappers>
     
 </configuration>

@@ -3,21 +3,16 @@
  */
 package com.pp.web.controller.questionnaire;
 
-import com.pp.basic.domain.Lesson;
-import com.pp.basic.domain.StudentLesson;
-import com.pp.basic.domain.Teacher;
-import com.pp.basic.domain.TeacherLesson;
+import com.pp.basic.domain.*;
 import com.pp.basic.domain.vo.InitLessonFail;
-import com.pp.basic.service.LessonService;
-import com.pp.basic.service.StudentLessonService;
-import com.pp.basic.service.TeacherLessonService;
-import com.pp.basic.service.TeacherService;
+import com.pp.basic.service.*;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -56,6 +51,9 @@ public class LessonController extends BaseController {
 
     @Autowired
     StudentLessonService studentLessonService;
+
+    @Autowired
+    LessonContrastService lessonContrastService;
 
     Logger log = LoggerFactory.getLogger(LessonController.class.getName());
     /**
@@ -105,20 +103,21 @@ public class LessonController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public HashMap<String,Object> pageQuery(Lesson lessonQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
+    public HashMap<String,Object> pageQuery(Lesson lessonQuery,
+                                            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+                                            @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
+                                            @RequestParam(value = "sd") String sortName) {
         //TODO 数据验证
 
         // 设置合理的参数
-        if (pageNum < 1) {
-            pageNum = 1;
-        }
-        if (pageSize < 1) {
-            pageSize = 20;
-        } else if (pageSize > 100) {
-            pageSize = 100;
+        if (size < 1) {
+            size = 20;
+        } else if (size > 100) {
+            size = 100;
         }
         // 开始页码
-        int pageIndex = pageNum - 1;
+        int pageIndex = page - 1;
         // 排序
         Sort sort = null;
         if ("desc".equalsIgnoreCase(sortOrder)) {
@@ -127,28 +126,28 @@ public class LessonController extends BaseController {
             sort = Sort.asc(sortName);
         }
         // 创建分页对象
-        Page<Lesson> page = new Page<Lesson>(pageIndex, pageSize, sort);
+        Page<Lesson> lessonPage = new Page<Lesson>(pageIndex, size, sort);
         // 执行查询
-        page = this.lessonService.selectPage(lessonQuery, page);
+        lessonPage = this.lessonService.selectPage(lessonQuery, lessonPage);
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        if (page!=null){
-            if(!CollectionUtils.isEmpty(page.getContent())){
-                for (Lesson lesson:page.getContent()){
+        if (lessonPage!=null){
+            if(!CollectionUtils.isEmpty(lessonPage.getContent())){
+                for (Lesson lesson:lessonPage.getContent()){
                     StudentLesson studentLesson = new StudentLesson();
                     studentLesson.setLessonCode(lesson.getLessonCode());
                     studentLesson.setTerm(lesson.getTerm());
                     Long total = this.studentLessonService.count(studentLesson);
                     lesson.setStudentAccount(total);
                 }
-                map.put("data",page.getContent());
+                map.put("data",lessonPage.getContent());
             }else {
-                map.put("data",page.getContent());
+                map.put("data",lessonPage.getContent());
             }
-            map.put("count",page.getTotalElements());
-            map.put("limit",page.getPageSize());
-            map.put("page",page.getPageIndex());
+            map.put("count",lessonPage.getTotalElements());
+            map.put("limit",lessonPage.getPageSize());
+            map.put("page",lessonPage.getPageIndex()+1);
             returnMap.put("data",map);
             returnMap.put("status",200);
 
@@ -189,6 +188,15 @@ public class LessonController extends BaseController {
         String prefix = fileName.substring(lastIndexOfDot + 1, fileNameLength);
         Account account = AccountUtils.getCurrentAccount();
         try {
+            List<Teacher> teacherList = this.teacherService.selectAll();
+            if(CollectionUtils.isEmpty(teacherList)){
+                map.put("msg", "请首先导入教师！！");
+                return map;
+            }
+            HashMap<String,String> teacherMap = new HashMap<>();
+            for (Teacher teacher:teacherList) {
+                teacherMap.put(teacher.getTeacherName(),teacher.getTeacherCode());
+            }
             if (prefix.toLowerCase().equals("xlsx") || prefix.toLowerCase().equals("xls")) {
                 InputStream in = file.getInputStream();
                 HSSFWorkbook wb = new HSSFWorkbook(in);
@@ -203,20 +211,19 @@ public class LessonController extends BaseController {
                 }
                 List<Lesson> lessonList = new ArrayList<>();
                 List<TeacherLesson> teacherLessons = new ArrayList<>();
-                List<Teacher> teachers = new ArrayList<>();
-                HashSet<String> teacherSets = new HashSet<>();
+                List<LessonContrast> lessonContrasts = new ArrayList<>();
                 for (int i = 2; i <= rows; i++) {
                     InitLessonFail failData = new InitLessonFail();
                     HSSFRow row = sheet.getRow(i);
                     if (row != null) {
                         Lesson lesson = new Lesson();
                         TeacherLesson teacherLesson = new TeacherLesson();
-                        Teacher teacher = new Teacher();
-                        checkIsEmpty(failData,row,i,lesson,teacherLesson,teacher,teacherSets);
+                        LessonContrast lessonContrast = new LessonContrast();
+                        checkIsEmpty(failData,row,i,lesson,teacherLesson,teacherMap,lessonContrast);
                         if (failData.getFailReason() == null) {
                             lessonList.add(lesson);
                             teacherLessons.add(teacherLesson);
-                            teachers.add(teacher);
+                            lessonContrasts.add(lessonContrast);
                         } else {
                             resultList.add(failData);
                         }
@@ -228,16 +235,10 @@ public class LessonController extends BaseController {
                     map.put("msg", "本次课程导入不存在有效数据！！！！");
                     return map;
                 }
-                if (CollectionUtils.isEmpty(lessonList)) {
-                    map.put("list", resultList);
-                    map.put("size", resultList.size());
-                    map.put("msg", "本次课程导入不存在有效数据！");
-                    return map;
-                }
                 //课程
                 List<Lesson> subLessons = new ArrayList<>();
-                List<Teacher> subTeacherList = new ArrayList<>();
                 List<TeacherLesson> subTeacherLessonList = new ArrayList<>();
+                List<LessonContrast> subLessonContrastList = new ArrayList<>();
                 for (Lesson lesson : lessonList) {
                     subLessons.add(lesson);
                     if (subLessons.size() == 100) {
@@ -252,27 +253,6 @@ public class LessonController extends BaseController {
                 if (subLessons.size() > 0) {
                     try {
                         this.lessonService.insert(subLessons,account.getUserCode());
-                    } catch (Exception r) {
-                        map.put("msg","写入失败：" + r.getMessage());
-                    }
-                }
-                //教师
-                for (Teacher teacher : teachers) {
-                    if(teacher!=null &&teacher.getTeacherCode()!=null){
-                        subTeacherList.add(teacher);
-                        if (subTeacherList.size() == 100) {
-                            try {
-                                this.teacherService.insert(subTeacherList,account.getUserCode());
-                            } catch (Exception r) {
-                                map.put("msg","写入失败：" + r.getMessage());
-                            }
-                            subTeacherList = new ArrayList<>();
-                        }
-                    }
-                }
-                if (subTeacherList.size() > 0) {
-                    try {
-                        this.teacherService.insert(subTeacherList,account.getUserCode());
                     } catch (Exception r) {
                         map.put("msg","写入失败：" + r.getMessage());
                     }
@@ -296,6 +276,25 @@ public class LessonController extends BaseController {
                         map.put("msg","写入失败：" + r.getMessage());
                     }
                 }
+                //课程对照表
+                for (LessonContrast lessonContrast : lessonContrasts) {
+                    subLessonContrastList.add(lessonContrast);
+                    if (subLessonContrastList.size() == 100) {
+                        try {
+                            this.lessonContrastService.insert(subLessonContrastList,account.getUserCode());
+                        } catch (Exception r) {
+                            map.put("msg","写入失败：" + r.getMessage());
+                        }
+                        subLessonContrastList = new ArrayList<>();
+                    }
+                }
+                if (subLessonContrastList.size() > 0) {
+                    try {
+                        this.lessonContrastService.insert(subLessonContrastList,account.getUserCode());
+                    } catch (Exception r) {
+                        map.put("msg","写入失败：" + r.getMessage());
+                    }
+                }
                 if (CollectionUtils.isNotEmpty(resultList)) {
                     map.put("list", resultList);
                     map.put("size", resultList.size());
@@ -315,7 +314,7 @@ public class LessonController extends BaseController {
     }
 
     //根据规则 过滤一行中必须填的内容 是否为空
-    private void checkIsEmpty(InitLessonFail data, HSSFRow row, int i, Lesson lesson, TeacherLesson teacherLesson, Teacher teacher, HashSet<String> teacherSets) {
+    private void checkIsEmpty(InitLessonFail data, HSSFRow row, int i, Lesson lesson, TeacherLesson teacherLesson, HashMap<String,String> teacherMap, LessonContrast lessonContrast) {
         StringBuilder reason = new StringBuilder("");
         reason.append("第").append(i + 1).append("行的");
         Boolean flag = true;
@@ -333,14 +332,10 @@ public class LessonController extends BaseController {
                 flag = false;
             }
             if (row.getCell(3) == null || row.getCell(3).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
-                reason.append("授课教师代码;");
-                flag = false;
-            }
-            if (row.getCell(4) == null || row.getCell(4).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
                 reason.append("授课教师名称;");
                 flag = false;
             }
-            if (row.getCell(5) == null || row.getCell(5).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+            if (row.getCell(4) == null || row.getCell(4).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
                 reason.append("学期;");
                 flag = false;
             }
@@ -362,23 +357,27 @@ public class LessonController extends BaseController {
         }else {
            throw new IllegalArgumentException("课程类型错误！");
         }
-        lesson.setLessonCode(row.getCell(0).toString().trim());
-        lesson.setLessonName(row.getCell(1).toString().trim());
-        lesson.setLessonTeacherCode(row.getCell(3).toString().trim());
-        lesson.setLessonTeacherName(row.getCell(4).toString().trim());
-        lesson.setTerm(row.getCell(5).toString().trim());
-
-        if(!teacherSets.contains(lesson.getLessonTeacherCode())){
-            teacher.setTeacherCode(row.getCell(3).toString().trim());
-            teacher.setTeacherName(row.getCell(4).toString().trim());
+        String teacherCode = teacherMap.get(row.getCell(3).toString().trim());
+        if(StringUtils.isEmpty(teacherCode)){
+            throw new IllegalArgumentException("没有该教师（！"+row.getCell(3).toString().trim()+")信息");
         }
-        teacherSets.add(lesson.getLessonTeacherCode());
+        //本系统的课程编码为 东大的课程编码+"_"+教师编码+"_"+学期
+        String lessonCode = row.getCell(0).toString().trim()+"_"+teacherCode+"_"+row.getCell(4).toString().trim();
 
-        teacherLesson.setLessonCode(row.getCell(0).toString().trim());
+        lesson.setLessonCode(lessonCode);
+        lesson.setLessonName(row.getCell(1).toString().trim());
+        lesson.setLessonTeacherCode(teacherCode);
+        lesson.setLessonTeacherName(row.getCell(3).toString().trim());
+        lesson.setTerm(row.getCell(4).toString().trim());
+
+        teacherLesson.setLessonCode(lessonCode);
         teacherLesson.setLessonName(row.getCell(1).toString().trim());
-        teacherLesson.setTeacherCode(row.getCell(3).toString().trim());
-        teacherLesson.setTeacherName(row.getCell(4).toString().trim());
-        teacherLesson.setTerm(row.getCell(5).toString().trim());
+        teacherLesson.setTeacherCode(lesson.getLessonTeacherCode());
+        teacherLesson.setTeacherName(row.getCell(3).toString().trim());
+        teacherLesson.setTerm(row.getCell(4).toString().trim());
+
+        lessonContrast.setLessonCode(lessonCode);
+        lessonContrast.setLessonCodeNeu(row.getCell(0).toString().trim());
     }
 
 }

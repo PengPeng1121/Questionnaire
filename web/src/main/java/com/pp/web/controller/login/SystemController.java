@@ -43,7 +43,7 @@ public class SystemController {
         try {
             SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
             Date date = new Date();
-            String title = "导入课程模板（含教师、教师与课程）_" + f.format(date);
+            String title = "导入课程模板（含导入教师与课程关系）_" + f.format(date);
             String name = title;
             String fileName = new String((name).getBytes(), PoiUtils.Excel_EnCode);
 
@@ -52,7 +52,7 @@ public class SystemController {
             // 名称和格式
             response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
 
-            String[] columnName = {"课程编码", "课程名称", "课程类型代码(0:实践课;1:理论课)","授课教师编码","授课教师名称","学期"};
+            String[] columnName = {"课程编码", "课程名称", "课程类型代码(0:实践课;1:理论课)","授课教师名称","学期"};
             ServletOutputStream outputStream = response.getOutputStream();
             Object[][] data = null;
             PoiUtils.export(name, title, columnName, data,outputStream);
@@ -131,11 +131,37 @@ public class SystemController {
             // 名称和格式
             response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
 
-            String[] columnName = {"课程编码", "课程名称", "学生学号","学生姓名","学期"};
+            String[] columnName = {"课程编码", "课程名称", "学生学号","学生姓名","学期","教师编码"};
             ServletOutputStream outputStream = response.getOutputStream();
             PoiUtils.export(name, title, columnName, null,outputStream);
         } catch (Exception e) {
             throw new IllegalArgumentException("导入课程模板导出失败!" + e.getMessage());
+        }
+    }
+
+    /**
+     * 导出模板
+     */
+    @RequestMapping(value = "/exportTeacherTemplate", method = {RequestMethod.POST ,RequestMethod.GET})
+    public void exportTeacherTemplate(HttpServletResponse response) {
+
+        try {
+            SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+            Date date = new Date();
+            String title = "导入教师模板_" + f.format(date);
+            String name = title;
+            String fileName = new String((name).getBytes(), PoiUtils.Excel_EnCode);
+
+            //类型设置
+            response.setContentType("application/binary;charset=ISO8859_1");
+            // 名称和格式
+            response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
+
+            String[] columnName = {"教师编码", "教师名称"};
+            ServletOutputStream outputStream = response.getOutputStream();
+            PoiUtils.export(name, title, columnName, null,outputStream);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("教师模板导出失败!" + e.getMessage());
         }
     }
 }

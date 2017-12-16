@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.ServletOutputStream;
@@ -88,11 +89,22 @@ public class QuestionnaireStudentController extends BaseController {
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
-    public HashMap<String,Object> pageQuery(String questionnaireProcessStatusCode,String term,Integer pageIndex) {
-        if (pageIndex == null || pageIndex < 1) {
-            pageIndex = 1;
+    public HashMap<String,Object> pageQuery(String questionnaireProcessStatusCode,
+                                            String term,
+                                            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+                                            @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
+                                            @RequestParam(value = "sd") String sortName) {
+        // 开始页码
+        int pageIndex = page - 1;
+        // 排序
+        Sort sort = null;
+        if ("desc".equalsIgnoreCase(sortOrder)) {
+            sort = Sort.desc(sortName);
+        } else {
+            sort = Sort.asc(sortName);
         }
-        Page<QuestionnaireInfoVo> page = new Page<>(pageIndex, 20, Sort.desc("id"));
+        Page<QuestionnaireInfoVo> questionnaireInfoVoPage = new Page<>(pageIndex, size,sort);
         Account account =AccountUtils.getCurrentAccount();
         HashMap<String,Object> param = new HashMap<String,Object>();
         param.put("studentCode",account.getUserCode());
@@ -103,15 +115,15 @@ public class QuestionnaireStudentController extends BaseController {
             param.put("term",term);
         }
         // 执行查询
-        page = this.questionnaireStudentService.showStudentQuestionnaire(param, page);
+        questionnaireInfoVoPage = this.questionnaireStudentService.showStudentQuestionnaire(param, questionnaireInfoVoPage);
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
-        if (page!=null){
-            map.put("data",page.getContent());
-            map.put("count",page.getTotalElements());
-            map.put("limit",page.getPageSize());
-            map.put("page",page.getPageIndex());
+        if (questionnaireInfoVoPage!=null){
+            map.put("data",questionnaireInfoVoPage.getContent());
+            map.put("count",questionnaireInfoVoPage.getTotalElements());
+            map.put("limit",questionnaireInfoVoPage.getPageSize());
+            map.put("page",questionnaireInfoVoPage.getPageIndex()+1);
             returnMap.put("status",200);
             returnMap.put("data",map);
         }else {
@@ -161,7 +173,7 @@ public class QuestionnaireStudentController extends BaseController {
                 map.put("data",page.getContent());
                 map.put("count",page.getContent().size());
                 map.put("limit",page.getPageSize());
-                map.put("page",page.getPageIndex());
+                map.put("page",page.getPageIndex()+1);
                 returnMap.put("data",map);
                 returnMap.put("status",200);
             }else {
