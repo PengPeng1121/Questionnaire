@@ -6,6 +6,7 @@ import com.pp.basic.service.LessonService;
 import com.pp.basic.service.TeacherLessonService;
 import com.pp.web.common.ChoiceQuestionEnum_A;
 import com.pp.web.common.ChoiceQuestionEnum_B;
+import com.pp.web.common.ChoiceQuestionEnum_C;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -70,6 +71,12 @@ public class DictionaryController {
         }else if(group.toLowerCase().equals("b")){
             map.put("A", ChoiceQuestionEnum_B.CHOICE_A.getName());
             map.put("B", ChoiceQuestionEnum_B.CHOICE_B.getName());
+        }else if(group.toLowerCase().equals("c")){
+            map.put("A", ChoiceQuestionEnum_C.CHOICE_A.getName());
+            map.put("B", ChoiceQuestionEnum_C.CHOICE_B.getName());
+            map.put("C", ChoiceQuestionEnum_C.CHOICE_C.getName());
+            map.put("D", ChoiceQuestionEnum_C.CHOICE_D.getName());
+            map.put("E", ChoiceQuestionEnum_C.CHOICE_E.getName());
         }
         answerMap.put("answers",map);
         return answerMap;

@@ -375,7 +375,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
             SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
             Date date = new Date();
-            String title = "导出"+ questionnaire.getQuestionnaireName() +"问卷的异常回答情况_"+ f.format(date);
+            String title = "导出"+ questionnaire.getQuestionnaireName() +"问卷的回答情况_"+ f.format(date);
 
             final String userAgent = request.getHeader("USER-AGENT");
             String finalFileName = null;
@@ -524,7 +524,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
             SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
             Date date = new Date();
-            String title = "导出"+ questionnaire.getQuestionnaireName() +"问卷回答情况_"+ f.format(date);
+            String title = "导出"+ questionnaire.getQuestionnaireName() +"问卷异常回答情况_"+ f.format(date);
 
             final String userAgent = request.getHeader("USER-AGENT");
             String finalFileName = null;

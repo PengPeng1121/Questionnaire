@@ -62,7 +62,7 @@ public class LoginController {
         }else {
             throw new IllegalArgumentException("用户名不能为空");
         }
-        if(!StringUtils.isEmpty(userCode)){
+        if(!StringUtils.isEmpty(password)){
             systemUser.setUserPassword(password);
         }else {
             throw new IllegalArgumentException("密码不能为空");
