@@ -131,7 +131,7 @@ public class SystemController {
             // 名称和格式
             response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
 
-            String[] columnName = {"课程编码", "课程名称", "学生学号","学生姓名","学期","教师编码"};
+            String[] columnName = {"课程编码", "课程名称", "学生学号","学生姓名","学期","教师名称"};
             ServletOutputStream outputStream = response.getOutputStream();
             PoiUtils.export(name, title, columnName, null,outputStream);
         } catch (Exception e) {

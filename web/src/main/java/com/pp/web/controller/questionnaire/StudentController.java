@@ -12,6 +12,7 @@ import com.pp.basic.service.SystemUserService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
+import com.pp.web.common.SystemCommon;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -222,7 +223,7 @@ public class StudentController extends BaseController {
                 List<InitStudent> subList = new ArrayList<>();
                 for (InitStudent initStudent : dealList) {
                     subList.add(initStudent);
-                    if (subList.size() == 100) {
+                    if (subList.size() == SystemCommon.INSERT_NUM_ONCE) {
                         try {
                             importFailedList = this.studentService.importStudent(subList,account.getUserCode());
                             this.systemUserService.importSystemUser(subList,account.getUserCode());

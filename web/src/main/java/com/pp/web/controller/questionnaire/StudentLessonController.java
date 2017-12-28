@@ -4,14 +4,18 @@
 package com.pp.web.controller.questionnaire;
 
 import com.pp.basic.domain.StudentLesson;
+import com.pp.basic.domain.Teacher;
 import com.pp.basic.domain.vo.InitStudentLessonFail;
 import com.pp.basic.service.StudentLessonService;
+import com.pp.basic.service.TeacherService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
+import com.pp.web.common.SystemCommon;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -44,6 +48,9 @@ public class StudentLessonController extends BaseController {
 
     @Autowired
     StudentLessonService studentLessonService;
+
+    @Autowired
+    TeacherService teacherService;
 
     Logger log = LoggerFactory.getLogger(StudentLessonController.class.getName());
     /**
@@ -169,12 +176,21 @@ public class StudentLessonController extends BaseController {
                     map.put("msg", "一次性最多导入" + importNum + "条！！");
                     return map;
                 }
+                List<Teacher> teacherList = this.teacherService.selectAll();
+                if(CollectionUtils.isEmpty(teacherList)){
+                    map.put("msg", "请首先导入教师！！");
+                    return map;
+                }
+                HashMap<String,String> teacherMap = new HashMap<>();
+                for (Teacher teacher:teacherList) {
+                    teacherMap.put(teacher.getTeacherName(),teacher.getTeacherCode());
+                }
                 List<StudentLesson> studentLessonList = new ArrayList<>();
                 for (int i = 2; i <= rows; i++) {
                     InitStudentLessonFail failData = new InitStudentLessonFail();
                     HSSFRow row = sheet.getRow(i);
                     if (row != null) {
-                        StudentLesson initStudent = checkIsEmpty(failData,row,i);
+                        StudentLesson initStudent = checkIsEmpty(failData,row,i,teacherMap);
                         if (failData.getFailReason() == null) {
                             studentLessonList.add(initStudent);
                         } else {
@@ -221,7 +237,7 @@ public class StudentLessonController extends BaseController {
                 List<StudentLesson> subList = new ArrayList<>();
                 for (StudentLesson studentLesson : studentLessonList) {
                     subList.add(studentLesson);
-                    if (subList.size() == 100) {
+                    if (subList.size() == SystemCommon.INSERT_NUM_ONCE) {
                         try {
                             this.studentLessonService.insert(subList,account.getUserCode());
                         } catch (Exception r) {
@@ -257,7 +273,7 @@ public class StudentLessonController extends BaseController {
     }
 
     //根据规则 过滤一行中必须填的内容 是否为空
-    private StudentLesson checkIsEmpty(InitStudentLessonFail data,HSSFRow row,int i) {
+    private StudentLesson checkIsEmpty(InitStudentLessonFail data,HSSFRow row,int i,HashMap<String,String> teacherMap) {
         StudentLesson studentLesson = new StudentLesson();
         StringBuilder reason = new StringBuilder("");
         reason.append("第").append(i + 1).append("行的");
@@ -284,7 +300,7 @@ public class StudentLessonController extends BaseController {
                 flag = false;
             }
             if (row.getCell(5) == null || row.getCell(5).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
-                reason.append("教师编码有误;");
+                reason.append("教师名称有误;");
                 flag = false;
             }
         } catch (Exception e) {
@@ -296,8 +312,12 @@ public class StudentLessonController extends BaseController {
             data.setFailReason(reason.toString());
             return new StudentLesson();
         }
+        String teacherCode = teacherMap.get(row.getCell(5).toString().trim());
+        if(StringUtils.isEmpty(teacherCode)){
+            throw new IllegalArgumentException("没有该教师（！"+row.getCell(5).toString().trim()+")信息");
+        }
         //本系统的课程编码为 东大的课程编码+"_"+教师编码+"_"+学期
-        String lessonCode = row.getCell(0).toString().trim()+"_"+row.getCell(5).toString().trim()+"_"+row.getCell(4).toString().trim();
+        String lessonCode = row.getCell(0).toString().trim()+"_"+teacherCode+"_"+row.getCell(4).toString().trim();
 
         studentLesson.setTerm(row.getCell(4).toString().trim());
         studentLesson.setStudentName(row.getCell(3).toString().trim());

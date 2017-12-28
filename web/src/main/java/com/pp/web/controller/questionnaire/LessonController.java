@@ -9,6 +9,7 @@ import com.pp.basic.service.*;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
+import com.pp.web.common.SystemCommon;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -241,7 +242,7 @@ public class LessonController extends BaseController {
                 List<LessonContrast> subLessonContrastList = new ArrayList<>();
                 for (Lesson lesson : lessonList) {
                     subLessons.add(lesson);
-                    if (subLessons.size() == 100) {
+                    if (subLessons.size() == SystemCommon.INSERT_NUM_ONCE) {
                         try {
                             this.lessonService.insert(subLessons,account.getUserCode());
                         } catch (Exception r) {
@@ -260,7 +261,7 @@ public class LessonController extends BaseController {
                 //教师与学生关系
                 for (TeacherLesson teacherLesson : teacherLessons) {
                     subTeacherLessonList.add(teacherLesson);
-                    if (subTeacherLessonList.size() == 100) {
+                    if (subTeacherLessonList.size() == SystemCommon.INSERT_NUM_ONCE) {
                         try {
                             this.teacherLessonService.insert(subTeacherLessonList,account.getUserCode());
                         } catch (Exception r) {
@@ -279,7 +280,7 @@ public class LessonController extends BaseController {
                 //课程对照表
                 for (LessonContrast lessonContrast : lessonContrasts) {
                     subLessonContrastList.add(lessonContrast);
-                    if (subLessonContrastList.size() == 100) {
+                    if (subLessonContrastList.size() == SystemCommon.INSERT_NUM_ONCE) {
                         try {
                             this.lessonContrastService.insert(subLessonContrastList,account.getUserCode());
                         } catch (Exception r) {

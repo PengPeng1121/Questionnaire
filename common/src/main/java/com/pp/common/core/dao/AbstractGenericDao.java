@@ -148,6 +148,7 @@ public abstract class AbstractGenericDao<T extends AbstractEntity> extends SqlSe
 		} else {
 			entityList = new ArrayList<S>();
 
+			String version = UuidUtils.getUuid();
 			for (S entity : entities) {
 				if (entity == null) {
 					throw new IllegalArgumentException("参数异常：集合中存在数据实体是null，无法插入数据库");
@@ -161,7 +162,7 @@ public abstract class AbstractGenericDao<T extends AbstractEntity> extends SqlSe
 					// 设置修改人
 					entity.setUpdateUser(entity.getCreateUser());
 					// 设置数据版本
-					entity.setVersion(UuidUtils.getUuid());
+					entity.setVersion(version);
 					// 设置备注
 					if (entity.getRemark() == null) {
 						entity.setRemark("");

@@ -11,6 +11,7 @@ import com.pp.basic.service.TeacherService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
+import com.pp.web.common.SystemCommon;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -183,7 +184,7 @@ public class TeacherController extends BaseController {
                 for (Teacher teacher : teachers) {
                     if(teacher!=null &&teacher.getTeacherCode()!=null){
                         subTeacherList.add(teacher);
-                        if (subTeacherList.size() == 100) {
+                        if (subTeacherList.size() == SystemCommon.INSERT_NUM_ONCE) {
                             try {
                                 this.teacherService.insert(subTeacherList,account.getUserCode());
                             } catch (Exception r) {
