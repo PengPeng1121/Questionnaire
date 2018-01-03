@@ -24,8 +24,6 @@ public final class Account implements Serializable{
 	private Integer unDoQuestionnaireNum;
 	//提醒问卷个数
 	private Integer remindDoQuestionnaireNum;
-	// 资源
-	private List<ResourceGroup> resourceList;
 	// 权限编码
 	private List<String> permissionCodeList;
 
@@ -67,14 +65,6 @@ public final class Account implements Serializable{
 
 	public void setRemindDoQuestionnaireNum(Integer remindDoQuestionnaireNum) {
 		this.remindDoQuestionnaireNum = remindDoQuestionnaireNum;
-	}
-
-	public List<ResourceGroup> getResourceList() {
-		return resourceList;
-	}
-
-	public void setResourceList(List<ResourceGroup> resourceList) {
-		this.resourceList = resourceList;
 	}
 
 	public List<String> getPermissionCodeList() {

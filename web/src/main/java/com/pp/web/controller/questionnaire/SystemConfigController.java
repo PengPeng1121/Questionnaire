@@ -105,10 +105,10 @@ public class SystemConfigController extends BaseController {
         //查询未做的问卷个数
         Account account = AccountUtils.getCurrentAccount();
         QuestionnaireStudent questionnaireStudentQuery = new QuestionnaireStudent();
-        questionnaireStudentQuery.setStudentCode(account.getUserCode());
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         try {
+            questionnaireStudentQuery.setStudentCode(account.getUserCode());
             questionnaireStudentQuery.setQuestionnaireProcessStatusCode(QuestionnaireStudent.PROCESS_CODE_UNDO);
             List<QuestionnaireStudent> list = this.questionnaireStudentService.selectList(questionnaireStudentQuery);
             //构建 查询问卷条件

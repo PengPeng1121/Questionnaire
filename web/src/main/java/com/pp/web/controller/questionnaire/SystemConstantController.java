@@ -162,7 +162,7 @@ public class SystemConstantController extends BaseController {
                 JSONObject jsonObject = new JSONObject(requestBody.toString());
                 remindTime = (String) jsonObject.get("remindTime");
             }
-            if(remindTime==null){
+            if(StringUtils.isEmpty(remindTime)){
                 returnMap.put("msg","超时时间不能为空！");
                 return returnMap;
             }
@@ -183,14 +183,14 @@ public class SystemConstantController extends BaseController {
                     SystemConstant insertSystemConstant = new SystemConstant();
                     insertSystemConstant.setConstant(day.toString());
                     insertSystemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
-                    this.systemConstantService.insert(systemConstant,account.getUserCode());
+                    this.systemConstantService.insert(insertSystemConstant,account.getUserCode());
                 }
             }else {
                 //不存在写入
                 SystemConstant insertSystemConstant = new SystemConstant();
                 insertSystemConstant.setConstant(day.toString());
                 insertSystemConstant.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
-                this.systemConstantService.insert(systemConstant,account.getUserCode());
+                this.systemConstantService.insert(insertSystemConstant,account.getUserCode());
             }
             //设置systemConfig表
             List<SystemConfig> systemConfigs  = this.systemConfigService.selectAll();

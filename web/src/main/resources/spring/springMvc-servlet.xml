@@ -88,7 +88,6 @@
 		<property name="contentType" value="text/html;charset=UTF-8" />
 	</bean>
 
-
 	<!-- 拦截器 -->
 	<mvc:interceptors>
 		<!-- 登录 -->
@@ -96,10 +95,23 @@
 			<mvc:mapping path="/login/login" />
 			<bean class="com.pp.web.interceptor.LoginHandlerInterceptor"></bean>
 		</mvc:interceptor>
+
+		<!-- 判断登录状态 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/login/logout" />
+			<bean class="com.pp.web.interceptor.JudgeLoginStatusInterceptor"></bean>
+		</mvc:interceptor>
+
+		<!-- 判断登录状态 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/login/isLogin" />
+			<bean class="com.pp.web.interceptor.JudgeLoginStatusInterceptor"></bean>
+		</mvc:interceptor>
+
 		<!-- 用户 -->
 		<mvc:interceptor>
 			<mvc:mapping path="/web/**" />
-			<bean class="com.pp.web.interceptor.AccountExposingHandlerInterceptor"></bean>
+			<bean class="com.pp.web.interceptor.GetCurrentAccountInterceptor"></bean>
 		</mvc:interceptor>
 	</mvc:interceptors>
 </beans>

@@ -2,12 +2,16 @@
 
 <configuration status="info" name="defaultLogConfig">
     <properties>
-        <property name="LOG_HOME">/export/Logs/local.pp.com</property>
+        <property name="LOG_HOME">/export/Logs/questionnaire</property>
         <property name="PATTERN_LAYOUT">%d [%7r] %6p - %30.30c - %m \n</property>
     </properties>
 
     <Appenders>
         <Console name="CONSOLE" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${PATTERN_LAYOUT}" />
+        </Console>
+
+        <Console name="INFO" target="SYSTEM_OUT" follow="true">
             <PatternLayout pattern="${PATTERN_LAYOUT}" />
         </Console>
 
@@ -42,8 +46,8 @@
             <AppenderRef ref="FILE" />
         </AsyncLogger>
 
-        <Root level="DEBUG">
-            <AppenderRef ref="CONSOLE" />
+        <Root>
+            <AppenderRef ref="INFO" />
             <AppenderRef ref="FILE" />
         </Root>
     </Loggers>

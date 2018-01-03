@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -52,10 +53,10 @@ public class LoginController {
      */
     @RequestMapping(value = "/login", method ={RequestMethod.POST,RequestMethod.GET} )
     @ResponseBody
-    public Map<String,Object> login(HttpServletRequest request, HttpServletResponse response, String userCode, String password){
+    public Map<String,Object> login(String userCode, String password){
         log.info("welcome user:"+userCode);
         Map<String,Object> map = new HashMap<>();
-        Account account = AccountContext.getAccount();
+        Account account = AccountUtils.getCurrentAccount();
         SystemUser systemUser = new SystemUser();
         if(!StringUtils.isEmpty(userCode)){
             systemUser.setUserCode(userCode);
@@ -112,20 +113,55 @@ public class LoginController {
     @ResponseBody
     public Boolean logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);//防止创建Session
-        if(session == null){
-            return true;
+        Account account = AccountUtils.getCurrentAccount();
+        Cookie[] cookies = request.getCookies();
+        if(cookies!=null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(SystemCommon.COOKIE_NAME)) {
+                    cookie.setValue(null);
+                    cookie.setMaxAge(0);// 立即销毁cookie
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                    break;
+                }
+            }
         }
-        session.removeAttribute(SystemCommon.COOKIE_NAME);
+        if(account!=null) {
+            if(session != null){
+                session.removeAttribute(SystemCommon.COOKIE_NAME + "_" + account.getUserCode());
+            }
+        }
         AccountUtils.removeAccount();
         return true;
     }
 
     @RequestMapping(value = "/isLogin",method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public HashMap<String,Object> isLogin(HttpServletRequest request) throws IOException {
-        HttpSession session = request.getSession();
+    public HashMap<String,Object> isLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HashMap<String,Object> map = new HashMap<String,Object> ();
-        SystemUser systemUser= (SystemUser)session.getAttribute(SystemCommon.COOKIE_NAME);
+        HttpSession session = request.getSession();
+        String userCode = "";
+        Cookie[] cookies = request.getCookies();
+        if (cookies ==null || cookies.length ==0){
+            log.error("请重新登录");
+            map.put("msg","请重新登录");
+            map.put("status",302);
+            return map;
+        }
+        for(Cookie cookie : cookies){
+            if(cookie.getName().equals(SystemCommon.COOKIE_NAME)){
+                userCode = cookie.getValue();
+                break;
+            }
+        }
+        if(StringUtils.isEmpty(userCode)){
+            log.error("请重新登录");
+            map.put("msg","请重新登录");
+            map.put("status",302);
+            return map;
+        }
+        log.info("用户:"+userCode+"在判断用户登录状态！！");
+        SystemUser systemUser = (SystemUser) session.getAttribute(SystemCommon.COOKIE_NAME+"_"+userCode);
         if(systemUser!=null){
             if(systemUser.getUserAuthority().equals("1")){
                 map.put("admin",true);
@@ -136,6 +172,7 @@ public class LoginController {
             map.put("userName",systemUser.getUserName());
             map.put("userCode",systemUser.getUserCode());
         }else {
+            map.put("msg","没有该用户");
             map.put("status",302);
         }
         return map;
