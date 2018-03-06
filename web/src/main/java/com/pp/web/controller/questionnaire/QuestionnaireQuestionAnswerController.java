@@ -327,9 +327,9 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
                                 default:
                                     break;
                             }
-                            //写入选择
-                            writeChoice(sb,choiceAnswer.getQuestionName(),a,b,c,d,e,choiceAnswer.getIsMustAnswer());
                         }
+                        //写入选择
+                        writeChoice(sb,choice.getQuestionName(),a,b,c,d,e,choice.getIsMustAnswer());
                     }
                 }
             }else {
@@ -409,7 +409,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
     //将问卷选择题答题情况写入
     private void writeDesc(StringBuilder sb,List<QuestionnaireQuestionAnswer> descAnswerList){
-        sb.append("<tr><td colspan=\"14\">XX的回答如下：</td></tr>");
+        sb.append("<tr><td colspan=\"14\">"+descAnswerList.get(0).getStudentName()+"的回答如下：</td></tr>");
         for (QuestionnaireQuestionAnswer descAnswer:descAnswerList) {
             sb.append("<tr>");
             sb.append("<td>题目名称:</td>");
