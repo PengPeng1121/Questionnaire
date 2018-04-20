@@ -10,14 +10,11 @@ import com.pp.basic.domain.SystemUser;
 import com.pp.basic.service.QuestionnaireService;
 import com.pp.basic.service.SystemConfigService;
 import com.pp.basic.service.SystemConstantService;
-import com.pp.common.core.Page;
-import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.DateUtils;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +23,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
@@ -55,84 +51,6 @@ public class SystemConstantController extends BaseController {
 
     @Autowired
     QuestionnaireService questionnaireService;
-
-    /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(SystemConstant systemConstant) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        this.systemConstantService.insert(systemConstant, account.getUserCode());
-        return true;
-    }
-
-    /**
-     * 修改数据
-     */
-    @RequestMapping(value = "/updateUser", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean update(SystemConstant systemConstantUpdate) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.systemConstantService.update(systemConstantUpdate, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 逻辑删除数据
-     */
-    @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean delete(Long id) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.systemConstantService.delete(id, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 分页查询
-     */
-    @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
-    @ResponseBody
-    public Page<SystemConstant> pageQuery(SystemConstant systemConstantQuery, @RequestParam(value = "page", required = false, defaultValue = "1") int pageNum, @RequestParam(value = "rows", required = false, defaultValue = "20") int pageSize, @RequestParam(value = "sidx", required = false, defaultValue = "ts") String sortName, @RequestParam(value = "sord", required = false, defaultValue = "desc") String sortOrder) {
-        //TODO 数据验证
-
-        // 设置合理的参数
-        if (pageNum < 1) {
-            pageNum = 1;
-        }
-        if (pageSize < 1) {
-            pageSize = 20;
-        } else if (pageSize > 100) {
-            pageSize = 100;
-        }
-        // 开始页码
-        int pageIndex = pageNum - 1;
-        // 排序
-        Sort sort = null;
-        if ("desc".equalsIgnoreCase(sortOrder)) {
-            sort = Sort.desc(sortName);
-        } else {
-            sort = Sort.asc(sortName);
-        }
-        // 创建分页对象
-        Page<SystemConstant> page = new Page<SystemConstant>(pageIndex, pageSize, sort);
-        // 执行查询
-        page = this.systemConstantService.selectPage(systemConstantQuery, page);
-        // 返回查询结果
-        return page;
-    }
-
-
 
     /**
      * 设置策略

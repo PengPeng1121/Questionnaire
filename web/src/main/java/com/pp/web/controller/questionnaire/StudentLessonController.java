@@ -4,6 +4,7 @@
 package com.pp.web.controller.questionnaire;
 
 import com.pp.basic.domain.StudentLesson;
+import com.pp.basic.domain.SystemUser;
 import com.pp.basic.domain.Teacher;
 import com.pp.basic.domain.vo.InitStudentLessonFail;
 import com.pp.basic.service.StudentLessonService;
@@ -53,47 +54,6 @@ public class StudentLessonController extends BaseController {
     TeacherService teacherService;
 
     Logger log = LoggerFactory.getLogger(StudentLessonController.class.getName());
-    /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(StudentLesson studentLesson) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        this.studentLessonService.insert(studentLesson, account.getUserCode());
-        return true;
-    }
-
-    /**
-     * 修改数据
-     */
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean update(StudentLesson studentLessonUpdate) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.studentLessonService.update(studentLessonUpdate, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 逻辑删除数据
-     */
-    @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean delete(Long id) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.studentLessonService.delete(id, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
 
     /**
      * 分页查询
@@ -325,5 +285,34 @@ public class StudentLessonController extends BaseController {
         studentLesson.setLessonName(row.getCell(1).toString().trim());
         studentLesson.setLessonCode(lessonCode);
         return studentLesson;
+    }
+
+    /**
+     * 自动维护必修课选课关系
+     */
+    @RequestMapping(value = "/autoInitRelation", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String,Object> autoInitRelation(StudentLesson studentlesson) {
+        HashMap<String,Object> map = new HashMap<>();
+        map.put("status",300);
+        if(StringUtils.isEmpty(studentlesson.getTerm())){
+            map.put("msg","学期不能为空");
+            return map;
+        }
+        Account account = AccountUtils.getCurrentAccount();
+        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+            map.put("msg","为管理员操作，当前用户没有管理员权限");
+            return map;
+        }
+        studentlesson.setUpdateUser(account.getUserCode());
+        try {
+            this.studentLessonService.autoInitRelation(studentlesson);
+        }catch (Exception e){
+            log.error("自动维护必修课选课关系失败"+e.getMessage(),e);
+            map.put("msg",e.getMessage());
+            return map;
+        }
+        map.put("status",200);
+        return map;
     }
 }

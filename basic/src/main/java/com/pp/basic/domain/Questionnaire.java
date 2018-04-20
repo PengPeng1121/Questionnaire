@@ -53,6 +53,15 @@ public final class Questionnaire extends AbstractEntity {
     @Transient
     private Date questionnaireEndTimeEnd;
 
+    // 问卷过期时间
+    private Date questionnaireExpireTime;
+
+    // 问卷过期时间开始查询条件
+    private transient Date questionnaireExpireTimeBegin;
+
+    // 问卷过期时间截止查询条件
+    private transient Date questionnaireExpireTimeEnd;
+
     // 教师编码
     private String teacherCode;
 
@@ -68,8 +77,6 @@ public final class Questionnaire extends AbstractEntity {
     // 学期
     private String term;
 
-    // 问题选项组
-    private String answerGroup;
     /**
      * 设置问卷编号
      * 
@@ -198,11 +205,27 @@ public final class Questionnaire extends AbstractEntity {
         this.term = term;
     }
 
-    public String getAnswerGroup() {
-        return answerGroup;
+    public Date getQuestionnaireExpireTime() {
+        return questionnaireExpireTime;
     }
 
-    public void setAnswerGroup(String answerGroup) {
-        this.answerGroup = answerGroup;
+    public void setQuestionnaireExpireTime(Date questionnaireExpireTime) {
+        this.questionnaireExpireTime = questionnaireExpireTime;
+    }
+
+    public Date getQuestionnaireExpireTimeBegin() {
+        return questionnaireExpireTimeBegin;
+    }
+
+    public void setQuestionnaireExpireTimeBegin(Date questionnaireExpireTimeBegin) {
+        this.questionnaireExpireTimeBegin = questionnaireExpireTimeBegin;
+    }
+
+    public Date getQuestionnaireExpireTimeEnd() {
+        return questionnaireExpireTimeEnd;
+    }
+
+    public void setQuestionnaireExpireTimeEnd(Date questionnaireExpireTimeEnd) {
+        this.questionnaireExpireTimeEnd = questionnaireExpireTimeEnd;
     }
 }

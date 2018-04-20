@@ -3,35 +3,25 @@
  */
 package com.pp.web.controller.questionnaire;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pp.basic.domain.Student;
 import com.pp.basic.domain.SystemUser;
-import com.pp.basic.domain.vo.Answer;
 import com.pp.basic.service.StudentService;
 import com.pp.basic.service.SystemUserService;
-import com.pp.common.core.Page;
-import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * 学生信息表Controller
@@ -49,17 +39,6 @@ public class SystemUserController extends BaseController {
 
     @Autowired
     StudentService studentService;
-    /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(SystemUser systemUser) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        this.systemUserService.insert(systemUser, account.getUserCode());
-        return true;
-    }
 
     /**
      * 保存数据
@@ -67,7 +46,6 @@ public class SystemUserController extends BaseController {
     @RequestMapping(value = "/updateUser", method = RequestMethod.POST)
     @ResponseBody
     public  HashMap<String,Object> updateUser(HttpServletRequest request,String userPassword, String userCode, String userName) {
-        //TODO 数据验证
         Account account = AccountUtils.getCurrentAccount();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         returnMap.put("status",300);
@@ -117,7 +95,6 @@ public class SystemUserController extends BaseController {
     @RequestMapping(value = "/updatePassword", method = RequestMethod.POST)
     @ResponseBody
     public HashMap<String,Object> update(String userCode ,String passwordNew ,String passwordOld) {
-        //TODO 数据验证
         Account account = AccountUtils.getCurrentAccount();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         returnMap.put("status",300);
@@ -162,7 +139,6 @@ public class SystemUserController extends BaseController {
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
     public HashMap<String,Object> delete(Long id) {
-        //TODO 数据验证
         Account account = AccountUtils.getCurrentAccount();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         returnMap.put("status",300);

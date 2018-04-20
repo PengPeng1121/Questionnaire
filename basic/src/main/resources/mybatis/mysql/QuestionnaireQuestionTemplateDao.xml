@@ -1,52 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
-<!-- 文卷调查问题答案信息表映射文件 questionnaire_question_answer -->
-<mapper namespace="com.pp.basic.dao.QuestionnaireQuestionAnswerDao">
+<!-- 问卷问题模板表映射文件 questionnaire_question_template -->
+<mapper namespace="com.pp.basic.dao.QuestionnaireQuestionTemplateDao">
 
     <!-- 映射关系 -->
-    <resultMap id="resultMap" type="com.pp.basic.domain.QuestionnaireQuestionAnswer">
-        <id column="id" property="id" jdbcType="BIGINT" />                                        <!-- 自增主键 -->
-        <result column="questionnaire_code" property="questionnaireCode" jdbcType="VARCHAR" />    <!-- 问卷编号 -->
-        <result column="questionnaire_name" property="questionnaireName" jdbcType="VARCHAR" />    <!-- 问卷名称 -->
-        <result column="question_code" property="questionCode" jdbcType="VARCHAR" />              <!-- 问题编号 -->
-        <result column="question_name" property="questionName" jdbcType="VARCHAR" />              <!-- 问题 -->
-        <result column="answer_code" property="answerCode" jdbcType="VARCHAR" />                  <!-- 答案编号 -->
-        <result column="answer" property="answer" jdbcType="VARCHAR" />                           <!-- 答案 -->
-        <result column="answer_value" property="answerValue" jdbcType="VARCHAR" />                <!-- 答案值 -->
-        <result column="answer_score" property="answerScore" jdbcType="INTEGER" />                <!-- 答案得分 -->
-        <result column="student_code" property="studentCode" jdbcType="VARCHAR" />                <!-- 学号(回答者编号) -->
-        <result column="student_name" property="studentName" jdbcType="VARCHAR" />                <!-- 姓名(回答者姓名) -->
-        <result column="question_type_code" property="questionTypeCode" jdbcType="VARCHAR" />     <!-- 问题类型代码 0：选择题；1：简答题 -->
-        <result column="question_type_name" property="questionTypeName" jdbcType="VARCHAR" />     <!-- 问题类型名称 选择题 ；简答题 -->
-        <result column="is_must_answer" property="isMustAnswer" jdbcType="TINYINT" />             <!-- 是否必答题 0 ：否 ；1是 -->
-        <result column="remark" property="remark" jdbcType="VARCHAR" />                           <!-- 备注 -->
-        <result column="version" property="version" jdbcType="VARCHAR" />                         <!-- 数据版本 -->
-        <result column="create_user" property="createUser" jdbcType="VARCHAR" />                  <!-- 创建人 -->
-        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />                <!-- 创建时间 -->
-        <result column="update_user" property="updateUser" jdbcType="VARCHAR" />                  <!-- 修改人 -->
-        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />                <!-- 修改时间 -->
-        <result column="is_delete" property="isDelete" jdbcType="TINYINT" />                      <!-- 是否删除（0:否;1:是） -->
-        <result column="ts" property="ts" jdbcType="TIMESTAMP" />                                 <!-- 最后更新时间 -->
+    <resultMap id="resultMap" type="com.pp.basic.domain.QuestionnaireQuestionTemplate">
+        <id column="id" property="id" jdbcType="BIGINT" />                                       <!-- 自增主键 -->
+        <result column="template_code" property="templateCode" jdbcType="VARCHAR" />             <!-- 模板编号 -->
+        <result column="template_name" property="templateName" jdbcType="VARCHAR" />             <!-- 模板名称 -->
+        <result column="question_code" property="questionCode" jdbcType="VARCHAR" />             <!-- 问题编号 -->
+        <result column="question_name" property="questionName" jdbcType="VARCHAR" />             <!-- 问题描述 -->
+        <result column="question_type_code" property="questionTypeCode" jdbcType="VARCHAR" />    <!-- 问题类型代码 0：选择题；1：简答题 -->
+        <result column="question_type_name" property="questionTypeName" jdbcType="VARCHAR" />    <!-- 问题类型名称 选择题 ；简答题 -->
+        <result column="is_must_answer" property="isMustAnswer" jdbcType="TINYINT" />            <!-- 是否必答题 0 ：否 ；1是 -->
+        <result column="answer_group" property="answerGroup" jdbcType="VARCHAR" />               <!-- 问题选项组 -->
+        <result column="remark" property="remark" jdbcType="VARCHAR" />                          <!-- 备注 -->
+        <result column="version" property="version" jdbcType="VARCHAR" />                        <!-- 数据版本 -->
+        <result column="create_user" property="createUser" jdbcType="VARCHAR" />                 <!-- 创建人 -->
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />               <!-- 创建时间 -->
+        <result column="update_user" property="updateUser" jdbcType="VARCHAR" />                 <!-- 修改人 -->
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />               <!-- 修改时间 -->
+        <result column="is_delete" property="isDelete" jdbcType="TINYINT" />                     <!-- 是否删除（0:否;1:是） -->
+        <result column="ts" property="ts" jdbcType="TIMESTAMP" />                                <!-- 最后更新时间 -->
     </resultMap>
 
     <!-- 查询列 -->
     <sql id="queryColumns">
         <![CDATA[
             id,                     /* 自增主键 */
-            questionnaire_code,     /* 问卷编号 */
-            questionnaire_name,     /* 问卷名称 */
+            template_code,          /* 模板编号 */
+            template_name,          /* 模板名称 */
             question_code,          /* 问题编号 */
-            question_name,          /* 问题 */
-            answer_code,            /* 答案编号 */
-            answer,                 /* 答案 */
-            answer_value,           /* 答案值 */
-            answer_score,           /* 答案得分 */
-            student_code,           /* 学号(回答者编号) */
-            student_name,           /* 姓名(回答者姓名) */
+            question_name,          /* 问题描述 */
             question_type_code,     /* 问题类型代码 0：选择题；1：简答题 */
             question_type_name,     /* 问题类型名称 选择题 ；简答题 */
             is_must_answer,         /* 是否必答题 0 ：否 ；1是 */
+            answer_group,           /* 问题选项组 */
             remark,                 /* 备注 */
             version,                /* 数据版本 */
             create_user,            /* 创建人 */
@@ -71,35 +61,17 @@
             <if test="idMax != null">
                 <![CDATA[ AND id < #{idMax, jdbcType=BIGINT} ]]>	/* 主键小于某值 */
             </if>
-            <if test="questionnaireCode != null and questionnaireCode != ''">
-                AND questionnaire_code = #{questionnaireCode, jdbcType=VARCHAR}    /* 问卷编号 */
+            <if test="templateCode != null and templateCode != ''">
+                AND template_code = #{templateCode, jdbcType=VARCHAR}    /* 模板编号 */
             </if>
-            <if test="questionnaireName != null and questionnaireName != ''">
-                AND questionnaire_name = #{questionnaireName, jdbcType=VARCHAR}    /* 问卷名称 */
+            <if test="templateName != null and templateName != ''">
+                AND template_name = #{templateName, jdbcType=VARCHAR}    /* 模板名称 */
             </if>
             <if test="questionCode != null and questionCode != ''">
                 AND question_code = #{questionCode, jdbcType=VARCHAR}    /* 问题编号 */
             </if>
             <if test="questionName != null and questionName != ''">
-                AND question_name = #{questionName, jdbcType=VARCHAR}    /* 问题 */
-            </if>
-            <if test="answerCode != null and answerCode != ''">
-                AND answer_code = #{answerCode, jdbcType=VARCHAR}    /* 答案编号 */
-            </if>
-            <if test="answer != null and answer != ''">
-                AND answer = #{answer, jdbcType=VARCHAR}    /* 答案 */
-            </if>
-            <if test="answerValue != null and answerValue != ''">
-                AND answer_value = #{answerValue, jdbcType=VARCHAR}    /* 答案值 */
-            </if>
-            <if test="answerScore != null">
-                AND answer_score = #{answerScore, jdbcType=INTEGER}    /* 答案得分 */
-            </if>
-            <if test="studentCode != null and studentCode != ''">
-                AND student_code = #{studentCode, jdbcType=VARCHAR}    /* 学号(回答者编号) */
-            </if>
-            <if test="studentName != null and studentName != ''">
-                AND student_name = #{studentName, jdbcType=VARCHAR}    /* 姓名(回答者姓名) */
+                AND question_name = #{questionName, jdbcType=VARCHAR}    /* 问题描述 */
             </if>
             <if test="questionTypeCode != null and questionTypeCode != ''">
                 AND question_type_code = #{questionTypeCode, jdbcType=VARCHAR}    /* 问题类型代码 0：选择题；1：简答题 */
@@ -109,6 +81,9 @@
             </if>
             <if test="isMustAnswer != null">
                 AND is_must_answer = #{isMustAnswer, jdbcType=TINYINT}    /* 是否必答题 0 ：否 ；1是 */
+            </if>
+            <if test="answerGroup != null and answerGroup != ''">
+                AND answer_group = #{answerGroup, jdbcType=VARCHAR}    /* 问题选项组 */
             </if>
             <if test="remark != null and remark != ''">
                 AND remark = #{remark, jdbcType=VARCHAR}    /* 备注 */
@@ -152,7 +127,7 @@
     <!-- 排序 -->
     <sql id="sortClause">
         <if test="_sort != null">
-            ORDER BY
+            ORDER BY 
             <foreach collection="_sort" item="item" index="index" separator=",">
                 <choose>
                     <when test="item.propertyName != null and item.propertyName == 'id'">
@@ -162,15 +137,15 @@
                             <otherwise>DESC</otherwise>
                         </choose>
                     </when>
-                    <when test="item.propertyName != null and item.propertyName == 'questionnaireCode'">
-                        questionnaire_code    /* 问卷编号 */
+                    <when test="item.propertyName != null and item.propertyName == 'templateCode'">
+                        template_code    /* 模板编号 */
                         <choose>
                             <when test="item.ascending">ASC</when>
                             <otherwise>DESC</otherwise>
                         </choose>
                     </when>
-                    <when test="item.propertyName != null and item.propertyName == 'questionnaireName'">
-                        questionnaire_name    /* 问卷名称 */
+                    <when test="item.propertyName != null and item.propertyName == 'templateName'">
+                        template_name    /* 模板名称 */
                         <choose>
                             <when test="item.ascending">ASC</when>
                             <otherwise>DESC</otherwise>
@@ -184,49 +159,7 @@
                         </choose>
                     </when>
                     <when test="item.propertyName != null and item.propertyName == 'questionName'">
-                        question_name    /* 问题 */
-                        <choose>
-                            <when test="item.ascending">ASC</when>
-                            <otherwise>DESC</otherwise>
-                        </choose>
-                    </when>
-                    <when test="item.propertyName != null and item.propertyName == 'answerCode'">
-                        answer_code    /* 答案编号 */
-                        <choose>
-                            <when test="item.ascending">ASC</when>
-                            <otherwise>DESC</otherwise>
-                        </choose>
-                    </when>
-                    <when test="item.propertyName != null and item.propertyName == 'answer'">
-                        answer    /* 答案 */
-                        <choose>
-                            <when test="item.ascending">ASC</when>
-                            <otherwise>DESC</otherwise>
-                        </choose>
-                    </when>
-                    <when test="item.propertyName != null and item.propertyName == 'answerValue'">
-                        answer_value    /* 答案值 */
-                        <choose>
-                            <when test="item.ascending">ASC</when>
-                            <otherwise>DESC</otherwise>
-                        </choose>
-                    </when>
-                    <when test="item.propertyName != null and item.propertyName == 'answerScore'">
-                        answer_score    /* 答案得分 */
-                        <choose>
-                            <when test="item.ascending">ASC</when>
-                            <otherwise>DESC</otherwise>
-                        </choose>
-                    </when>
-                    <when test="item.propertyName != null and item.propertyName == 'studentCode'">
-                        student_code    /* 学号(回答者编号) */
-                        <choose>
-                            <when test="item.ascending">ASC</when>
-                            <otherwise>DESC</otherwise>
-                        </choose>
-                    </when>
-                    <when test="item.propertyName != null and item.propertyName == 'studentName'">
-                        student_name    /* 姓名(回答者姓名) */
+                        question_name    /* 问题描述 */
                         <choose>
                             <when test="item.ascending">ASC</when>
                             <otherwise>DESC</otherwise>
@@ -248,6 +181,13 @@
                     </when>
                     <when test="item.propertyName != null and item.propertyName == 'isMustAnswer'">
                         is_must_answer    /* 是否必答题 0 ：否 ；1是 */
+                        <choose>
+                            <when test="item.ascending">ASC</when>
+                            <otherwise>DESC</otherwise>
+                        </choose>
+                    </when>
+                    <when test="item.propertyName != null and item.propertyName == 'answerGroup'">
+                        answer_group    /* 问题选项组 */
                         <choose>
                             <when test="item.ascending">ASC</when>
                             <otherwise>DESC</otherwise>
@@ -323,136 +263,98 @@
     </sql>
 
     <!-- 插入数据 -->
-    <insert id="insert" parameterType="com.pp.basic.domain.QuestionnaireQuestionAnswer" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO questionnaire_question_answer (
-        questionnaire_code,    /* 问卷编号 */
-        questionnaire_name,    /* 问卷名称 */
-        question_code,         /* 问题编号 */
-        question_name,         /* 问题 */
-        answer_code,           /* 答案编号 */
-        answer,                /* 答案 */
-        answer_value,          /* 答案值 */
-        answer_score,          /* 答案得分 */
-        student_code,          /* 学号(回答者编号) */
-        student_name,          /* 姓名(回答者姓名) */
-        question_type_code,    /* 问题类型代码 0：选择题；1：简答题 */
-        question_type_name,    /* 问题类型名称 选择题 ；简答题 */
-        is_must_answer,        /* 是否必答题 0 ：否 ；1是 */
-        remark,                /* 备注 */
-        version,               /* 数据版本 */
-        create_user,           /* 创建人 */
-        create_time,           /* 创建时间 */
-        update_user,           /* 修改人 */
-        update_time,           /* 修改时间 */
-        is_delete              /* 是否删除（0:否;1:是） */
+    <insert id="insert" parameterType="com.pp.basic.domain.QuestionnaireQuestionTemplate" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO questionnaire_question_template (
+            template_code,         /* 模板编号 */
+            template_name,         /* 模板名称 */
+            question_code,         /* 问题编号 */
+            question_name,         /* 问题描述 */
+            question_type_code,    /* 问题类型代码 0：选择题；1：简答题 */
+            question_type_name,    /* 问题类型名称 选择题 ；简答题 */
+            is_must_answer,        /* 是否必答题 0 ：否 ；1是 */
+            answer_group,          /* 问题选项组 */
+            remark,                /* 备注 */
+            version,               /* 数据版本 */
+            create_user,           /* 创建人 */
+            create_time,           /* 创建时间 */
+            update_user,           /* 修改人 */
+            update_time,           /* 修改时间 */
+            is_delete              /* 是否删除（0:否;1:是） */
         ) VALUES (
-        #{questionnaireCode, jdbcType=VARCHAR},    /* 问卷编号 */
-        #{questionnaireName, jdbcType=VARCHAR},    /* 问卷名称 */
-        #{questionCode, jdbcType=VARCHAR},         /* 问题编号 */
-        #{questionName, jdbcType=VARCHAR},         /* 问题 */
-        #{answerCode, jdbcType=VARCHAR},           /* 答案编号 */
-        #{answer, jdbcType=VARCHAR},               /* 答案 */
-        #{answerValue, jdbcType=VARCHAR},          /* 答案值 */
-        #{answerScore, jdbcType=INTEGER},          /* 答案得分 */
-        #{studentCode, jdbcType=VARCHAR},          /* 学号(回答者编号) */
-        #{studentName, jdbcType=VARCHAR},          /* 姓名(回答者姓名) */
-        #{questionTypeCode, jdbcType=VARCHAR},     /* 问题类型代码 0：选择题；1：简答题 */
-        #{questionTypeName, jdbcType=VARCHAR},     /* 问题类型名称 选择题 ；简答题 */
-        #{isMustAnswer, jdbcType=TINYINT},         /* 是否必答题 0 ：否 ；1是 */
-        #{remark, jdbcType=VARCHAR},               /* 备注 */
-        #{version, jdbcType=VARCHAR},              /* 数据版本 */
-        #{createUser, jdbcType=VARCHAR},           /* 创建人 */
-        #{createTime, jdbcType=TIMESTAMP},         /* 创建时间 */
-        #{updateUser, jdbcType=VARCHAR},           /* 修改人 */
-        #{updateTime, jdbcType=TIMESTAMP},         /* 修改时间 */
-        #{isDelete, jdbcType=TINYINT}              /* 是否删除（0:否;1:是） */
+            #{templateCode, jdbcType=VARCHAR},        /* 模板编号 */
+            #{templateName, jdbcType=VARCHAR},        /* 模板名称 */
+            #{questionCode, jdbcType=VARCHAR},        /* 问题编号 */
+            #{questionName, jdbcType=VARCHAR},        /* 问题描述 */
+            #{questionTypeCode, jdbcType=VARCHAR},    /* 问题类型代码 0：选择题；1：简答题 */
+            #{questionTypeName, jdbcType=VARCHAR},    /* 问题类型名称 选择题 ；简答题 */
+            #{isMustAnswer, jdbcType=TINYINT},        /* 是否必答题 0 ：否 ；1是 */
+            #{answerGroup, jdbcType=VARCHAR},         /* 问题选项组 */
+            #{remark, jdbcType=VARCHAR},              /* 备注 */
+            #{version, jdbcType=VARCHAR},             /* 数据版本 */
+            #{createUser, jdbcType=VARCHAR},          /* 创建人 */
+            #{createTime, jdbcType=TIMESTAMP},        /* 创建时间 */
+            #{updateUser, jdbcType=VARCHAR},          /* 修改人 */
+            #{updateTime, jdbcType=TIMESTAMP},        /* 修改时间 */
+            #{isDelete, jdbcType=TINYINT}             /* 是否删除（0:否;1:是） */
         )
     </insert>
 
     <!-- 批量插入数据 -->
     <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO questionnaire_question_answer (
-        questionnaire_code,    /* 问卷编号 */
-        questionnaire_name,    /* 问卷名称 */
-        question_code,         /* 问题编号 */
-        question_name,         /* 问题 */
-        answer_code,           /* 答案编号 */
-        answer,                /* 答案 */
-        answer_value,          /* 答案值 */
-        answer_score,          /* 答案得分 */
-        student_code,          /* 学号(回答者编号) */
-        student_name,          /* 姓名(回答者姓名) */
-        question_type_code,    /* 问题类型代码 0：选择题；1：简答题 */
-        question_type_name,    /* 问题类型名称 选择题 ；简答题 */
-        is_must_answer,        /* 是否必答题 0 ：否 ；1是 */
-        remark,                /* 备注 */
-        version,               /* 数据版本 */
-        create_user,           /* 创建人 */
-        create_time,           /* 创建时间 */
-        update_user,           /* 修改人 */
-        update_time,           /* 修改时间 */
-        is_delete              /* 是否删除（0:否;1:是） */
+        INSERT INTO questionnaire_question_template (
+            template_code,         /* 模板编号 */
+            template_name,         /* 模板名称 */
+            question_code,         /* 问题编号 */
+            question_name,         /* 问题描述 */
+            question_type_code,    /* 问题类型代码 0：选择题；1：简答题 */
+            question_type_name,    /* 问题类型名称 选择题 ；简答题 */
+            is_must_answer,        /* 是否必答题 0 ：否 ；1是 */
+            answer_group,          /* 问题选项组 */
+            remark,                /* 备注 */
+            version,               /* 数据版本 */
+            create_user,           /* 创建人 */
+            create_time,           /* 创建时间 */
+            update_user,           /* 修改人 */
+            update_time,           /* 修改时间 */
+            is_delete              /* 是否删除（0:否;1:是） */
         ) VALUES
         <foreach collection="list" item="item" index="index" separator=",">
-            (
-            #{item.questionnaireCode, jdbcType=VARCHAR},    /* 问卷编号 */
-            #{item.questionnaireName, jdbcType=VARCHAR},    /* 问卷名称 */
-            #{item.questionCode, jdbcType=VARCHAR},         /* 问题编号 */
-            #{item.questionName, jdbcType=VARCHAR},         /* 问题 */
-            #{item.answerCode, jdbcType=VARCHAR},           /* 答案编号 */
-            #{item.answer, jdbcType=VARCHAR},               /* 答案 */
-            #{item.answerValue, jdbcType=VARCHAR},          /* 答案值 */
-            #{item.answerScore, jdbcType=INTEGER},          /* 答案得分 */
-            #{item.studentCode, jdbcType=VARCHAR},          /* 学号(回答者编号) */
-            #{item.studentName, jdbcType=VARCHAR},          /* 姓名(回答者姓名) */
-            #{item.questionTypeCode, jdbcType=VARCHAR},     /* 问题类型代码 0：选择题；1：简答题 */
-            #{item.questionTypeName, jdbcType=VARCHAR},     /* 问题类型名称 选择题 ；简答题 */
-            #{item.isMustAnswer, jdbcType=TINYINT},         /* 是否必答题 0 ：否 ；1是 */
-            #{item.remark, jdbcType=VARCHAR},               /* 备注 */
-            #{item.version, jdbcType=VARCHAR},              /* 数据版本 */
-            #{item.createUser, jdbcType=VARCHAR},           /* 创建人 */
-            #{item.createTime, jdbcType=TIMESTAMP},         /* 创建时间 */
-            #{item.updateUser, jdbcType=VARCHAR},           /* 修改人 */
-            #{item.updateTime, jdbcType=TIMESTAMP},         /* 修改时间 */
-            #{item.isDelete, jdbcType=TINYINT}              /* 是否删除（0:否;1:是） */
-            )
+        (
+            #{item.templateCode, jdbcType=VARCHAR},        /* 模板编号 */
+            #{item.templateName, jdbcType=VARCHAR},        /* 模板名称 */
+            #{item.questionCode, jdbcType=VARCHAR},        /* 问题编号 */
+            #{item.questionName, jdbcType=VARCHAR},        /* 问题描述 */
+            #{item.questionTypeCode, jdbcType=VARCHAR},    /* 问题类型代码 0：选择题；1：简答题 */
+            #{item.questionTypeName, jdbcType=VARCHAR},    /* 问题类型名称 选择题 ；简答题 */
+            #{item.isMustAnswer, jdbcType=TINYINT},        /* 是否必答题 0 ：否 ；1是 */
+            #{item.answerGroup, jdbcType=VARCHAR},         /* 问题选项组 */
+            #{item.remark, jdbcType=VARCHAR},              /* 备注 */
+            #{item.version, jdbcType=VARCHAR},             /* 数据版本 */
+            #{item.createUser, jdbcType=VARCHAR},          /* 创建人 */
+            #{item.createTime, jdbcType=TIMESTAMP},        /* 创建时间 */
+            #{item.updateUser, jdbcType=VARCHAR},          /* 修改人 */
+            #{item.updateTime, jdbcType=TIMESTAMP},        /* 修改时间 */
+            #{item.isDelete, jdbcType=TINYINT}             /* 是否删除（0:否;1:是） */
+        )
         </foreach>
     </insert>
 
     <!-- 按主键更新 -->
     <update id="updateByPrimaryKey" parameterType="java.util.Map">
         <if test="_parameter != null">
-            UPDATE questionnaire_question_answer
+            UPDATE questionnaire_question_template
             <set>
-                <if test="questionnaireCode != null and questionnaireCode != ''">
-                    questionnaire_code = #{questionnaireCode, jdbcType=VARCHAR},    /* 问卷编号 */
+                <if test="templateCode != null and templateCode != ''">
+                    template_code = #{templateCode, jdbcType=VARCHAR},    /* 模板编号 */
                 </if>
-                <if test="questionnaireName != null and questionnaireName != ''">
-                    questionnaire_name = #{questionnaireName, jdbcType=VARCHAR},    /* 问卷名称 */
+                <if test="templateName != null and templateName != ''">
+                    template_name = #{templateName, jdbcType=VARCHAR},    /* 模板名称 */
                 </if>
                 <if test="questionCode != null and questionCode != ''">
                     question_code = #{questionCode, jdbcType=VARCHAR},    /* 问题编号 */
                 </if>
                 <if test="questionName != null and questionName != ''">
-                    question_name = #{questionName, jdbcType=VARCHAR},    /* 问题 */
-                </if>
-                <if test="answerCode != null and answerCode != ''">
-                    answer_code = #{answerCode, jdbcType=VARCHAR},    /* 答案编号 */
-                </if>
-                <if test="answer != null and answer != ''">
-                    answer = #{answer, jdbcType=VARCHAR},    /* 答案 */
-                </if>
-                <if test="answerValue != null and answerValue != ''">
-                    answer_value = #{answerValue, jdbcType=VARCHAR},    /* 答案值 */
-                </if>
-                <if test="answerScore != null">
-                    answer_score = #{answerScore, jdbcType=INTEGER},    /* 答案得分 */
-                </if>
-                <if test="studentCode != null and studentCode != ''">
-                    student_code = #{studentCode, jdbcType=VARCHAR},    /* 学号(回答者编号) */
-                </if>
-                <if test="studentName != null and studentName != ''">
-                    student_name = #{studentName, jdbcType=VARCHAR},    /* 姓名(回答者姓名) */
+                    question_name = #{questionName, jdbcType=VARCHAR},    /* 问题描述 */
                 </if>
                 <if test="questionTypeCode != null and questionTypeCode != ''">
                     question_type_code = #{questionTypeCode, jdbcType=VARCHAR},    /* 问题类型代码 0：选择题；1：简答题 */
@@ -462,6 +364,9 @@
                 </if>
                 <if test="isMustAnswer != null">
                     is_must_answer = #{isMustAnswer, jdbcType=TINYINT},    /* 是否必答题 0 ：否 ；1是 */
+                </if>
+                <if test="answerGroup != null and answerGroup != ''">
+                    answer_group = #{answerGroup, jdbcType=VARCHAR},    /* 问题选项组 */
                 </if>
                 <if test="remark != null and remark != ''">
                     remark = #{remark, jdbcType=VARCHAR},    /* 备注 */
@@ -487,9 +392,9 @@
     </update>
 
     <!-- 按主键删除 -->
-    <update id="deleteByPrimaryKey" parameterType="com.pp.basic.domain.QuestionnaireQuestionAnswer">
+    <update id="deleteByPrimaryKey" parameterType="com.pp.basic.domain.QuestionnaireQuestionTemplate">
         <if test="_parameter != null">
-            UPDATE questionnaire_question_answer
+            UPDATE questionnaire_question_template
             <set>
                 is_delete = 1,    /* 是否删除(1:是;0:否) */
                 update_user = #{updateUser, jdbcType=VARCHAR},	/* 修改人 */
@@ -505,7 +410,7 @@
     <!-- 按主键批量删除 -->
     <update id="batchDeleteByPrimaryKey" parameterType="java.util.Map">
         <if test="_parameter != null">
-            UPDATE questionnaire_question_answer
+            UPDATE questionnaire_question_template
             <set>
                 is_delete = 1,    /* 是否删除(1:是;0:否) */
                 update_user = #{updateUser, jdbcType=VARCHAR},	/* 修改人 */
@@ -524,7 +429,7 @@
     <!-- 按主键批量物理删除，慎用 -->
     <delete id="batchDeleteByPrimaryKeyPhysically" parameterType="java.util.List">
         <if test="_parameter != null">
-            DELETE FROM questionnaire_question_answer
+            DELETE FROM questionnaire_question_template
             <where>
                 id in	/* 主键集合 */
                 <foreach collection="list" item="id" open="(" separator="," close=")">
@@ -537,9 +442,9 @@
     <!-- 查询所有记录 -->
     <select id="selectAll" resultMap="resultMap">
         SELECT
-        <include refid="queryColumns"/>
+            <include refid="queryColumns"/>
         FROM
-        questionnaire_question_answer
+            questionnaire_question_template
         <where>
             is_delete = 0    /* 是否删除(1:是;0:否) */
         </where>
@@ -548,9 +453,9 @@
     <!-- 按主键查询 -->
     <select id="selectByPrimaryKey" resultMap="resultMap" parameterType="java.lang.Long">
         SELECT
-        <include refid="queryColumns"/>
+            <include refid="queryColumns"/>
         FROM
-        questionnaire_question_answer
+            questionnaire_question_template
         <where>
             id = #{id, jdbcType=BIGINT}	/* 主键 */
             AND is_delete = 0			/* 是否删除(1:是;0:否) */
@@ -560,9 +465,9 @@
     <!-- 按主键集合查询 -->
     <select id="selectByPrimaryKeys" resultMap="resultMap" parameterType="java.util.List">
         SELECT
-        <include refid="queryColumns"/>
+            <include refid="queryColumns"/>
         FROM
-        questionnaire_question_answer
+            questionnaire_question_template
         <where>
             id in	/* 主键集合 */
             <foreach collection="list" item="id" open="(" separator="," close=")">
@@ -575,9 +480,9 @@
     <!-- 按条件查询 -->
     <select id="selectByCondition" resultMap="resultMap" parameterType="java.util.Map">
         SELECT
-        <include refid="queryColumns"/>
+            <include refid="queryColumns"/>
         FROM
-        questionnaire_question_answer
+            questionnaire_question_template
         <include refid="queryClause"/>
         <include refid="sortClause"/>
         <include refid="pageClause"/>
@@ -586,9 +491,9 @@
     <!-- 按条件统计记录数 -->
     <select id="countByCondition" resultType="java.lang.Long" parameterType="java.util.Map">
         SELECT
-        COUNT(1)
+            COUNT(1)
         FROM
-        questionnaire_question_answer
+            questionnaire_question_template
         <include refid="queryClause"/>
     </select>
 

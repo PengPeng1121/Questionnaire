@@ -48,6 +48,9 @@ public final class QuestionnaireQuestionAnswer extends AbstractEntity {
     // 答案值
     private String answerValue;
 
+    // 答案得分
+    private Integer answerScore;
+
     // 学号(回答者编号)
     private String studentCode;
 
@@ -221,5 +224,13 @@ public final class QuestionnaireQuestionAnswer extends AbstractEntity {
 
     public void setIsMustAnswer(Integer isMustAnswer) {
         this.isMustAnswer = isMustAnswer;
+    }
+
+    public Integer getAnswerScore() {
+        return answerScore;
+    }
+
+    public void setAnswerScore(Integer answerScore) {
+        this.answerScore = answerScore;
     }
 }

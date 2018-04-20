@@ -43,49 +43,7 @@ public class QuestionnaireStudentController extends BaseController {
     QuestionnaireStudentService questionnaireStudentService;
 
     /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(QuestionnaireStudent questionnaireStudent) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        this.questionnaireStudentService.insert(questionnaireStudent, account.getUserCode());
-        return true;
-    }
-
-    /**
-     * 修改数据
-     */
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean update(QuestionnaireStudent questionnaireStudentUpdate) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.questionnaireStudentService.update(questionnaireStudentUpdate, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 逻辑删除数据
-     */
-    @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean delete(Long id) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.questionnaireStudentService.delete(id, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 分页查询
+     * 分页查询 //TODO 过期不显示
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
@@ -140,7 +98,7 @@ public class QuestionnaireStudentController extends BaseController {
     @RequestMapping(value = "/findUnDoQuestionnaire",method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
     public HashMap<String,Object> findUnDoQuestionnaire(Integer pageIndex) {
-        //TODO 数据验证
+        //TODO 过期不显示
 
         // 设置合理的参数
         if (pageIndex == null || pageIndex < 1) {

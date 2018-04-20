@@ -35,7 +35,7 @@ public class SystemController {
     }
 
     /**
-     * 导出模板
+     * 导出课程模板
      */
     @RequestMapping(value = "/exportLessonTemplate", method = {RequestMethod.POST ,RequestMethod.GET})
     public void exportLessonTemplate(HttpServletResponse response) {
@@ -52,7 +52,7 @@ public class SystemController {
             // 名称和格式
             response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
 
-            String[] columnName = {"课程编码", "课程名称", "课程类型代码(0:实践课;1:理论课)","授课教师名称","学期"};
+            String[] columnName = {"课程编码", "课程名称", "课程类型代码(0:实践课;1:理论课)","授课教师名称","学期","授课班级","是否必修(是:否)"};
             ServletOutputStream outputStream = response.getOutputStream();
             Object[][] data = null;
             PoiUtils.export(name, title, columnName, data,outputStream);
@@ -88,7 +88,7 @@ public class SystemController {
     }
 
     /**
-     * 导出模板
+     * 导出问题模板
      */
     @RequestMapping(value = "/exportQuestionTemplate", method = {RequestMethod.POST ,RequestMethod.GET})
     public void exportQuestionTemplate(HttpServletResponse response) {
@@ -105,7 +105,7 @@ public class SystemController {
             // 名称和格式
             response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
 
-            String[] columnName = {"问题类型（简答题或选择题）", "问题内容", "是否必答（是或否）", "选项组（a或b或c）"};
+            String[] columnName = {"问题类型（简答题或选择题）", "问题内容", "是否必答（是或否）", "选项组"};
             ServletOutputStream outputStream = response.getOutputStream();
             PoiUtils.export(name, title, columnName, null,outputStream);
         } catch (Exception e) {
@@ -162,6 +162,32 @@ public class SystemController {
             PoiUtils.export(name, title, columnName, null,outputStream);
         } catch (Exception e) {
             throw new IllegalArgumentException("教师模板导出失败!" + e.getMessage());
+        }
+    }
+
+    /**
+     * 导出模板
+     */
+    @RequestMapping(value = "/exportAnswerGroupTemplate", method = {RequestMethod.POST ,RequestMethod.GET})
+    public void exportAnswerGroupTemplate(HttpServletResponse response) {
+
+        try {
+            SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+            Date date = new Date();
+            String title = "导入选择组模板_" + f.format(date);
+            String name = title;
+            String fileName = new String((name).getBytes(), PoiUtils.Excel_EnCode);
+
+            //类型设置
+            response.setContentType("application/binary;charset=ISO8859_1");
+            // 名称和格式
+            response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
+
+            String[] columnName = {"选项组编号", "选项组名称", "答案","答案值","答案得分"};
+            ServletOutputStream outputStream = response.getOutputStream();
+            PoiUtils.export(name, title, columnName, null,outputStream);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("导出选择组模板导出失败!" + e.getMessage());
         }
     }
 }

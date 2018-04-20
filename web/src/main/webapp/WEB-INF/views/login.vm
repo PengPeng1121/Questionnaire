@@ -7,10 +7,10 @@
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="expires" content="0">
 
-
-    <script type="text/javascript">
-        var springUrl = "#springUrl('')";   //上下文路径全局变量md5
-        var md5 = "$!md5";   //上下文路径全局变量
+    <script src="#springUrl('')/js/login.js" type="text/javascript"></script>
+    <script src="#springUrl('')/static/js/jquery/jquery.js" type="text/javascript"></script>
+    <script>
+        var springUrl = "#springUrl('')";   //上下文路径全局变量
     </script>
 </head>
 
@@ -20,7 +20,7 @@
     <div class="row">
         <div class="col-xs-12">
             <div class="widget-main">
-                <form id="loginForm" class="form-horizontal" method="post" action="#springUrl('')/login/login">
+                <form id="loginForm" class="form-horizontal" method="post" >
                     <div class="form-group">
                         <label class="col-sm-4 control-label no-padding-right" for="code"></label>
                         <div class="col-sm-4">
@@ -36,7 +36,10 @@
                     </div>
                     <hr class="hr hr-32"/>
                     <div class="center">
-                        <a id="btnLogin" class="button button-primary button-rounded button-normal" href="javascript:void(0)" >登录</a>
+                        <a id="btnLogin" class="button button-primary button-rounded button-normal" href="javascript:void(0)" onclick="login()">登录</a>
+                    </div>
+                    <div class="center">
+                        <a id="btnLogout" class="button button-primary button-rounded button-normal" href="javascript:void(0)" >退出</a>
                     </div>
                 </form>
             </div>

@@ -3,17 +3,15 @@
  */
 package com.pp.basic.service;
 
-import com.pp.basic.domain.User;
-import com.pp.basic.domain.vo.InitStudent;
+import com.pp.basic.domain.QuestionnaireScore;
 import com.pp.common.core.service.IService;
 
-import java.util.List;
-
 /**
- * 用户表Service接口
+ * 教师问卷得分表Service接口
  * 
  * @author
  */
-public interface UserService extends IService<User> {
+public interface QuestionnaireScoreService extends IService<QuestionnaireScore> {
+
 
 }

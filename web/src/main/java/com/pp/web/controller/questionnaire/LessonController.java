@@ -30,7 +30,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 课程信息表Controller
@@ -57,46 +60,27 @@ public class LessonController extends BaseController {
     LessonContrastService lessonContrastService;
 
     Logger log = LoggerFactory.getLogger(LessonController.class.getName());
-    /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(Lesson lesson) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        this.lessonService.insert(lesson, account.getUserCode());
-        return true;
-    }
 
     /**
-     * 修改数据
-     */
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean update(Lesson lessonUpdate) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.lessonService.update(lessonUpdate, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 逻辑删除数据
+     * 删除课程
      */
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
-    public boolean delete(Long id) {
-        //TODO 数据验证
+    public Map<String,Object> delete(Long id) {
         Account account = AccountUtils.getCurrentAccount();
+        HashMap<String,Object> map = new HashMap<>();
+        map.put("status",300);
+        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+            map.put("msg","为管理员操作，当前用户没有管理员权限");
+            return map;
+        }
         int rows = this.lessonService.delete(id, account.getUserCode());
         if (rows == 1) {
-            return true;
+            map.put("status",200);
+            return map;
         }
-        return false;
+        map.put("msg","删除失败");
+        return map;
     }
 
     /**
@@ -109,8 +93,6 @@ public class LessonController extends BaseController {
                                             @RequestParam(value = "size", required = false, defaultValue = "10") int size,
                                             @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
                                             @RequestParam(value = "sd") String sortName) {
-        //TODO 数据验证
-
         // 设置合理的参数
         if (size < 1) {
             size = 20;
@@ -340,6 +322,14 @@ public class LessonController extends BaseController {
                 reason.append("学期;");
                 flag = false;
             }
+            if (row.getCell(5) == null || row.getCell(5).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("授课班级;");
+                flag = false;
+            }
+            if (row.getCell(6) == null || row.getCell(6).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+                reason.append("是否必修;");
+                flag = false;
+            }
             reason.append("不能为空");
         } catch (Exception e) {
             flag = false;
@@ -357,6 +347,13 @@ public class LessonController extends BaseController {
             lesson.setLessonTypeName("理论课");
         }else {
            throw new IllegalArgumentException("课程类型错误！");
+        }
+        if (row.getCell(6).toString().trim().equals("是")){
+            lesson.setIsMustCheck(1);
+        }else  if (row.getCell(6).toString().trim().equals("否")){
+            lesson.setIsMustCheck(0);
+        }else {
+            throw new IllegalArgumentException("是否必修类型错误！");
         }
         String teacherCode = teacherMap.get(row.getCell(3).toString().trim());
         if(StringUtils.isEmpty(teacherCode)){

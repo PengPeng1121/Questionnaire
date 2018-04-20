@@ -13,5 +13,6 @@ import com.pp.common.core.service.IService;
  */
 public interface StudentLessonService extends IService<StudentLesson> {
 
+    public void autoInitRelation(StudentLesson studentlesson);
 
 }

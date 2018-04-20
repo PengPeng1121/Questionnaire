@@ -5,16 +5,16 @@ package com.pp.basic.dao.impl;
 
 import org.springframework.stereotype.Repository;
 
-import com.pp.basic.dao.UserDao;
-import com.pp.basic.domain.User;
+import com.pp.basic.dao.QuestionnaireScoreDao;
+import com.pp.basic.domain.QuestionnaireScore;
 import com.pp.common.core.dao.AbstractDemoDao;
 
 /**
- * 用户表DAO接口实现
+ * 教师问卷得分表DAO接口实现
  * 
  * @author
  */
 @Repository
-public class UserDaoImpl extends AbstractDemoDao<User> implements UserDao {
+public class QuestionnaireScoreDaoImpl extends AbstractDemoDao<QuestionnaireScore> implements QuestionnaireScoreDao {
 
 }

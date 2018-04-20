@@ -3,15 +3,15 @@
  */
 package com.pp.basic.dao;
 
-import com.pp.basic.domain.User;
+import com.pp.basic.domain.QuestionnaireScore;
 import com.pp.common.core.dao.IDao;
 
 /**
- * 用户表DAO接口
+ * 教师问卷得分表DAO接口
  * 
  * @author
  */
-public interface UserDao extends IDao<User> {
+public interface QuestionnaireScoreDao extends IDao<QuestionnaireScore> {
 
 
 }

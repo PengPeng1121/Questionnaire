@@ -5,16 +5,16 @@ package com.pp.basic.manager.impl;
 
 import org.springframework.stereotype.Service;
 
-import com.pp.basic.domain.User;
-import com.pp.basic.manager.UserManager;
+import com.pp.basic.domain.AnswerGroup;
+import com.pp.basic.manager.AnswerGroupManager;
 import com.pp.common.core.manager.AbstractGenericManager;
 
 /**
- * 用户表Manager接口实现
+ * 选项组表Manager接口实现
  * 
  * @author
  */
 @Service
-public class UserManagerImpl extends AbstractGenericManager<User> implements UserManager {
+public class AnswerGroupManagerImpl extends AbstractGenericManager<AnswerGroup> implements AnswerGroupManager {
 
 }

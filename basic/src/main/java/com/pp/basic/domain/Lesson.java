@@ -37,6 +37,12 @@ public final class Lesson extends AbstractEntity {
     //学期
     private String term;
 
+    // 上课班级
+    private String lessonClass;
+
+    // 是否必修（1：是；0否）
+    private Integer isMustCheck;
+
     @Transient
     private Long studentAccount;
     /**
@@ -141,6 +147,22 @@ public final class Lesson extends AbstractEntity {
 
     public void setTerm(String term) {
         this.term = term;
+    }
+
+    public String getLessonClass() {
+        return lessonClass;
+    }
+
+    public void setLessonClass(String lessonClass) {
+        this.lessonClass = lessonClass;
+    }
+
+    public Integer getIsMustCheck() {
+        return isMustCheck;
+    }
+
+    public void setIsMustCheck(Integer isMustCheck) {
+        this.isMustCheck = isMustCheck;
     }
 
     public Long getStudentAccount() {

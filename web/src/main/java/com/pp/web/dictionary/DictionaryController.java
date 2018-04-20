@@ -1,8 +1,10 @@
 package com.pp.web.dictionary;
 
 import com.pp.basic.domain.Lesson;
+import com.pp.basic.domain.Student;
 import com.pp.basic.domain.TeacherLesson;
 import com.pp.basic.service.LessonService;
+import com.pp.basic.service.StudentService;
 import com.pp.basic.service.TeacherLessonService;
 import com.pp.web.common.ChoiceQuestionEnum_A;
 import com.pp.web.common.ChoiceQuestionEnum_B;
@@ -47,8 +49,8 @@ public class DictionaryController {
                 set.add(lesson.getTerm());
             }
         }
+        //学期
         map.put("terms",set);
-
         Map<String,Object> processStatusMap= new HashMap<>();
         processStatusMap.put("0","未答");
         processStatusMap.put("1","进行中");
@@ -82,21 +84,6 @@ public class DictionaryController {
         return answerMap;
     }
 
-    @RequestMapping(value = "/findLessonsByTerm", method ={RequestMethod.POST,RequestMethod.GET} )
-    @ResponseBody
-    public Map<String,Object> findLessonsByTerm(HttpServletRequest request, String term) throws IllegalAccessException {
-        try {
-            request.setCharacterEncoding("utf-8");
-        } catch (UnsupportedEncodingException e) {
-        }
-        Map<String,Object> map = new HashMap<>();
-        Lesson lesson = new Lesson();
-        lesson.setTerm(term);
-        List<Lesson> lessons = this.lessonService.selectList(lesson);
-        map.put("lessons",lessons);
-        return map;
-    }
-
     @RequestMapping(value = "/findTeacherByTermAndLesson", method ={RequestMethod.POST,RequestMethod.GET} )
     @ResponseBody
     public Map<String,Object> findTeacherByTermAndLesson(String term,String lessonCode) throws IllegalAccessException {
@@ -106,6 +93,17 @@ public class DictionaryController {
         teacherLesson.setLessonCode(lessonCode);
         List<TeacherLesson> teachers = this.teacherLessonService.selectList(teacherLesson);
         map.put("teachers",teachers);
+        return map;
+    }
+
+    @RequestMapping(value = "/findLessonsByTerm", method ={RequestMethod.POST,RequestMethod.GET} )
+    @ResponseBody
+    public Map<String,Object> findLessonsByTerm(String term) throws IllegalAccessException {
+        Map<String,Object> map = new HashMap<>();
+        Lesson lesson = new Lesson();
+        lesson.setTerm(term);
+        List<Lesson> lessons = this.lessonService.selectList(lesson);
+        map.put("lessons",lessons);
         return map;
     }
 }

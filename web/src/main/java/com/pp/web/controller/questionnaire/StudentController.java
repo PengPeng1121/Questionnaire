@@ -50,47 +50,6 @@ public class StudentController extends BaseController {
     SystemUserService systemUserService;
 
     Logger log = LoggerFactory.getLogger(StudentController.class.getName());
-    /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(Student student) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        this.studentService.insert(student, account.getUserCode());
-        return true;
-    }
-
-    /**
-     * 修改数据
-     */
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean update(Student studentUpdate) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.studentService.update(studentUpdate, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 逻辑删除数据
-     */
-    @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean delete(Long id) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.studentService.delete(id, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
 
     /**
      * 分页查询
@@ -102,8 +61,6 @@ public class StudentController extends BaseController {
                                             @RequestParam(value = "size", required = false, defaultValue = "10") int size,
                                             @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
                                             @RequestParam(value = "sd") String sortName) {
-        //TODO 数据验证
-
         // 设置合理的参数
         // 开始页码
         int pageIndex = page - 1;
@@ -122,12 +79,12 @@ public class StudentController extends BaseController {
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         if (studentPage!=null){
-            map.put("data",studentPage.getContent());
-            map.put("count",studentPage.getTotalElements());
             map.put("limit",studentPage.getPageSize());
+            map.put("count",studentPage.getTotalElements());
+            map.put("data",studentPage.getContent());
             map.put("page",studentPage.getPageIndex()+1);
-            returnMap.put("data",map);
             returnMap.put("status",200);
+            returnMap.put("data",map);
         }else {
             returnMap.put("data",map);
             returnMap.put("msg","没有查询到数据");
@@ -209,11 +166,12 @@ public class StudentController extends BaseController {
                             allSystemUserIds.add(systemUser1.getId());
                         }
                     }
+                    //物理删除
                     if(!CollectionUtils.isEmpty(allSystemUserIds)){
-                        this.systemUserService.delete(allSystemUserIds,account.getUserCode());
+                        this.systemUserService.deletePhysically(allSystemUserIds);
                     }
                     if(!CollectionUtils.isEmpty(allStudentIds)) {
-                        this.studentService.delete(allStudentIds, account.getUserCode());
+                        this.studentService.deletePhysically(allStudentIds);
                     }
                 }catch (Exception e){
                     map.put("msg", "导入失败说明：删除之前数据失败！msg:"+e.getMessage());

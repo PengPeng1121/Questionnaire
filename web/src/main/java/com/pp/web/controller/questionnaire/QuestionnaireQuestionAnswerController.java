@@ -66,48 +66,6 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
     QuestionnaireQuestionService questionnaireQuestionService;
 
     /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(QuestionnaireQuestionAnswer questionnaireQuestionAnswer) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        this.questionnaireQuestionAnswerService.insert(questionnaireQuestionAnswer, account.getUserCode());
-        return true;
-    }
-
-    /**
-     * 修改数据
-     */
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean update(QuestionnaireQuestionAnswer questionnaireQuestionAnswerUpdate) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.questionnaireQuestionAnswerService.update(questionnaireQuestionAnswerUpdate, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 逻辑删除数据
-     */
-    @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean delete(Long id) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.questionnaireQuestionAnswerService.delete(id, account.getUserCode());
-        if (rows == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * 分页查询
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
@@ -117,8 +75,6 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
                                             @RequestParam(value = "size", required = false, defaultValue = "10") int size,
                                             @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
                                             @RequestParam(value = "sd") String sortName) {
-        //TODO 数据验证
-
         // 设置合理的参数
         // 开始页码
         int pageIndex = page - 1;
@@ -137,12 +93,12 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         if (questionnaireQuestionAnswerPage!=null){
-            map.put("data",questionnaireQuestionAnswerPage.getContent());
-            map.put("count",questionnaireQuestionAnswerPage.getTotalElements());
-            map.put("limit",questionnaireQuestionAnswerPage.getPageSize());
             map.put("page",questionnaireQuestionAnswerPage.getPageIndex()+1);
-            returnMap.put("data",map);
+            map.put("count",questionnaireQuestionAnswerPage.getTotalElements());
+            map.put("data",questionnaireQuestionAnswerPage.getContent());
+            map.put("limit",questionnaireQuestionAnswerPage.getPageSize());
             returnMap.put("status",200);
+            returnMap.put("data",map);
         }else {
             returnMap.put("data",map);
             returnMap.put("msg","没有查询到数据");
@@ -227,7 +183,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         for (Answer answer:answerList) {
             QuestionnaireQuestionAnswer questionAnswer = new QuestionnaireQuestionAnswer();
             questionAnswer.setAnswer(answer.getAnswer());
-            //取出答案的值
+            //取出答案的值 todo 根据不同选项组操作
             String group = answer.getAnswerGroup();
             if(!StringUtils.isEmpty(group)){
                 if (group.toLowerCase().equals("a")){

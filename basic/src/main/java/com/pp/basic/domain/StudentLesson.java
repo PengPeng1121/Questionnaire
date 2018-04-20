@@ -30,6 +30,9 @@ public final class StudentLesson extends AbstractEntity {
     //学期
     private String term;
 
+    // 是否必修（1：是；0否）
+    private Integer isMustCheck;
+
     /**
      * 设置学号
      * 
@@ -100,5 +103,13 @@ public final class StudentLesson extends AbstractEntity {
 
     public void setTerm(String term) {
         this.term = term;
+    }
+
+    public Integer getIsMustCheck() {
+        return isMustCheck;
+    }
+
+    public void setIsMustCheck(Integer isMustCheck) {
+        this.isMustCheck = isMustCheck;
     }
 }

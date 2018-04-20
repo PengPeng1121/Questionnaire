@@ -7,9 +7,7 @@ import com.pp.basic.domain.QuestionnaireLesson;
 import com.pp.basic.service.QuestionnaireLessonService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
-import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
-import com.pp.web.controller.until.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,48 +30,6 @@ public class QuestionnaireLessonController extends BaseController {
     QuestionnaireLessonService questionnaireLessonService;
 
     /**
-     * 保存数据
-     */
-    @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean insert(QuestionnaireLesson questionnaireLesson) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        this.questionnaireLessonService.insert(questionnaireLesson, account.getUserCode());
-        return true;
-    }
-
-    /**
-     * 修改数据
-     */
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean update(QuestionnaireLesson questionnaireLessonUpdate) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.questionnaireLessonService.update(questionnaireLessonUpdate, account.getUserCode());
-        if (rows == 1) {
-            	return true;
-        }
-        return false;
-    }
-
-    /**
-     * 逻辑删除数据
-     */
-    @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    @ResponseBody
-    public boolean delete(Long id) {
-        //TODO 数据验证
-        Account account = AccountUtils.getCurrentAccount();
-        int rows = this.questionnaireLessonService.delete(id, account.getUserCode());
-        if (rows == 1) {
-            	return true;
-        }
-        return false;
-    }
-
-    /**
      * 分页查询
      */
     @RequestMapping(value = "/pageQuery", method ={RequestMethod.POST,RequestMethod.GET})
@@ -83,8 +39,6 @@ public class QuestionnaireLessonController extends BaseController {
                                             @RequestParam(value = "size", required = false, defaultValue = "10") int size,
                                             @RequestParam(value = "dir", required = false, defaultValue = "asc") String sortOrder,
                                             @RequestParam(value = "sd") String sortName) {
-        //TODO 数据验证
-        
         // 设置合理的参数
         if (size < 1) {
             size = 20;
@@ -108,10 +62,10 @@ public class QuestionnaireLessonController extends BaseController {
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         if (questionnaireLessonPage!=null){
+            map.put("page",questionnaireLessonPage.getPageIndex()+1);
             map.put("data",questionnaireLessonPage.getContent());
             map.put("count",questionnaireLessonPage.getTotalElements());
             map.put("limit",questionnaireLessonPage.getPageSize());
-            map.put("page",questionnaireLessonPage.getPageIndex()+1);
             returnMap.put("data",map);
             returnMap.put("status",200);
         }else {
