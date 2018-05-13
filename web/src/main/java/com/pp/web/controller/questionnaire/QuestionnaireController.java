@@ -15,6 +15,8 @@ import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.DateUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +35,9 @@ import java.util.List;
 @Controller
 @RequestMapping("/web/questionnaire")
 public class QuestionnaireController extends BaseController {
+
+
+    Logger log = LoggerFactory.getLogger(QuestionnaireController.class.getName());
 
     @Autowired
     QuestionnaireService questionnaireService;
@@ -155,7 +160,11 @@ public class QuestionnaireController extends BaseController {
         // 创建分页对象
         Page<Questionnaire> questionnairePage = new Page<Questionnaire>(pageIndex, size, sort);
         // 执行查询
-        questionnairePage = this.questionnaireService.selectPage(questionnaireQuery, questionnairePage);
+        try {
+            questionnairePage = this.questionnaireService.selectPage(questionnaireQuery, questionnairePage);
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+        }
         // 返回查询结果
         HashMap<String,Object> map = new HashMap<String,Object>();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();

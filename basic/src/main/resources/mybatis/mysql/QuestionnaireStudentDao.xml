@@ -490,6 +490,7 @@
         ql.lesson_name as lessonName,
         tl.teacher_name as teacherName,
         q.questionnaire_end_time as questionnaireEndTime,
+        q.questionnaire_expire_time as questionnaireExpireTime,
         qs.questionnaire_process_status_name as questionnaireProcessStatusName
         FROM
         questionnaire q
@@ -506,6 +507,9 @@
             </if>
             <if test="term != null and term != ''">
                 AND q.term = #{term, jdbcType=VARCHAR}
+            </if>
+            <if test="questionnaireExpireTime != null">
+                <![CDATA[ AND questionnaire_expire_time >= #{questionnaireExpireTime, jdbcType=TIMESTAMP} ]]>    /* 问卷过期时间截止 */
             </if>
         </where>
         <include refid="pageClause"/>
@@ -530,6 +534,9 @@
             </if>
             <if test="questionnaireProcessStatusCode != null and questionnaireProcessStatusCode != ''">
                 AND  qs.questionnaire_process_status_code = #{questionnaireProcessStatusCode, jdbcType=VARCHAR}   /* 问卷进度 0：未答；1：进行中：2：答完 */
+            </if>
+            <if test="questionnaireExpireTime != null">
+                <![CDATA[ AND questionnaire_expire_time >= #{questionnaireExpireTime, jdbcType=TIMESTAMP} ]]>    /* 问卷过期时间截止 */
             </if>
         </where>
     </select>

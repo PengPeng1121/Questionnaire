@@ -3,15 +3,24 @@
  */
 package com.pp.web.controller.questionnaire;
 
+import com.pp.basic.domain.QuestionnaireQuestion;
+import com.pp.basic.domain.QuestionnaireQuestionAnswer;
 import com.pp.basic.domain.QuestionnaireScore;
+import com.pp.basic.service.QuestionnaireQuestionAnswerService;
+import com.pp.basic.service.QuestionnaireQuestionService;
 import com.pp.basic.service.QuestionnaireScoreService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
+import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
+import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.PoiUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,9 +43,16 @@ import java.util.Map;
 @RequestMapping("/web/questionnairescore")
 public class QuestionnaireScoreController extends BaseController {
 
+    Logger log = LoggerFactory.getLogger(QuestionnaireScoreController.class.getName());
+
     @Autowired
     QuestionnaireScoreService questionnaireScoreService;
 
+    @Autowired
+    QuestionnaireQuestionService questionService;
+
+    @Autowired
+    QuestionnaireQuestionAnswerService questionAnswerService;
     /**
      * 分页查询
      */
@@ -85,25 +101,76 @@ public class QuestionnaireScoreController extends BaseController {
     }
 
     /**
-     * 计算得分 todo 计算
+     * 计算得分
      */
     @RequestMapping(value = "/calculate ", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> delete(Long id) {
+    public Map<String,Object> calculate(String questionnaireCodes) {
         HashMap<String,Object> map = new HashMap<>();
-        map.put("status",200);
+        map.put("status",300);
+        if(StringUtils.isEmpty(questionnaireCodes)){
+            map.put("msg", "没有查询到数据");
+            return map;
+        }
+        Account account = AccountUtils.getCurrentAccount();
+        try{
+            String[] questionnaireCodeArray = questionnaireCodes.split(",");
+            if(questionnaireCodeArray!=null&& questionnaireCodeArray.length!=0){
+                for (int i=0;i<questionnaireCodeArray.length;i++) {
+                    String  questionnaireCode =questionnaireCodeArray[i];
+                    if(StringUtils.isEmpty(questionnaireCode)){
+                        continue;
+                    }
+                    Integer totalScore = 0;
+                    QuestionnaireQuestion questionQuery = new QuestionnaireQuestion();
+                    questionQuery.setQuestionnaireCode(questionnaireCode);
+                    questionQuery.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_CHOICE);
+                    List<QuestionnaireQuestion> questions =  questionService.selectList(questionQuery);
+                    if(!CollectionUtils.isEmpty(questions)){
+                        for (QuestionnaireQuestion question:questions) {
+                            Integer questionScore = 0;
+                            QuestionnaireQuestionAnswer answerQuery = new QuestionnaireQuestionAnswer();
+                            answerQuery.setQuestionnaireCode(questionnaireCode);
+                            answerQuery.setQuestionCode(question.getQuestionCode());
+                            List<QuestionnaireQuestionAnswer> answerList = questionAnswerService.selectList(answerQuery);
+                            if(!CollectionUtils.isEmpty(answerList)){
+                                for (QuestionnaireQuestionAnswer answer:answerList) {
+                                    questionScore+=answer.getAnswerScore();
+                                }
+                                totalScore = totalScore + questionScore/answerList.size()*question.getQuestionScore();
+                            }else {
+                                totalScore = 100000;
+                            }
+                        }
+                        totalScore = totalScore/questions.size();
+                        //写入数据保存
+                        QuestionnaireScore questionnaireScoreQuery = new QuestionnaireScore();
+                        questionnaireScoreQuery.setQuestionnaireCode(questionnaireCode);
+                        QuestionnaireScore questionnaireScoreUpdate = questionnaireScoreService.selectOne(questionnaireScoreQuery);
+                        questionnaireScoreUpdate.setScore(totalScore);
+                        questionnaireScoreService.update(questionnaireScoreUpdate,account.getUserCode());
+                    }else {
+                        throw new IllegalArgumentException("问卷问题为空，不能计算得分！");
+                    }
+                }
+            }
+            map.put("status",200);
+        }catch (Exception e){
+            log.error("计算问卷得分失败：msg"+e.getMessage(),e);
+            map.put("msg",e.getMessage());
+        }
         return map;
     }
 
     /**
-     * 导出问题模板
+     * 导出问卷得分
      */
     @RequestMapping(value = "/export", method = {RequestMethod.POST ,RequestMethod.GET})
-    public void exportQuestionTemplate(HttpServletResponse response,QuestionnaireScore questionnaireScoreQuery) {
+    public void export(HttpServletResponse response,QuestionnaireScore questionnaireScoreQuery) {
         try {
             SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
             Date date = new Date();
-            String title = "导入问卷问题模板_" + f.format(date);
+            String title = "导入问卷得分_" + f.format(date);
             String name = title;
             String fileName = new String((name).getBytes(), PoiUtils.Excel_EnCode);
 

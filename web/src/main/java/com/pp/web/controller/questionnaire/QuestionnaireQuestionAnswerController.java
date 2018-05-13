@@ -7,10 +7,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pp.basic.domain.*;
 import com.pp.basic.domain.vo.Answer;
-import com.pp.basic.service.QuestionnaireQuestionAnswerService;
-import com.pp.basic.service.QuestionnaireQuestionService;
-import com.pp.basic.service.QuestionnaireService;
-import com.pp.basic.service.QuestionnaireStudentService;
+import com.pp.basic.service.*;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
 import com.pp.web.account.Account;
@@ -64,6 +61,9 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
 
     @Autowired
     QuestionnaireQuestionService questionnaireQuestionService;
+
+    @Autowired
+    AnswerGroupService answerGroupService;
 
     /**
      * 分页查询
@@ -170,7 +170,7 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
             resultMap.put("status",200);
         } catch (Exception e) {
             resultMap.put("msg",e.getMessage());
-            log.error(e.getMessage(),e);
+            log.error("问卷填写失败"+e.getMessage(),e);
             return resultMap;
         }
         return resultMap;
@@ -183,22 +183,19 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         for (Answer answer:answerList) {
             QuestionnaireQuestionAnswer questionAnswer = new QuestionnaireQuestionAnswer();
             questionAnswer.setAnswer(answer.getAnswer());
-            //取出答案的值 todo 根据不同选项组操作
+            //取出答案的值
             String group = answer.getAnswerGroup();
             if(!StringUtils.isEmpty(group)){
-                if (group.toLowerCase().equals("a")){
-                    if(!StringUtils.isEmpty(answer.getAnswer())){
-                        questionAnswer.setAnswerValue(ChoiceQuestionEnum_A.getName(answer.getAnswer()));
-                    }
-                }else if (group.toLowerCase().equals("b")) {
-                    if(!StringUtils.isEmpty(answer.getAnswer())) {
-                        questionAnswer.setAnswerValue(ChoiceQuestionEnum_B.getName(answer.getAnswer()));
-                    }
-                }else if (group.toLowerCase().equals("c")) {
-                    if(!StringUtils.isEmpty(answer.getAnswer())) {
-                        questionAnswer.setAnswerValue(ChoiceQuestionEnum_C.getName(answer.getAnswer()));
-                    }
+                //准备数据--取出所有选择组
+                AnswerGroup answerGroupQuery = new AnswerGroup();
+                answerGroupQuery.setAnswer(answer.getAnswer());
+                answerGroupQuery.setGroupCode(group);
+                AnswerGroup answerGroup = answerGroupService.selectOne(answerGroupQuery);
+                if(answerGroup == null){
+                    throw new  IllegalArgumentException("回答选项有误!");
                 }
+                questionAnswer.setAnswerValue(answerGroup.getAnswerValue());
+                questionAnswer.setAnswerScore(answerGroup.getAnswerScore());
             }
             if(answer.getIsMustAnswer()!= QuestionnaireQuestionAnswer.IS_MUST_ANSWER && answer.getIsMustAnswer()!=QuestionnaireQuestionAnswer.IS_NOT_MUST_ANSWER ){
                 throw new  IllegalArgumentException("是否必答只能为0或者1");

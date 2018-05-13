@@ -75,12 +75,37 @@ public class LessonController extends BaseController {
             return map;
         }
         int rows = this.lessonService.delete(id, account.getUserCode());
+        //todo 删除课程和老师关系
+        //todo 删除学生和课程关系
         if (rows == 1) {
             map.put("status",200);
             return map;
         }
         map.put("msg","删除失败");
         return map;
+    }
+
+    /**
+     * 详情查询
+     */
+    @RequestMapping(value = "/detail", method = RequestMethod.GET)
+    @ResponseBody
+    public HashMap<String,Object> detail(String lessonCode) {
+
+        Lesson lesson = new Lesson();
+        lesson.setLessonCode(lessonCode);
+        // 执行查询
+        lesson = this.lessonService.selectOne(lesson);
+        // 返回查询结果
+        HashMap<String,Object> returnMap = new HashMap<String,Object>();
+        if (lesson!=null){
+            returnMap.put("lesson",lesson);
+            returnMap.put("status",200);
+        }else {
+            returnMap.put("msg","没有查询到数据");
+            returnMap.put("status",300);
+        }
+        return returnMap;
     }
 
     /**
@@ -348,6 +373,7 @@ public class LessonController extends BaseController {
         }else {
            throw new IllegalArgumentException("课程类型错误！");
         }
+        lesson.setLessonClass(row.getCell(5).toString().trim());
         if (row.getCell(6).toString().trim().equals("是")){
             lesson.setIsMustCheck(1);
         }else  if (row.getCell(6).toString().trim().equals("否")){

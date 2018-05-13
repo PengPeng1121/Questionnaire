@@ -105,7 +105,7 @@ public class SystemController {
             // 名称和格式
             response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xls");
 
-            String[] columnName = {"问题类型（简答题或选择题）", "问题内容", "是否必答（是或否）", "选项组"};
+            String[] columnName = {"问题类型（简答题或选择题）", "问题内容", "是否必答（是或否）", "选项组","问题权重"};
             ServletOutputStream outputStream = response.getOutputStream();
             PoiUtils.export(name, title, columnName, null,outputStream);
         } catch (Exception e) {

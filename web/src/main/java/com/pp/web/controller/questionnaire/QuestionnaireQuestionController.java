@@ -17,6 +17,8 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.util.*;
 
@@ -400,6 +403,7 @@ public class QuestionnaireQuestionController extends BaseController {
         question.setAnswerGroup(questionTemplate.getAnswerGroup());
         question.setQuestionCode(questionTemplate.getQuestionCode());
         question.setQuestionName(questionTemplate.getQuestionName());
+        question.setQuestionScore(questionTemplate.getQuestionScore());
         question.setIsMustAnswer(questionTemplate.getIsMustAnswer());
     }
 
@@ -426,114 +430,149 @@ public class QuestionnaireQuestionController extends BaseController {
     //自动生成问卷
     @RequestMapping(value = "/autoCreate", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> autoCreate(String templateCode,String questionnaireName,String lessonCode,String term,String endTime,String expireTime) {
+    public Map<String,Object> autoCreate(HttpServletRequest request) {
         HashMap<String,Object> map = new HashMap<>();
         map.put("status",300);
-        Account account = AccountUtils.getCurrentAccount();
-        String questionnaireCode = "Q_"+UUID.randomUUID().toString();
-        if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
-            map.put("msg","为管理员操作，当前用户没有管理员权限");
-            return map;
-        }
-        if(StringUtils.isEmpty(templateCode)){
-            map.put("msg","选择模板不能为空");
-            return map;
-        }
-        QuestionnaireQuestionTemplate questionTemplateQuery = new QuestionnaireQuestionTemplate();
-        questionTemplateQuery.setTemplateCode(templateCode);
-        List<QuestionnaireQuestionTemplate> questionTemplates =this.questionnaireQuestionTemplateService.selectList(questionTemplateQuery);
-        if(CollectionUtils.isEmpty(questionTemplates)){
-            map.put("msg","选择模板不能为空");
-            return map;
-        }
-        if(StringUtils.isEmpty(endTime)){
-            map.put("msg","截止时间不能为空");
-            return map;
-        }else  if (StringUtils.isEmpty(lessonCode)){
-            map.put("msg","课程编码不能为空");
-            return map;
-        }else  if (StringUtils.isEmpty(term)){
-            map.put("msg","学期不能为空");
-            return map;
-        }else if (StringUtils.isEmpty(expireTime)){
-            map.put("msg","过期时间不能为空");
-            return map;
-        }else if (StringUtils.isEmpty(questionnaireName)){
-            map.put("msg","问卷名称不能为空");
-            return map;
-        }
         try{
-            //准备数据 问卷问题
-            List<QuestionnaireQuestion> questionnaireQuestionList = new ArrayList<>();
-            for (QuestionnaireQuestionTemplate questionTemplate: questionTemplates) {
-                QuestionnaireQuestion questionnaireQuestion = new QuestionnaireQuestion();
-                copyTemplateData(questionnaireQuestion,questionTemplate);
-                questionnaireQuestion.setQuestionnaireCode(questionnaireCode);
-                questionnaireQuestion.setQuestionnaireName(questionnaireName);
-                questionnaireQuestionList.add(questionnaireQuestion);
-            }
-            //准备数据 问卷
-            Questionnaire questionnaire = new Questionnaire();
-            questionnaire.setQuestionnaireName(questionnaireName);
-            questionnaire.setQuestionnaireCode(questionnaireCode);
-            questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_STUDENT_CODE);
-            questionnaire.setQuestionnaireStatusName(Questionnaire.ALREADY_WITH_STUDENT_NAME);
-            questionnaire.setTerm(term);
-            //截止时间
-            questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime));
-            //过期时间
-            questionnaire.setQuestionnaireExpireTime(DateUtils.timeStamp2Date(expireTime));
-            //根据课程和学期唯一确定
-            Lesson lesson = new Lesson();
-            lesson.setLessonCode(lessonCode);
-            lesson.setTerm(term);
-            lesson = this.lessonService.selectOne(lesson);
-            if(lesson == null){
-                map.put("msg","该课程编码找不到对应课程，请确认");
-                return map;
-            }
-            //查询教师
-            TeacherLesson teacherLesson = new TeacherLesson();
-            teacherLesson.setTerm(term);
-            teacherLesson.setLessonCode(lessonCode);
-            teacherLesson = teacherLessonService.selectOne(teacherLesson);
-            if(teacherLesson == null){
-                map.put("msg","该课程编码找不到对应教师，请确认");
-                return map;
-            }
-            questionnaire.setLessonCode(lesson.getLessonCode());
-            questionnaire.setLessonName(lesson.getLessonName());
-            questionnaire.setTeacherName(teacherLesson.getTeacherName());
-            questionnaire.setTeacherCode(teacherLesson.getTeacherCode());
-            //准备数据 问卷课程
-            QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
-            questionnaireLesson.setLessonCode(lesson.getLessonCode());
-            questionnaireLesson.setLessonName(lesson.getLessonName());
-            questionnaireLesson.setTerm(term);
-            questionnaireLesson.setQuestionnaireCode(questionnaireCode);
-            questionnaireLesson.setQuestionnaireName(questionnaireName);
-            //准备数据 问卷学生
-            StudentLesson studentLessonQuery = new StudentLesson();
-            studentLessonQuery.setLessonCode(lessonCode);
-            List<StudentLesson> studentLessonList =  this.studentLessonService.selectList(studentLessonQuery);
-            List<QuestionnaireStudent> questionnaireStudentList = new ArrayList<>();
-            if(!CollectionUtils.isEmpty(studentLessonList)){
-                for (StudentLesson studentLesson:studentLessonList) {
-                    QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
-                    copyStudentData(studentLesson,questionnaireStudent);
-                    questionnaireStudent.setQuestionnaireCode(questionnaireCode);
-                    questionnaireStudent.setQuestionnaireName(questionnaireName);
-                    questionnaireStudentList.add(questionnaireStudent);
+            String templateCode ="";
+            //问卷名称 学期+课程+教师
+            String questionnaireName ="";
+            String lessonCodes ="";
+            String endTime = "" ;
+            String expireTime = "" ;
+            try {
+                BufferedReader reader = request.getReader();
+                String input = "";
+                StringBuffer requestBody = new StringBuffer();
+                while ((input = reader.readLine()) != null) {
+                    requestBody.append(input);
                 }
-            }else {
-                map.put("msg","没有学生选择该门课程！请确认后操作！");
+                if (StringUtils.isEmpty(requestBody.toString())) {
+                    throw new IllegalArgumentException("至少包含一条数据！");
+                } else {
+                    JSONObject jsonObject = new JSONObject(requestBody.toString());
+                    templateCode = (String)jsonObject.get("templateCode");
+                    expireTime = jsonObject.get("expireTime").toString();
+                    endTime = jsonObject.get("endTime").toString();
+                    lessonCodes = (String) jsonObject.get("lessonCodes");
+                }
+            }catch (Exception e){
+                log.error("入参转换失败:"+e.getMessage(),e);
+            }
+            Account account = AccountUtils.getCurrentAccount();
+            if(!account.getRole().equals(SystemUser.AUTHOR_ADMIN)) {
+                map.put("msg","为管理员操作，当前用户没有管理员权限");
                 return map;
             }
-            //准备数据 问卷学生评分
-            QuestionnaireScore questionnaireScoreInsert = new QuestionnaireScore();
-            copyQuestionnaireData(questionnaire,questionnaireScoreInsert);
-            //开始写入数据库
-            this.questionnaireQuestionService.save(questionnaire,questionnaireScoreInsert,questionnaireLesson,questionnaireQuestionList,questionnaireStudentList,account.getUserCode());
+            if(StringUtils.isEmpty(templateCode)){
+                map.put("msg","选择模板不能为空");
+                return map;
+            }
+            QuestionnaireQuestionTemplate questionTemplateQuery = new QuestionnaireQuestionTemplate();
+            questionTemplateQuery.setTemplateCode(templateCode);
+            List<QuestionnaireQuestionTemplate> questionTemplates =this.questionnaireQuestionTemplateService.selectList(questionTemplateQuery);
+            if(CollectionUtils.isEmpty(questionTemplates)){
+                map.put("msg","选择模板不能为空");
+                return map;
+            }
+            if(endTime == null){
+                map.put("msg","截止时间不能为空");
+                return map;
+            }else  if (StringUtils.isEmpty(lessonCodes)){
+                map.put("msg","课程编码不能为空");
+                return map;
+            }else  if (expireTime == null){
+                map.put("msg","过期时间不能为空");
+                return map;
+            }
+            //循环
+            String[] lessonCodeArray = lessonCodes.split(",");
+            if(lessonCodeArray!=null&& lessonCodeArray.length!=0) {
+                for (int i = 0; i < lessonCodeArray.length; i++) {
+                    String lessonCode = lessonCodeArray[i];
+                    if (StringUtils.isEmpty(lessonCode)) {
+                        continue;
+                    }
+                    //查询教师
+                    TeacherLesson teacherLesson = new TeacherLesson();
+                    teacherLesson.setLessonCode(lessonCode);
+                    teacherLesson = teacherLessonService.selectOne(teacherLesson);
+                    if (teacherLesson == null) {
+                        map.put("msg", "该课程编码找不到对应教师，请确认，编码：" + lessonCode);
+                        log.error("该课程编码找不到对应教师，请确认，编码：" + lessonCode);
+                        return map;
+                    }
+                    String term = teacherLesson.getTerm();
+                    questionnaireName = term + "-" + teacherLesson.getLessonName() + "-" + teacherLesson.getTeacherName();
+                    String questionnaireCode = "Q_"+UUID.randomUUID().toString();
+                    //准备数据 问卷问题
+                    List<QuestionnaireQuestion> questionnaireQuestionList = new ArrayList<>();
+                    for (QuestionnaireQuestionTemplate questionTemplate : questionTemplates) {
+                        QuestionnaireQuestion questionnaireQuestion = new QuestionnaireQuestion();
+                        copyTemplateData(questionnaireQuestion, questionTemplate);
+                        questionnaireQuestion.setQuestionnaireCode(questionnaireCode);
+                        questionnaireQuestion.setQuestionnaireName(questionnaireName);
+                        questionnaireQuestionList.add(questionnaireQuestion);
+                    }
+                    //准备数据 问卷
+                    Questionnaire questionnaire = new Questionnaire();
+                    questionnaire.setQuestionnaireName(questionnaireName);
+                    questionnaire.setQuestionnaireCode(questionnaireCode);
+                    questionnaire.setQuestionnaireStatusCode(Questionnaire.ALREADY_WITH_STUDENT_CODE);
+                    questionnaire.setQuestionnaireStatusName(Questionnaire.ALREADY_WITH_STUDENT_NAME);
+                    questionnaire.setTerm(term);
+                    questionnaire.setTemplateCode(templateCode);
+                    //截止时间
+                    questionnaire.setQuestionnaireEndTime(DateUtils.timeStamp2Date(endTime.toString()));
+                    //过期时间
+                    questionnaire.setQuestionnaireExpireTime(DateUtils.timeStamp2Date(expireTime.toString()));
+                    //根据课程和学期唯一确定
+                    Lesson lesson = new Lesson();
+                    lesson.setLessonCode(lessonCode);
+                    lesson.setTerm(term);
+                    lesson = this.lessonService.selectOne(lesson);
+                    if (lesson == null) {
+                        map.put("msg", "该课程编码找不到对应课程，请确认，编码：" + lessonCode);
+                        log.error("该课程编码找不到对应课程，请确认，编码：" + lessonCode);
+                        return map;
+                    }
+
+                    questionnaire.setLessonCode(lesson.getLessonCode());
+                    questionnaire.setLessonName(lesson.getLessonName());
+                    questionnaire.setTeacherName(teacherLesson.getTeacherName());
+                    questionnaire.setTeacherCode(teacherLesson.getTeacherCode());
+                    //准备数据 问卷课程
+                    QuestionnaireLesson questionnaireLesson = new QuestionnaireLesson();
+                    questionnaireLesson.setLessonCode(lesson.getLessonCode());
+                    questionnaireLesson.setLessonName(lesson.getLessonName());
+                    questionnaireLesson.setTerm(term);
+                    questionnaireLesson.setQuestionnaireCode(questionnaireCode);
+                    questionnaireLesson.setQuestionnaireName(questionnaireName);
+                    //准备数据 问卷学生
+                    StudentLesson studentLessonQuery = new StudentLesson();
+                    studentLessonQuery.setLessonCode(lessonCode);
+                    List<StudentLesson> studentLessonList = this.studentLessonService.selectList(studentLessonQuery);
+                    List<QuestionnaireStudent> questionnaireStudentList = new ArrayList<>();
+                    if (!CollectionUtils.isEmpty(studentLessonList)) {
+                        for (StudentLesson studentLesson : studentLessonList) {
+                            QuestionnaireStudent questionnaireStudent = new QuestionnaireStudent();
+                            copyStudentData(studentLesson, questionnaireStudent);
+                            questionnaireStudent.setQuestionnaireCode(questionnaireCode);
+                            questionnaireStudent.setQuestionnaireName(questionnaireName);
+                            questionnaireStudentList.add(questionnaireStudent);
+                        }
+                    } else {
+                        map.put("msg", "没有学生选择该门课程！请确认后操作！，编码：" + lessonCode);
+                        log.error("没有学生选择该门课程！请确认后操作！，编码：" + lessonCode);
+                        return map;
+                    }
+                    //准备数据 问卷学生评分
+                    QuestionnaireScore questionnaireScoreInsert = new QuestionnaireScore();
+                    copyQuestionnaireData(questionnaire, questionnaireScoreInsert);
+                    //开始写入数据库
+                    this.questionnaireQuestionService.save(questionnaire, questionnaireScoreInsert, questionnaireLesson, questionnaireQuestionList, questionnaireStudentList, account.getUserCode());
+                }
+            }
         }catch (Exception e){
             log.error("生成调查问卷失败,msg:"+e.getMessage(),e);
             map.put("msg","生成调查问卷失败,msg:"+e.getMessage());

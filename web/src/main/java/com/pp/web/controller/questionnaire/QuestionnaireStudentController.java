@@ -43,7 +43,7 @@ public class QuestionnaireStudentController extends BaseController {
     QuestionnaireStudentService questionnaireStudentService;
 
     /**
-     * 分页查询 //TODO 过期不显示
+     * 分页查询
      */
     @RequestMapping(value = "/pageQuery", method = RequestMethod.GET)
     @ResponseBody
@@ -72,6 +72,8 @@ public class QuestionnaireStudentController extends BaseController {
         if(StringUtils.isNotEmpty(term)){
             param.put("term",term);
         }
+        //过期时间--过期时间到了不显示
+        param.put("questionnaireExpireTime",new Date());
         // 执行查询
         questionnaireInfoVoPage = this.questionnaireStudentService.showStudentQuestionnaire(param, questionnaireInfoVoPage);
         // 返回查询结果
@@ -98,8 +100,6 @@ public class QuestionnaireStudentController extends BaseController {
     @RequestMapping(value = "/findUnDoQuestionnaire",method ={RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
     public HashMap<String,Object> findUnDoQuestionnaire(Integer pageIndex) {
-        //TODO 过期不显示
-
         // 设置合理的参数
         if (pageIndex == null || pageIndex < 1) {
             pageIndex = 1;
@@ -120,7 +120,8 @@ public class QuestionnaireStudentController extends BaseController {
         // 执行查询
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("studentCode",account.getUserCode());
-
+        //过期时间--过期时间到了不显示
+        map.put("questionnaireExpireTime",new Date());
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         try {
             map.put("questionnaireProcessStatusCode",QuestionnaireStudent.PROCESS_CODE_UNDO);

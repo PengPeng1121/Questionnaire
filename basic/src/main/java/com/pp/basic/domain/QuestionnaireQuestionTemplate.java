@@ -39,6 +39,8 @@ public final class QuestionnaireQuestionTemplate extends AbstractEntity {
     // 问题选项组
     private String answerGroup;
 
+    // 问题权重
+    private Integer questionScore;
     /**
      * 设置模板编号
      * 
@@ -167,4 +169,11 @@ public final class QuestionnaireQuestionTemplate extends AbstractEntity {
         return this.answerGroup;
     }
 
+    public Integer getQuestionScore() {
+        return questionScore;
+    }
+
+    public void setQuestionScore(Integer questionScore) {
+        this.questionScore = questionScore;
+    }
 }

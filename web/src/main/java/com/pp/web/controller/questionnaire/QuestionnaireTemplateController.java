@@ -134,7 +134,8 @@ public class QuestionnaireTemplateController extends BaseController {
         // 返回查询结果
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         if (!CollectionUtils.isEmpty(questionTemplates)){
-            returnMap.put("questionTemplates",questionTemplates);
+            returnMap.put("questions",questionTemplates);
+            returnMap.put("templateName",questionTemplates.get(0).getTemplateName());
             returnMap.put("status",200);
         }else {
             returnMap.put("msg","没有查询到数据");
@@ -145,7 +146,7 @@ public class QuestionnaireTemplateController extends BaseController {
 
     @RequestMapping(value = "/importQuestionTemplate", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> importQuestion(HttpServletRequest request, String templateName) {
+    public Map<String,Object> importQuestion(HttpServletRequest request) {
         HashMap<String,Object> map = new HashMap<>();
         map.put("status",300);
         Account account = AccountUtils.getCurrentAccount();
@@ -154,14 +155,6 @@ public class QuestionnaireTemplateController extends BaseController {
             map.put("msg","为管理员操作，当前用户没有管理员权限");
             return map;
         }
-        if(StringUtils.isEmpty(templateName)){
-            map.put("msg","模板名称不能空");
-            return map;
-        }
-        QuestionnaireTemplate template = new QuestionnaireTemplate();
-        //准备数据
-        template.setTemplateCode(templateCode);
-        template.setTemplateName(templateName);
 
         // 保存附件
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
@@ -175,6 +168,11 @@ public class QuestionnaireTemplateController extends BaseController {
         int fileNameLength = fileName.length();
         String prefix = fileName.substring(lastIndexOfDot + 1, fileNameLength);
         try {
+            QuestionnaireTemplate template = new QuestionnaireTemplate();
+            //准备数据
+            template.setTemplateCode(templateCode);
+            //文件名为模板名
+            template.setTemplateName(fileName.substring(0,lastIndexOfDot));
             if (prefix.toLowerCase().equals("xlsx") || prefix.toLowerCase().equals("xls")) {
                 InputStream in = multipartFile.getInputStream();
                 HSSFWorkbook wb = new HSSFWorkbook(in);
@@ -208,6 +206,7 @@ public class QuestionnaireTemplateController extends BaseController {
                 }else {
                     map.put("msg","写入失败：原因是模板内容为空！");
                 }
+                map.put("status",200);
             }
         } catch (Exception e) {
             map.put("msg", "导入失败说明：数据导入异常！"+e.getMessage());
@@ -264,6 +263,7 @@ public class QuestionnaireTemplateController extends BaseController {
                 questionTemplate.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_CHOICE);
                 questionTemplate.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_CHOICE);
                 questionTemplate.setAnswerGroup(row.getCell(3).toString());
+                questionTemplate.setQuestionScore(Integer.parseInt(row.getCell(4).toString()));
             } else {
                 questionTemplate.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_DESC);
                 questionTemplate.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_DESC);

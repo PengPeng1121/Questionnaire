@@ -138,15 +138,17 @@ public class SystemUserController extends BaseController {
      */
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
-    public HashMap<String,Object> delete(Long id) {
+    public HashMap<String,Object> delete(String userCode) {
         Account account = AccountUtils.getCurrentAccount();
         HashMap<String,Object> returnMap = new HashMap<String,Object>();
         returnMap.put("status",300);
         try {
-            SystemUser systemUser = this.systemUserService.selectOne(id);
-            this.systemUserService.delete(id, account.getUserCode());
+            SystemUser systemUser = new SystemUser();
+            systemUser.setUserCode(userCode);
+            systemUser = this.systemUserService.selectOne(systemUser);
             Student student = new Student();
             if(systemUser!=null){
+                this.systemUserService.delete(systemUser.getId(), account.getUserCode());
                 student.setStudentCode(systemUser.getUserCode());
                 student = this.studentService.selectOne(student);
                 if(student!=null){
@@ -154,6 +156,8 @@ public class SystemUserController extends BaseController {
                 }else {
                     return returnMap;
                 }
+            }else {
+                throw new IllegalArgumentException("没有找到该用户！"+userCode);
             }
             returnMap.put("status",200);
         }catch (Exception e){

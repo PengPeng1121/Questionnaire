@@ -5,6 +5,7 @@ package com.pp.basic.domain;
 
 import java.util.Date;
 
+import com.pp.common.annotation.Transient;
 import com.pp.common.core.AbstractEntity;
 
 /**
@@ -26,11 +27,16 @@ public final class SystemConfig extends AbstractEntity {
     // 提醒时间
     private Date remindTime;
 
+    //截止时间
+    @Transient
+    private Date endTime;
+
     // 提醒时间开始查询条件
     private transient Date remindTimeBegin;
 
     // 提醒时间截止查询条件
     private transient Date remindTimeEnd;
+
 
     /**
      * 设置问卷编号
@@ -112,4 +118,11 @@ public final class SystemConfig extends AbstractEntity {
         return this.remindTimeEnd;
     }
 
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
+    }
 }

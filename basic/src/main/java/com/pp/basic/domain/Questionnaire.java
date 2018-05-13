@@ -77,6 +77,8 @@ public final class Questionnaire extends AbstractEntity {
     // 学期
     private String term;
 
+    // 模板编号
+    private String templateCode;
     /**
      * 设置问卷编号
      * 
@@ -227,5 +229,13 @@ public final class Questionnaire extends AbstractEntity {
 
     public void setQuestionnaireExpireTimeEnd(Date questionnaireExpireTimeEnd) {
         this.questionnaireExpireTimeEnd = questionnaireExpireTimeEnd;
+    }
+
+    public String getTemplateCode() {
+        return templateCode;
+    }
+
+    public void setTemplateCode(String templateCode) {
+        this.templateCode = templateCode;
     }
 }

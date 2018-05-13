@@ -22,6 +22,8 @@ public class QuestionnaireInfoVo implements Serializable {
     // 教师姓名
     private String teacherName;
 
+    private Date questionnaireExpireTime;
+
     private Date questionnaireEndTime;
 
     private String questionnaireProcessStatusName;
@@ -82,5 +84,13 @@ public class QuestionnaireInfoVo implements Serializable {
 
     public void setTerm(String term) {
         this.term = term;
+    }
+
+    public Date getQuestionnaireExpireTime() {
+        return questionnaireExpireTime;
+    }
+
+    public void setQuestionnaireExpireTime(Date questionnaireExpireTime) {
+        this.questionnaireExpireTime = questionnaireExpireTime;
     }
 }

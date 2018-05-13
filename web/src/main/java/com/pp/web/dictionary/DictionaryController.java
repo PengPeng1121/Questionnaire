@@ -1,14 +1,10 @@
 package com.pp.web.dictionary;
 
-import com.pp.basic.domain.Lesson;
-import com.pp.basic.domain.Student;
-import com.pp.basic.domain.TeacherLesson;
+import com.pp.basic.domain.*;
+import com.pp.basic.service.AnswerGroupService;
 import com.pp.basic.service.LessonService;
-import com.pp.basic.service.StudentService;
+import com.pp.basic.service.QuestionnaireTemplateService;
 import com.pp.basic.service.TeacherLessonService;
-import com.pp.web.common.ChoiceQuestionEnum_A;
-import com.pp.web.common.ChoiceQuestionEnum_B;
-import com.pp.web.common.ChoiceQuestionEnum_C;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 /**
@@ -32,6 +26,12 @@ public class DictionaryController {
 
     @Autowired
     TeacherLessonService teacherLessonService;
+
+    @Autowired
+    AnswerGroupService answerGroupService;
+
+    @Autowired
+    QuestionnaireTemplateService questionnaireTemplateService;
 
     /**
      * 查询字典  课程和教师
@@ -64,24 +64,49 @@ public class DictionaryController {
     public Map<String,Object> dictionaryChoice(String group) throws IllegalAccessException {
         Map<String,Object> map = new HashMap<>();
         Map<String,Object> answerMap = new HashMap<>();
-        if(group.toLowerCase().equals("a")){
-            map.put("A", ChoiceQuestionEnum_A.CHOICE_A.getName());
-            map.put("B", ChoiceQuestionEnum_A.CHOICE_B.getName());
-            map.put("C", ChoiceQuestionEnum_A.CHOICE_C.getName());
-            map.put("D", ChoiceQuestionEnum_A.CHOICE_D.getName());
-            map.put("E", ChoiceQuestionEnum_A.CHOICE_E.getName());
-        }else if(group.toLowerCase().equals("b")){
-            map.put("A", ChoiceQuestionEnum_B.CHOICE_A.getName());
-            map.put("B", ChoiceQuestionEnum_B.CHOICE_B.getName());
-        }else if(group.toLowerCase().equals("c")){
-            map.put("A", ChoiceQuestionEnum_C.CHOICE_A.getName());
-            map.put("B", ChoiceQuestionEnum_C.CHOICE_B.getName());
-            map.put("C", ChoiceQuestionEnum_C.CHOICE_C.getName());
-            map.put("D", ChoiceQuestionEnum_C.CHOICE_D.getName());
-            map.put("E", ChoiceQuestionEnum_C.CHOICE_E.getName());
+
+        AnswerGroup answerGroupQuery = new AnswerGroup();
+        answerGroupQuery.setGroupCode(group);
+        List<AnswerGroup> groups = answerGroupService.selectList(answerGroupQuery);
+        for (AnswerGroup answerGroup:groups) {
+            map.put(answerGroup.getAnswer(),answerGroup.getAnswerValue());
         }
         answerMap.put("answers",map);
         return answerMap;
+    }
+
+    @RequestMapping(value = "/allGroup", method ={RequestMethod.POST,RequestMethod.GET} )
+    @ResponseBody
+    public Map<String,Object> allGroup() throws IllegalAccessException {
+        Map<String,Object> answerMap = new HashMap<>();
+        Map<String,Object> resultMap = new HashMap<>();
+        List<AnswerGroup> allGroup = answerGroupService.selectAll();
+        Set<String> groupSet = new HashSet<>();
+        for (AnswerGroup answerGroup:allGroup) {
+            groupSet.add(answerGroup.getGroupCode());
+        }
+        for (String group: groupSet) {
+            Map<String,Object> map = new HashMap<>();
+            AnswerGroup answerGroupQuery = new AnswerGroup();
+            answerGroupQuery.setGroupCode(group);
+            List<AnswerGroup> groups = answerGroupService.selectList(answerGroupQuery);
+            for (AnswerGroup answerGroup:groups) {
+                map.put(answerGroup.getAnswer(),answerGroup.getAnswerValue());
+            }
+            answerMap.put(group,map);
+        }
+        resultMap.put("groups",answerMap);
+        return resultMap;
+    }
+
+    @RequestMapping(value = "/allTemplate", method ={RequestMethod.POST,RequestMethod.GET} )
+    @ResponseBody
+    public Map<String,Object> allTemplate() throws IllegalAccessException {
+
+        Map<String,Object> resultMap = new HashMap<>();
+        List<QuestionnaireTemplate> allTemplate = questionnaireTemplateService.selectAll();
+        resultMap.put("templates",allTemplate);
+        return resultMap;
     }
 
     @RequestMapping(value = "/findTeacherByTermAndLesson", method ={RequestMethod.POST,RequestMethod.GET} )

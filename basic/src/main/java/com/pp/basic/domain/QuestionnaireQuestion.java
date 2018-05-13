@@ -44,6 +44,9 @@ public final class QuestionnaireQuestion extends AbstractEntity {
     // 问题类型名称 选择题 ；简答题
     private String questionTypeName;
 
+    // 问题权重
+    private Integer questionScore;
+
     // 是否必答题 0 ：否 ；1是
     private Integer isMustAnswer;
 
@@ -168,5 +171,13 @@ public final class QuestionnaireQuestion extends AbstractEntity {
 
     public void setAnswerGroup(String answerGroup) {
         this.answerGroup = answerGroup;
+    }
+
+    public Integer getQuestionScore() {
+        return questionScore;
+    }
+
+    public void setQuestionScore(Integer questionScore) {
+        this.questionScore = questionScore;
     }
 }
