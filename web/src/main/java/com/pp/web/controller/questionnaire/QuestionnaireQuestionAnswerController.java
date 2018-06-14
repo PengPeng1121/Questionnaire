@@ -197,9 +197,13 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
                 questionAnswer.setAnswerValue(answerGroup.getAnswerValue());
                 questionAnswer.setAnswerScore(answerGroup.getAnswerScore());
             }
+
             if(answer.getIsMustAnswer()!= QuestionnaireQuestionAnswer.IS_MUST_ANSWER && answer.getIsMustAnswer()!=QuestionnaireQuestionAnswer.IS_NOT_MUST_ANSWER ){
-                throw new  IllegalArgumentException("是否必答只能为0或者1");
+                throw new IllegalArgumentException("是否必答只能为0或者1");
             }else {
+                if(answer.getIsMustAnswer().equals( QuestionnaireQuestionAnswer.IS_MUST_ANSWER)&& StringUtils.isEmpty(answer.getAnswer())){
+                    throw new IllegalArgumentException("必答题必须回答，题目名称："+ answer.getQuestionName());
+                }
                 questionAnswer.setIsMustAnswer(answer.getIsMustAnswer());
             }
             if(answer.getQuestionTypeCode().equals(QuestionnaireQuestionAnswer.QUESTION_TYPE_CODE_CHOICE)){

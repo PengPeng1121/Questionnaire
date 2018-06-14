@@ -228,7 +228,7 @@ public class LessonController extends BaseController {
                         TeacherLesson teacherLesson = new TeacherLesson();
                         LessonContrast lessonContrast = new LessonContrast();
                         checkIsEmpty(failData,row,i,lesson,teacherLesson,teacherMap,lessonContrast);
-                        if (failData.getFailReason() == null) {
+                        if (StringUtils.isEmpty(failData.getFailReason())) {
                             lessonList.add(lesson);
                             teacherLessons.add(teacherLesson);
                             lessonContrasts.add(lessonContrast);
@@ -244,6 +244,7 @@ public class LessonController extends BaseController {
                     return map;
                 }
                 //课程
+                log.info("-----------------------------开始写入数据库---------------------");
                 List<Lesson> subLessons = new ArrayList<>();
                 List<TeacherLesson> subTeacherLessonList = new ArrayList<>();
                 List<LessonContrast> subLessonContrastList = new ArrayList<>();
@@ -303,9 +304,15 @@ public class LessonController extends BaseController {
                         map.put("msg","写入失败：" + r.getMessage());
                     }
                 }
-                if (CollectionUtils.isNotEmpty(resultList)) {
+                log.info("-----------------------------写入数据库完成---------------------");
+                if (CollectionUtils.isNotEmpty(resultList)||(lessonList.size()==(rows-2))) {
                     map.put("list", resultList);
                     map.put("size", resultList.size());
+                    String msg = "";
+                    for(InitLessonFail fail:resultList){
+                        msg +=fail.getFailReason();
+                    }
+                    map.put("msg", "数据导入失败！原因："+msg);
                 } else {
                     map.put("status", 200);
                     map.put("msg", "数据导入全部成功！");
@@ -322,7 +329,7 @@ public class LessonController extends BaseController {
     }
 
     //根据规则 过滤一行中必须填的内容 是否为空
-    private void checkIsEmpty(InitLessonFail data, HSSFRow row, int i, Lesson lesson, TeacherLesson teacherLesson, HashMap<String,String> teacherMap, LessonContrast lessonContrast) {
+    private void checkIsEmpty(InitLessonFail data, HSSFRow row, int i,Lesson lesson, TeacherLesson teacherLesson, HashMap<String,String> teacherMap,LessonContrast lessonContrast) {
         StringBuilder reason = new StringBuilder("");
         reason.append("第").append(i + 1).append("行的");
         Boolean flag = true;
@@ -357,51 +364,61 @@ public class LessonController extends BaseController {
             }
             reason.append("不能为空");
         } catch (Exception e) {
+            log.error("-----------------------------"+reason.toString());
             flag = false;
         }
+        log.info("-----------------------------"+reason.toString());
         if (!flag) {
             data.setLessonCode(row.getCell(0).toString());
             data.setFailReason(reason.toString());
             return ;
         }
-        if (row.getCell(2).toString().trim().equals("0")){
-            lesson.setLessonTypeCode(row.getCell(2).toString());
-            lesson.setLessonTypeName("实践课");
-        }else  if (row.getCell(2).toString().trim().equals("1")){
-            lesson.setLessonTypeCode(row.getCell(2).toString());
-            lesson.setLessonTypeName("理论课");
-        }else {
-           throw new IllegalArgumentException("课程类型错误！");
-        }
-        lesson.setLessonClass(row.getCell(5).toString().trim());
-        if (row.getCell(6).toString().trim().equals("是")){
-            lesson.setIsMustCheck(1);
-        }else  if (row.getCell(6).toString().trim().equals("否")){
-            lesson.setIsMustCheck(0);
-        }else {
-            throw new IllegalArgumentException("是否必修类型错误！");
-        }
-        String teacherCode = teacherMap.get(row.getCell(3).toString().trim());
-        if(StringUtils.isEmpty(teacherCode)){
-            throw new IllegalArgumentException("没有该教师（！"+row.getCell(3).toString().trim()+")信息");
-        }
-        //本系统的课程编码为 东大的课程编码+"_"+教师编码+"_"+学期
-        String lessonCode = row.getCell(0).toString().trim()+"_"+teacherCode+"_"+row.getCell(4).toString().trim();
 
-        lesson.setLessonCode(lessonCode);
-        lesson.setLessonName(row.getCell(1).toString().trim());
-        lesson.setLessonTeacherCode(teacherCode);
-        lesson.setLessonTeacherName(row.getCell(3).toString().trim());
-        lesson.setTerm(row.getCell(4).toString().trim());
+        try{
+            String teacherCode = teacherMap.get(row.getCell(3).toString().trim());
+            //本系统的课程编码为 东大的课程编码+"_"+教师编码+"_"+学期
+            String lessonCode = row.getCell(0).toString().trim()+"_"+teacherCode+"_"+row.getCell(4).toString().trim();
 
-        teacherLesson.setLessonCode(lessonCode);
-        teacherLesson.setLessonName(row.getCell(1).toString().trim());
-        teacherLesson.setTeacherCode(lesson.getLessonTeacherCode());
-        teacherLesson.setTeacherName(row.getCell(3).toString().trim());
-        teacherLesson.setTerm(row.getCell(4).toString().trim());
+            if (row.getCell(2).toString().trim().equals("0")){
+                lesson.setLessonTypeCode(row.getCell(2).toString());
+                lesson.setLessonTypeName("实践课");
+            }else  if (row.getCell(2).toString().trim().equals("1")){
+                lesson.setLessonTypeCode(row.getCell(2).toString());
+                lesson.setLessonTypeName("理论课");
+            }else {
+                throw new IllegalArgumentException("课程类型错误！");
+            }
+            if (row.getCell(6).toString().trim().equals("是")){
+                lesson.setIsMustCheck(1);
+            }else  if (row.getCell(6).toString().trim().equals("否")){
+                lesson.setIsMustCheck(0);
+            }else {
+                throw new IllegalArgumentException("是否必修类型错误！");
+            }
+            //本系统的上课班级  String lessonClasses = "通信1501-03;电子1504-16;计算机1501";
+            lesson.setLessonClass(row.getCell(5).toString().trim());
 
-        lessonContrast.setLessonCode(lessonCode);
-        lessonContrast.setLessonCodeNeu(row.getCell(0).toString().trim());
+            lesson.setLessonCode(lessonCode);
+            lesson.setLessonName(row.getCell(1).toString().trim());
+            lesson.setLessonTeacherCode(teacherCode);
+            lesson.setLessonTeacherName(row.getCell(3).toString().trim());
+            lesson.setTerm(row.getCell(4).toString().trim());
+
+            if(StringUtils.isEmpty(teacherCode)){
+                throw new IllegalArgumentException("没有该教师（！"+row.getCell(3).toString().trim()+")信息");
+            }
+            teacherLesson.setLessonCode(lessonCode);
+            teacherLesson.setLessonName(row.getCell(1).toString().trim());
+            teacherLesson.setTeacherCode(teacherCode);
+            teacherLesson.setTeacherName(row.getCell(3).toString().trim());
+            teacherLesson.setTerm(row.getCell(4).toString().trim());
+
+            lessonContrast.setLessonCode(lessonCode);
+            lessonContrast.setLessonCodeNeu(row.getCell(0).toString().trim());
+        }catch (Exception e){
+            log.error("处理课程excel中班级数据失败："+e.getMessage(),e);
+            throw new IllegalArgumentException("处理课程excel中班级数据失败："+e.getMessage());
+        }
     }
 
 }

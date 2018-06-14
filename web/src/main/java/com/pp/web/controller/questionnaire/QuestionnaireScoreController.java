@@ -137,12 +137,10 @@ public class QuestionnaireScoreController extends BaseController {
                                 for (QuestionnaireQuestionAnswer answer:answerList) {
                                     questionScore+=answer.getAnswerScore();
                                 }
-                                totalScore = totalScore + questionScore/answerList.size()*question.getQuestionScore();
-                            }else {
-                                totalScore = 100000;
+                                totalScore = totalScore + questionScore/answerList.size()*question.getQuestionScore()/100;
                             }
                         }
-                        totalScore = totalScore/questions.size();
+//                        totalScore = totalScore/questions.size();
                         //写入数据保存
                         QuestionnaireScore questionnaireScoreQuery = new QuestionnaireScore();
                         questionnaireScoreQuery.setQuestionnaireCode(questionnaireCode);

@@ -58,23 +58,26 @@ public class StudentLessonServiceImpl extends AbstractGenericService<StudentLess
         }
         //查询学生
         for (Lesson lesson:lessons) {
-            Student studentQuery = new Student();
-            studentQuery.setStudentClass(lesson.getLessonClass());
-            studentQuery.setIsStudentGraduate(0);
-            List<Student> students = studentService.selectList(studentQuery);
-            for(Student student :students){
-                StudentLesson insertStudentLesson = new StudentLesson();
-                insertStudentLesson.setTerm(studentlesson.getTerm());
-                insertStudentLesson.setStudentCode(student.getStudentCode());
-                insertStudentLesson.setStudentName(student.getStudentName());
-                insertStudentLesson.setLessonCode(lesson.getLessonCode());
-                insertStudentLesson.setLessonName(lesson.getLessonName());
-                insertStudentLesson.setIsMustCheck(1);
-                insertStudentLesson.setCreateTime(new Date());
-                insertStudentLesson.setUpdateTime(new Date());
-                insertStudentLesson.setCreateUser(studentlesson.getUpdateUser());
-                insertStudentLesson.setUpdateUser(studentlesson.getUpdateUser());
-                insertStudentLessons.add(insertStudentLesson);
+            List<String> lessonClasses = getClassUtil(lesson.getLessonClass());
+            for (String lessonClass:lessonClasses) {
+                Student studentQuery = new Student();
+                studentQuery.setStudentClass(lessonClass);
+                studentQuery.setIsStudentGraduate(0);
+                List<Student> students = studentService.selectList(studentQuery);
+                for(Student student :students){
+                    StudentLesson insertStudentLesson = new StudentLesson();
+                    insertStudentLesson.setTerm(studentlesson.getTerm());
+                    insertStudentLesson.setStudentCode(student.getStudentCode());
+                    insertStudentLesson.setStudentName(student.getStudentName());
+                    insertStudentLesson.setLessonCode(lesson.getLessonCode());
+                    insertStudentLesson.setLessonName(lesson.getLessonName());
+                    insertStudentLesson.setIsMustCheck(1);
+                    insertStudentLesson.setCreateTime(new Date());
+                    insertStudentLesson.setUpdateTime(new Date());
+                    insertStudentLesson.setCreateUser(studentlesson.getUpdateUser());
+                    insertStudentLesson.setUpdateUser(studentlesson.getUpdateUser());
+                    insertStudentLessons.add(insertStudentLesson);
+                }
             }
         }
         autoInitRelationTransactional(delStudentLessons,insertStudentLessons);
@@ -91,6 +94,48 @@ public class StudentLessonServiceImpl extends AbstractGenericService<StudentLess
             studentLessonManager.deletePhysically(delIds);
         }
         //写入新关系
-        studentLessonManager.insert(insertStudentLessons);
+        List<StudentLesson> subStudent = new ArrayList<>();
+        for (StudentLesson studentLesson : insertStudentLessons) {
+            subStudent.add(studentLesson);
+            if (subStudent.size() == 200) {
+                this.studentLessonManager.insert(subStudent);
+                subStudent = new ArrayList<>();
+            }
+        }
+        if (subStudent.size() > 0) {
+            studentLessonManager.insert(subStudent);
+        }
+    }
+
+    //从lesson 的lessonClass中取出课程名
+    private List<String> getClassUtil(String classNames){
+        //  String lessonClasses = "通信1501-03;电子1504-16;计算机1501";
+
+        List<String> className = new ArrayList<String>();
+        String major[] = classNames.split(";");
+        for (int i =0;i<major.length;i++){
+            if(major[i].contains("-")){
+                String classPre = major[i].substring(0,major[i].indexOf("-")-2);
+
+                String startClass = major[i].substring(major[i].indexOf("-")-2,major[i].indexOf("-"));
+
+                String endClass = major[i].substring(major[i].indexOf("-")+1,major[i].length());
+
+                Integer startNum = Integer.parseInt(startClass);
+                Integer endNum = Integer.parseInt(endClass);
+
+                while (startNum<=endNum){
+                    if(startNum>9){
+                        className.add(classPre+startNum);
+                    }else {
+                        className.add(classPre+"0"+startNum);
+                    }
+                    startNum++;
+                }
+            }else {
+                className.add(major[i]);
+            }
+        }
+        return className;
     }
 }
