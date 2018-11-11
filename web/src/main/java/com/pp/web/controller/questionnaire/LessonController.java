@@ -74,9 +74,37 @@ public class LessonController extends BaseController {
             map.put("msg","为管理员操作，当前用户没有管理员权限");
             return map;
         }
+        //删除学生和课程关系
+        Lesson lesson = this.lessonService.selectOne(id);
+        if(lesson==null){
+            map.put("msg","没有找到该课程");
+            return map;
+        }
+        StudentLesson studentLesson = new StudentLesson();
+        studentLesson.setLessonCode(lesson.getLessonCode());
+        studentLesson.setTerm(lesson.getTerm());
+        List<StudentLesson> delStudentLessons = studentLessonService.selectList(studentLesson);
+        if(!CollectionUtils.isEmpty(delStudentLessons)){
+            List<Long> delIds = new ArrayList<>();
+            for(StudentLesson del:delStudentLessons){
+                delIds.add(del.getId());
+            }
+            this.studentLessonService.delete(delIds,account.getUserCode());
+        }
+        //删除课程和老师关系
+        TeacherLesson teacherLesson = new TeacherLesson();
+        teacherLesson.setLessonCode(lesson.getLessonCode());
+        teacherLesson.setTerm(lesson.getTerm());
+        List<TeacherLesson> delTeacherLessons = teacherLessonService.selectList(teacherLesson);
+        if(!CollectionUtils.isEmpty(delTeacherLessons)){
+            List<Long> delIds = new ArrayList<>();
+            for(TeacherLesson del:delTeacherLessons){
+                delIds.add(del.getId());
+            }
+            this.teacherLessonService.delete(delIds,account.getUserCode());
+        }
+        //删除课程
         int rows = this.lessonService.delete(id, account.getUserCode());
-        //todo 删除课程和老师关系
-        //todo 删除学生和课程关系
         if (rows == 1) {
             map.put("status",200);
             return map;

@@ -74,6 +74,12 @@ public class QuestionnaireQuestionController extends BaseController {
     @Autowired
     QuestionnaireScoreService questionnaireScoreService;
 
+    @Autowired
+    SystemConfigService systemConfigService;
+
+    @Autowired
+    SystemConstantService systemConstantService;
+
     Logger log = LoggerFactory.getLogger(QuestionnaireQuestionController.class.getName());
 
     @RequestMapping(value = "/queryQuestionAndQuestionnaire", method ={RequestMethod.POST,RequestMethod.GET})
@@ -296,6 +302,23 @@ public class QuestionnaireQuestionController extends BaseController {
             QuestionnaireScore questionnaireScoreInsert = new QuestionnaireScore();
             copyQuestionnaireData(questionnaire,questionnaireScoreInsert);
             questionnaireScoreService.insert(questionnaireScoreInsert,account.getUserCode());
+            //写入提醒表
+            try{
+                SystemConstant systemConstantQuery = new SystemConstant();
+                systemConstantQuery.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
+                List<SystemConstant> list = this.systemConstantService.selectList(systemConstantQuery);
+                if(!CollectionUtils.isEmpty(list)){
+                    SystemConstant constant = list.get(0);
+                    Long time = Integer.parseInt(constant.getConstant())*24*60*60*1000L;
+                    SystemConfig insertConfig = new SystemConfig();
+                    insertConfig.setRemindTime(getDiffDate(questionnaire.getQuestionnaireEndTime(),time));
+                    insertConfig.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+                    insertConfig.setQuestionnaireName(questionnaire.getQuestionnaireName());
+                    this.systemConfigService.insert(insertConfig,account.getUserCode());
+                }
+            }catch (Exception e){
+                log.error("写入提醒表失败,msg:"+e.getMessage(),e);
+            }
         }catch (Exception e){
             if(questionnaire!=null){
                 this.questionnaireService.delete(questionnaire.getId(), account.getUserCode());
@@ -571,6 +594,23 @@ public class QuestionnaireQuestionController extends BaseController {
                     copyQuestionnaireData(questionnaire, questionnaireScoreInsert);
                     //开始写入数据库
                     this.questionnaireQuestionService.save(questionnaire, questionnaireScoreInsert, questionnaireLesson, questionnaireQuestionList, questionnaireStudentList, account.getUserCode());
+                    //写入提醒表
+                    try{
+                        SystemConstant systemConstantQuery = new SystemConstant();
+                        systemConstantQuery.setConstantType(SystemConstant.CONSTANT_TYPE_EXPIRES);
+                        List<SystemConstant> list = this.systemConstantService.selectList(systemConstantQuery);
+                        if(!CollectionUtils.isEmpty(list)){
+                            SystemConstant constant = list.get(0);
+                            Long time = Integer.parseInt(constant.getConstant())*24*60*60*1000L;
+                            SystemConfig insertConfig = new SystemConfig();
+                            insertConfig.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+                            insertConfig.setRemindTime(getDiffDate(questionnaire.getQuestionnaireEndTime(),time));
+                            insertConfig.setQuestionnaireName(questionnaire.getQuestionnaireName());
+                            this.systemConfigService.insert(insertConfig,account.getUserCode());
+                        }
+                    }catch (Exception e){
+                        log.error("写入提醒表失败,msg:"+e.getMessage(),e);
+                    }
                 }
             }
         }catch (Exception e){
@@ -580,5 +620,17 @@ public class QuestionnaireQuestionController extends BaseController {
         }
         map.put("status",200);
         return map;
+    }
+
+
+    private Date getDiffDate(Date remindDate,Long time){
+        if(remindDate==null){
+            return new Date();
+        }
+        Long diff = remindDate.getTime() - time;
+        if (diff!=null){
+            return DateUtils.timeStamp2Date(diff.toString());
+        }
+        return new Date();
     }
 }

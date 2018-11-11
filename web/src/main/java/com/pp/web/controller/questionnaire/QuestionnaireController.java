@@ -5,8 +5,10 @@ package com.pp.web.controller.questionnaire;
 
 import com.pp.basic.domain.Questionnaire;
 import com.pp.basic.domain.QuestionnaireQuestion;
+import com.pp.basic.domain.QuestionnaireScore;
 import com.pp.basic.domain.SystemUser;
 import com.pp.basic.service.QuestionnaireQuestionService;
+import com.pp.basic.service.QuestionnaireScoreService;
 import com.pp.basic.service.QuestionnaireService;
 import com.pp.common.core.Page;
 import com.pp.common.core.Sort;
@@ -14,6 +16,7 @@ import com.pp.web.account.Account;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import com.pp.web.controller.until.DateUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -45,6 +49,8 @@ public class QuestionnaireController extends BaseController {
     @Autowired
     QuestionnaireQuestionService questionnaireQuestionService;
 
+    @Autowired
+    QuestionnaireScoreService questionnaireScoreService;
     /**
      * 修改数据
      */
@@ -85,7 +91,7 @@ public class QuestionnaireController extends BaseController {
     }
 
     /**
-     * 逻辑删除数据
+     * 逻辑删除数据 同时删除得分表
      */
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
@@ -99,14 +105,27 @@ public class QuestionnaireController extends BaseController {
                 returnMap.put("msg","为管理员操作，当前用户没有管理员权限");
                 return returnMap;
             }
-            int rows = this.questionnaireService.delete(id, account.getUserCode());
-            if (rows == 1) {
-                returnMap.put("status",200);
+            Questionnaire questionnaire = this.questionnaireService.selectOne(id);
+            if(questionnaire==null){
+                returnMap.put("msg","没有找到数据，不能删除");
+                return returnMap;
+            }
+            this.questionnaireService.delete(id, account.getUserCode());
+            QuestionnaireScore questionnaireScore = new QuestionnaireScore();
+            questionnaireScore.setQuestionnaireCode(questionnaire.getQuestionnaireCode());
+            List<QuestionnaireScore> list = this.questionnaireScoreService.selectList(questionnaireScore);
+            if(!CollectionUtils.isEmpty(list)){
+                List<Long> delIds = new ArrayList<>();
+                for(QuestionnaireScore del:list){
+                    delIds.add(del.getId());
+                }
+                this.questionnaireScoreService.delete(delIds,account.getUserCode());
             }
         }catch (Exception e){
             returnMap.put("msg",e.getMessage());
             returnMap.put("status",300);
         }
+        returnMap.put("status",200);
         return returnMap;
     }
 

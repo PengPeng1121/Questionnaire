@@ -107,6 +107,30 @@ public class QuestionnaireQuestionAnswerController extends BaseController {
         return returnMap;
     }
 
+    /**
+     *  查询回答的答案
+     */
+    @RequestMapping(value = "/detail", method = {RequestMethod.GET,RequestMethod.POST})
+    @ResponseBody
+    public HashMap<String,Object> detail(String questionnaireCode) {
+        // 返回查询结果
+        HashMap<String,Object> returnMap = new HashMap<String,Object>();
+        if(!StringUtils.isEmpty(questionnaireCode)){
+            QuestionnaireQuestionAnswer answerQuery = new QuestionnaireQuestionAnswer();
+            answerQuery.setQuestionnaireCode(questionnaireCode);
+            // 执行查询
+            List<QuestionnaireQuestionAnswer> answerList = this.questionnaireQuestionAnswerService.selectList(answerQuery);
+            if (answerList!=null){
+                returnMap.put("answerList",answerList);
+                returnMap.put("status",200);
+            }
+            return returnMap;
+        }
+        returnMap.put("msg","没有查询到数据");
+        returnMap.put("status",300);
+        return returnMap;
+    }
+
 
     /**
      *  保存答案
