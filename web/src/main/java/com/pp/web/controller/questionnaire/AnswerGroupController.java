@@ -187,15 +187,15 @@ public class AnswerGroupController extends BaseController {
                 reason.append("选项组名称;");
                 flag = false;
             }
-            if (row.getCell(0) == null || row.getCell(0).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+            if (row.getCell(2) == null || row.getCell(2).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
                 reason.append("答案;");
                 flag = false;
             }
-            if (row.getCell(1) == null || row.getCell(1).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+            if (row.getCell(3) == null || row.getCell(4).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
                 reason.append("答案值;");
                 flag = false;
             }
-            if (row.getCell(0) == null || row.getCell(0).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
+            if (row.getCell(4) == null || row.getCell(4).getCellType() == HSSFCell.CELL_TYPE_BLANK) {
                 reason.append("答案得分;");
                 flag = false;
             }
@@ -206,12 +206,41 @@ public class AnswerGroupController extends BaseController {
         if (!flag) {
             return false;
         }
-        answerGroup.setGroupCode(row.getCell(0).toString().trim());
-        answerGroup.setGroupName(row.getCell(1).toString().trim());
-        answerGroup.setAnswer(row.getCell(2).toString().trim());
-        answerGroup.setAnswerValue(row.getCell(3).toString().trim());
+
+        //20190902
+        //去掉结尾.0
+        if(row.getCell(0).toString().endsWith(".0")) {
+            answerGroup.setGroupCode(row.getCell(0).toString().substring(0,row.getCell(0).toString().indexOf(".")));
+        }else {
+            answerGroup.setGroupCode(row.getCell(0).toString().trim());
+        }
+
+        if(row.getCell(1).toString().endsWith(".0")) {
+            answerGroup.setGroupName(row.getCell(1).toString().substring(0,row.getCell(1).toString().indexOf(".")));
+        }else {
+            answerGroup.setGroupName(row.getCell(1).toString().trim());
+        }
+
+        if(row.getCell(2).toString().endsWith(".0")) {
+            answerGroup.setAnswer(row.getCell(2).toString().substring(0,row.getCell(2).toString().indexOf(".")));
+        }else {
+            answerGroup.setAnswer(row.getCell(2).toString().trim());
+        }
+
+        if(row.getCell(3).toString().endsWith(".0")) {
+            answerGroup.setAnswerValue(row.getCell(3).toString().substring(0,row.getCell(3).toString().indexOf(".")));
+        }else {
+            answerGroup.setAnswerValue(row.getCell(3).toString().trim());
+        }
+
         try{
-            answerGroup.setAnswerScore(Integer.parseInt(row.getCell(4).toString().trim()));
+
+            if(row.getCell(4).toString().endsWith(".0")) {
+                answerGroup.setAnswerScore(Integer.parseInt(row.getCell(4).toString().substring(0,row.getCell(4).toString().indexOf("."))));
+            }else {
+                answerGroup.setAnswerScore(Integer.parseInt(row.getCell(4).toString().trim()));
+            }
+
         }catch (Exception e){
             log.error("答案得分输入的应该是数字，导入失败！！msg:"+e.getMessage());
             throw new IllegalArgumentException("答案得分输入的应该是数字，导入失败！");

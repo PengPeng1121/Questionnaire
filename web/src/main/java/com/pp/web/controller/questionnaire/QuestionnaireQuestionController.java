@@ -376,7 +376,22 @@ public class QuestionnaireQuestionController extends BaseController {
             if (row.getCell(0).toString().equals("选择题") ){
                 questionnaireQuestion.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_CHOICE);
                 questionnaireQuestion.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_CHOICE);
-                questionnaireQuestion.setAnswerGroup(row.getCell(3).toString());
+                //选项组
+                String answerGroup = row.getCell(3).toString();
+                if(answerGroup.endsWith(".0")){
+                    answerGroup = answerGroup.substring(0,answerGroup.indexOf("."));
+                }
+                questionnaireQuestion.setAnswerGroup(answerGroup);
+                //权重
+                String questionScore = row.getCell(4).toString();
+                if(StringUtils.isNotBlank(questionScore)){
+                    if(questionScore.endsWith(".0")){
+                        questionScore = questionScore.substring(0,questionScore.indexOf("."));
+                    }
+                    questionnaireQuestion.setQuestionScore(Integer.parseInt(questionScore));
+                }else {
+                    questionnaireQuestion.setQuestionScore(1);
+                }
             } else {
                 questionnaireQuestion.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_DESC);
                 questionnaireQuestion.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_DESC);

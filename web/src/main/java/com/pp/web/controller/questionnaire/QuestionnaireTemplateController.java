@@ -35,11 +35,11 @@ import java.util.*;
 
 /**
  * 问卷模板表Controller
- * 
+ *
  * @author
  */
 @Controller
-@RequestMapping("/web/questionnairetemplate")
+@RequestMapping("/test/questionnairetemplate")
 public class QuestionnaireTemplateController extends BaseController {
 
     @Autowired
@@ -199,7 +199,7 @@ public class QuestionnaireTemplateController extends BaseController {
                 }
                 if (CollectionUtils.isNotEmpty(questionTemplates)) {
                     try {
-                        this.questionnaireTemplateService.saveTemplate(template,questionTemplates,account.getUserCode());
+                        this.questionnaireTemplateService.saveTemplate(template,questionTemplates,"SYSTEM");
                     } catch (Exception r) {
                         map.put("msg","写入失败：" + r.getMessage());
                     }
@@ -262,8 +262,26 @@ public class QuestionnaireTemplateController extends BaseController {
             if (row.getCell(0).toString().equals("选择题") ){
                 questionTemplate.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_CHOICE);
                 questionTemplate.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_CHOICE);
-                questionTemplate.setAnswerGroup(row.getCell(3).toString());
-                questionTemplate.setQuestionScore(Integer.parseInt(row.getCell(4).toString()));
+//                questionTemplate.setAnswerGroup(row.getCell(3).toString());
+//                questionTemplate.setQuestionScore(Integer.parseInt(row.getCell(4).toString()));
+
+                //选项组
+                String answerGroup = row.getCell(3).toString();
+                if(answerGroup.endsWith(".0")){
+                    answerGroup = answerGroup.substring(0,answerGroup.indexOf("."));
+                }
+                questionTemplate.setAnswerGroup(answerGroup);
+                //权重
+                String questionScore = row.getCell(4).toString();
+                if(StringUtils.isNotBlank(questionScore)){
+                    if(questionScore.endsWith(".0")){
+                        questionScore = questionScore.substring(0,questionScore.indexOf("."));
+                    }
+                    questionTemplate.setQuestionScore(Integer.parseInt(questionScore));
+                }else {
+                    questionTemplate.setQuestionScore(1);
+                }
+
             } else {
                 questionTemplate.setQuestionTypeCode(QuestionnaireQuestion.QUESTION_TYPE_CODE_DESC);
                 questionTemplate.setQuestionTypeName(QuestionnaireQuestion.QUESTION_TYPE_NAME_DESC);

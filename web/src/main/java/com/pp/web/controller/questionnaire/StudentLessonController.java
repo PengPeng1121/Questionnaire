@@ -3,10 +3,12 @@
  */
 package com.pp.web.controller.questionnaire;
 
+import com.pp.basic.domain.Lesson;
 import com.pp.basic.domain.StudentLesson;
 import com.pp.basic.domain.SystemUser;
 import com.pp.basic.domain.Teacher;
 import com.pp.basic.domain.vo.InitStudentLessonFail;
+import com.pp.basic.service.LessonService;
 import com.pp.basic.service.StudentLessonService;
 import com.pp.basic.service.TeacherService;
 import com.pp.common.core.Page;
@@ -44,7 +46,7 @@ import java.util.Map;
  * @author
  */
 @Controller
-@RequestMapping("/web/studentlesson")
+@RequestMapping("/test/studentlesson")
 public class StudentLessonController extends BaseController {
 
     @Autowired
@@ -52,6 +54,9 @@ public class StudentLessonController extends BaseController {
 
     @Autowired
     TeacherService teacherService;
+
+    @Autowired
+    LessonService lessonService;
 
     Logger log = LoggerFactory.getLogger(StudentLessonController.class.getName());
 
@@ -141,16 +146,28 @@ public class StudentLessonController extends BaseController {
                     map.put("msg", "请首先导入教师！！");
                     return map;
                 }
+
+                List<Lesson> lessonList = this.lessonService.selectAll();
+                if(CollectionUtils.isEmpty(lessonList)){
+                    map.put("msg", "请首先导入课程！！");
+                    return map;
+                }
+                //教师组
                 HashMap<String,String> teacherMap = new HashMap<>();
                 for (Teacher teacher:teacherList) {
                     teacherMap.put(teacher.getTeacherName(),teacher.getTeacherCode());
+                }
+                //课程组
+                HashMap<String,Object> lessonMap = new HashMap<>();
+                for (Lesson lesson:lessonList) {
+                    lessonMap.put(lesson.getLessonCode(),lesson.getIsMustCheck());
                 }
                 List<StudentLesson> studentLessonList = new ArrayList<>();
                 for (int i = 2; i <= rows; i++) {
                     InitStudentLessonFail failData = new InitStudentLessonFail();
                     HSSFRow row = sheet.getRow(i);
                     if (row != null) {
-                        StudentLesson initStudent = checkIsEmpty(failData,row,i,teacherMap);
+                        StudentLesson initStudent = checkIsEmpty(failData,row,i,teacherMap,lessonMap);
                         if (failData.getFailReason() == null) {
                             studentLessonList.add(initStudent);
                         } else {
@@ -202,6 +219,7 @@ public class StudentLessonController extends BaseController {
                             this.studentLessonService.insert(subList,account.getUserCode());
                         } catch (Exception r) {
                             map.put("msg","写入失败：" + r.getMessage());
+                            return map;
                         }
                         subList = new ArrayList<>();
                     }
@@ -209,9 +227,11 @@ public class StudentLessonController extends BaseController {
                 //处理结余的
                 if (subList.size() > 0) {
                     try {
-                        this.studentLessonService.insert(subList,account.getUserCode());
+                        this.studentLessonService.insert(subList,"SYSTEM");
                     } catch (Exception r) {
+                        log.error(r.getMessage(),r);
                         map.put("msg","写入失败：" + r.getMessage());
+                        return map;
                     }
                 }
                 if (CollectionUtils.isNotEmpty(resultList)) {
@@ -233,7 +253,7 @@ public class StudentLessonController extends BaseController {
     }
 
     //根据规则 过滤一行中必须填的内容 是否为空
-    private StudentLesson checkIsEmpty(InitStudentLessonFail data,HSSFRow row,int i,HashMap<String,String> teacherMap) {
+    private StudentLesson checkIsEmpty(InitStudentLessonFail data,HSSFRow row,int i,HashMap<String,String> teacherMap,HashMap<String,Object> lessonMap) {
         StudentLesson studentLesson = new StudentLesson();
         StringBuilder reason = new StringBuilder("");
         reason.append("第").append(i + 1).append("行的");
@@ -277,12 +297,53 @@ public class StudentLessonController extends BaseController {
             throw new IllegalArgumentException("没有该教师（！"+row.getCell(5).toString().trim()+")信息");
         }
         //本系统的课程编码为 东大的课程编码+"_"+教师编码+"_"+学期
-        String lessonCode = row.getCell(0).toString().trim()+"_"+teacherCode+"_"+row.getCell(4).toString().trim();
+        String neuLessonCode = row.getCell(0).toString().trim();
+        if(neuLessonCode.endsWith(".0")){
+            neuLessonCode = neuLessonCode.substring(0,neuLessonCode.indexOf("."));
+        }
+        //学期
+        String term = row.getCell(4).toString().trim();
+        if(term.endsWith(".0")){
+            term = term.substring(0,term.indexOf("."));
+        }
 
-        studentLesson.setTerm(row.getCell(4).toString().trim());
-        studentLesson.setStudentName(row.getCell(3).toString().trim());
-        studentLesson.setStudentCode(row.getCell(2).toString().trim());
-        studentLesson.setLessonName(row.getCell(1).toString().trim());
+        String lessonCode = neuLessonCode+"_"+teacherCode+"_"+term;
+
+        //是否必修
+        Object isMustCheck = lessonMap.get(lessonCode);
+
+        if(isMustCheck==null){
+            studentLesson.setIsMustCheck(99);//错误数据99
+        }else {
+            studentLesson.setIsMustCheck((Integer) isMustCheck);
+        }
+
+        studentLesson.setTerm(term);
+//        studentLesson.setTerm(row.getCell(4).toString().trim());
+//        studentLesson.setStudentName(row.getCell(3).toString().trim());
+        //学生姓名
+        String studentName = row.getCell(3).toString().trim();
+        if(studentName.endsWith(".0")){
+            studentName = studentName.substring(0,studentName.indexOf("."));
+        }
+        studentLesson.setStudentName(studentName);
+
+        //学号
+        String studentCode = row.getCell(2).toString().trim();
+        if(studentCode.endsWith(".0")){
+            studentCode = studentCode.substring(0,studentCode.indexOf("."));
+        }
+        studentLesson.setStudentCode(studentCode);
+//        studentLesson.setStudentCode(row.getCell(2).toString().trim());
+
+        //课程名称
+        String lessonName = row.getCell(1).toString().trim();
+        if(lessonName.endsWith(".0")){
+            lessonName = lessonName.substring(0,lessonName.indexOf("."));
+        }
+        studentLesson.setLessonName(lessonName);
+
+//        studentLesson.setLessonName(row.getCell(1).toString().trim());
         studentLesson.setLessonCode(lessonCode);
         return studentLesson;
     }

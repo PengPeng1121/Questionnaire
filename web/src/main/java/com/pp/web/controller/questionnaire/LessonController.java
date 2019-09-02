@@ -210,8 +210,10 @@ public class LessonController extends BaseController {
         return lessons;
     }
 
+
     @RequestMapping(value = "/InitLessonData", method = RequestMethod.POST)
     @ResponseBody
+    @Deprecated
     public Map<String,Object> InitLessonData(Model model, @RequestParam("fileLessonUpload") MultipartFile file) {
         HashMap<String,Object> map = new HashMap<>();
         map.put("status", 302);
@@ -404,8 +406,20 @@ public class LessonController extends BaseController {
 
         try{
             String teacherCode = teacherMap.get(row.getCell(3).toString().trim());
-            //本系统的课程编码为 东大的课程编码+"_"+教师编码+"_"+学期
-            String lessonCode = row.getCell(0).toString().trim()+"_"+teacherCode+"_"+row.getCell(4).toString().trim();
+//            //本系统的课程编码为 东大的课程编码+"_"+教师编码+"_"+学期
+
+            String neuLessonCode = row.getCell(0).toString().trim();
+            if(neuLessonCode.endsWith(".0")){
+                neuLessonCode = neuLessonCode.substring(0,neuLessonCode.indexOf("."));
+            }
+            //学期
+            String term = row.getCell(4).toString().trim();
+            if(term.endsWith(".0")){
+                term = term.substring(0,term.indexOf("."));
+            }
+
+            String lessonCode = neuLessonCode+"_"+teacherCode+"_"+term;
+//            String lessonCode = row.getCell(0).toString().trim()+"_"+teacherCode+"_"+row.getCell(4).toString().trim();
 
             if (row.getCell(2).toString().trim().equals("0")){
                 lesson.setLessonTypeCode(row.getCell(2).toString());
@@ -430,7 +444,9 @@ public class LessonController extends BaseController {
             lesson.setLessonName(row.getCell(1).toString().trim());
             lesson.setLessonTeacherCode(teacherCode);
             lesson.setLessonTeacherName(row.getCell(3).toString().trim());
-            lesson.setTerm(row.getCell(4).toString().trim());
+
+            //去掉.0
+            lesson.setTerm(term);
 
             if(StringUtils.isEmpty(teacherCode)){
                 throw new IllegalArgumentException("没有该教师（！"+row.getCell(3).toString().trim()+")信息");
@@ -439,7 +455,7 @@ public class LessonController extends BaseController {
             teacherLesson.setLessonName(row.getCell(1).toString().trim());
             teacherLesson.setTeacherCode(teacherCode);
             teacherLesson.setTeacherName(row.getCell(3).toString().trim());
-            teacherLesson.setTerm(row.getCell(4).toString().trim());
+            teacherLesson.setTerm(term);
 
             lessonContrast.setLessonCode(lessonCode);
             lessonContrast.setLessonCodeNeu(row.getCell(0).toString().trim());

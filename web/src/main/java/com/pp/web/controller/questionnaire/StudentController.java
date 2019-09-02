@@ -16,6 +16,7 @@ import com.pp.web.common.SystemCommon;
 import com.pp.web.controller.BaseController;
 import com.pp.web.controller.until.AccountUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -257,11 +258,49 @@ public class StudentController extends BaseController {
             data.setFailReason(reason.toString());
             return new InitStudent();
         }
-        initStudent.setIsStudentGraduate(Integer.parseInt(row.getCell(4).toString()));
-        initStudent.setStudentClass(row.getCell(3).toString().trim());
-        initStudent.setStudentGrade(row.getCell(2).toString().trim());
-        initStudent.setStudentName(row.getCell(1).toString().trim());
-        initStudent.setStudentCode(row.getCell(0).toString().trim());
+
+        //是否毕业
+        String isStudentGraduate = row.getCell(4).toString();
+        if(StringUtils.isNotBlank(isStudentGraduate)){
+            if(isStudentGraduate.endsWith(".0")){
+                isStudentGraduate = isStudentGraduate.substring(0,isStudentGraduate.indexOf("."));
+            }else {
+                isStudentGraduate = "99";//错误数据99
+            }
+        }
+        initStudent.setIsStudentGraduate(Integer.parseInt(isStudentGraduate));
+        //班级
+        String studentClass = row.getCell(3).toString();
+        if(studentClass.endsWith(".0")){
+            studentClass = studentClass.substring(0,studentClass.indexOf("."));
+        }
+        initStudent.setStudentClass(studentClass);
+
+//        initStudent.setStudentClass(row.getCell(3).toString().trim());
+
+        //班级
+        String studentGrade = row.getCell(2).toString().trim();
+        if(studentGrade.endsWith(".0")){
+            studentGrade = studentGrade.substring(0,studentGrade.indexOf("."));
+        }
+        initStudent.setStudentGrade(studentGrade);
+//        initStudent.setStudentGrade(row.getCell(2).toString().trim());
+
+        //姓名
+        String studentName = row.getCell(1).toString().trim();
+        if(studentName.endsWith(".0")){
+            studentName = studentName.substring(0,studentName.indexOf("."));
+        }
+        initStudent.setStudentName(studentName);
+//        initStudent.setStudentName(row.getCell(1).toString().trim());
+
+        //学号
+        String studentCode = row.getCell(0).toString().trim();
+        if(studentName.endsWith(".0")){
+            studentCode = studentCode.substring(0,studentCode.indexOf("."));
+        }
+        initStudent.setStudentCode(studentCode);
+//        initStudent.setStudentCode(row.getCell(0).toString().trim());
         return initStudent;
     }
 
