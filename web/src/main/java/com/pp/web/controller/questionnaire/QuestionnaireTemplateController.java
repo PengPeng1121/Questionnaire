@@ -199,7 +199,7 @@ public class QuestionnaireTemplateController extends BaseController {
                 }
                 if (CollectionUtils.isNotEmpty(questionTemplates)) {
                     try {
-                        this.questionnaireTemplateService.saveTemplate(template,questionTemplates,"SYSTEM");
+                        this.questionnaireTemplateService.saveTemplate(template,questionTemplates,account.getUserCode());
                     } catch (Exception r) {
                         map.put("msg","写入失败：" + r.getMessage());
                     }
