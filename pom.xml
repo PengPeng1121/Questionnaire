@@ -25,7 +25,7 @@
     <mybatis-spring.version>1.2.4</mybatis-spring.version>
     <commons-dbcp2.version>2.1.1</commons-dbcp2.version>
     <commons-logging.version>1.2</commons-logging.version>
-    <commons.beanutils.version>1.8.3</commons.beanutils.version>
+    <commons.beanutils.version>1.9.2</commons.beanutils.version>
     <commons.dbcp.version>1.4</commons.dbcp.version>
     <servlet-api.version>2.5</servlet-api.version>
     <jackson.version>2.7.2</jackson.version>
