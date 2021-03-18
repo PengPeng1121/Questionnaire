@@ -52,7 +52,7 @@
     <asm.version>3.1</asm.version>
     <commons-io.version>1.3.2</commons-io.version>
     <xom.version>1.2.5</xom.version>
-    <es.version>2.1.1</es.version>
+    <es.version>6.8.13</es.version>
     <json-lib.version>2.3</json-lib.version>
   </properties>
 
