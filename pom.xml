@@ -28,7 +28,7 @@
     <commons.beanutils.version>1.8.3</commons.beanutils.version>
     <commons.dbcp.version>1.4</commons.dbcp.version>
     <servlet-api.version>2.5</servlet-api.version>
-    <jackson.version>2.7.2</jackson.version>
+    <jackson.version>2.12.6.1</jackson.version>
     <gson.version>2.2.2</gson.version>
     <jackson.core.version>2.1.0</jackson.core.version>
     <jackson.mapper.lgpl.version>1.9.3</jackson.mapper.lgpl.version>
